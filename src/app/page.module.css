@@ -1,0 +1,267 @@
+.hero {
+    position: relative;
+    min-height: 90vh;
+    display: flex;
+    align-items: flex-start;
+    overflow: hidden;
+    padding-top: 3rem;
+    /* For sticky header */
+}
+
+/* Background Glow */
+.heroGlow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 120vw;
+    height: 120vh;
+    background: radial-gradient(circle, rgba(0, 255, 163, 0.08) 0%, rgba(0, 0, 0, 0) 70%);
+    pointer-events: none;
+    z-index: -1;
+}
+
+.heroContent {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 4rem;
+    align-items: center;
+}
+
+.leftCol {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.locationBadge {
+    color: var(--accent-primary);
+    font-size: 0.9rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    opacity: 0.9;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.headline {
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out forwards;
+}
+
+.brandWhite {
+    color: #fff;
+    font-weight: 800;
+}
+
+.highlight {
+    /* Use the attached bright green and remove glow */
+    color: #39C931;
+    text-shadow: none;
+    font-weight: 800;
+}
+
+.subheadline {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    max-width: 600px;
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out 0.2s forwards;
+}
+
+.actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out 0.4s forwards;
+}
+
+/* Right Visual */
+.rightCol {
+    position: relative;
+    height: 600px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.floatingCard {
+    position: absolute;
+    /* Slightly narrower cards help spacing and avoid overlap */
+    width: 300px;
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+    opacity: 0;
+    /* Combine entrance and float? No, just entrance for now to avoid transform conflict, 
+       or use a wrapper. For now, simple entrance + hover is safer. */
+    animation: slideInRight 0.8s ease-out forwards;
+}
+
+.floatingCard:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 15px 40px rgba(0, 245, 160, 0.1);
+}
+
+.card1 {
+    top: 8%;
+    left: 6%;
+    z-index: 2;
+    animation-delay: 0.6s;
+}
+
+.card2 {
+    /* Move lower and slightly further left to increase gap from card1 */
+    top: 36%;
+    left: 6%;
+    z-index: 1;
+    background: rgba(6, 40, 28, 0.75);
+    animation-delay: 0.8s;
+}
+
+/* Make the top two floating cards wider for better balance */
+.card1,
+.card2,
+.card3 {
+    width: 440px;
+}
+
+.card3 {
+    top: 64%;
+    left: 6%;
+    z-index: 3;
+    animation-delay: 1.0s;
+}
+
+.cardTitle {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.cardText {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+}
+
+.chipContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+/* Section Strip */
+.featuresStrip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    padding: 4rem 0;
+    margin-top: -4rem;
+    /* Overlap hero slightly */
+    position: relative;
+    z-index: 10;
+}
+
+.featureCard {
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out forwards;
+}
+
+.featureCard:nth-child(1) {
+    animation-delay: 0.6s;
+}
+
+.featureCard:nth-child(2) {
+    animation-delay: 0.8s;
+}
+
+.featureCard:nth-child(3) {
+    animation-delay: 1.0s;
+}
+
+@media (max-width: 1024px) {
+    .headline {
+        font-size: 2.75rem;
+    }
+
+    .heroContent {
+        grid-template-columns: 1fr;
+        gap: 3rem;
+    }
+
+    .rightCol {
+        height: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .floatingCard {
+        position: relative;
+        width: 100%;
+        top: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        left: auto !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .featuresStrip {
+        grid-template-columns: 1fr;
+        margin-top: 2rem;
+        padding-top: 0;
+    }
+
+    .headline {
+        font-size: 2.25rem;
+    }
+}
