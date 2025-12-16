@@ -5,7 +5,7 @@ const nextConfig = {
     return [
       {
         source: "/",
-        destination: "/ev-engineer (or /ev-engineer)",
+        destination: "/ev-engineer",
       },
     ];
   },
