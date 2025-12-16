@@ -1,14 +1,4 @@
 /** @type {import('next').NextConfig} */
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  async rewrites() {
-    return [
-      {
-        source: "/",
-        destination: "/ev-engineer",
-      },
-    ];
-  },
-};
+const nextConfig = {};
 
 export default nextConfig;
