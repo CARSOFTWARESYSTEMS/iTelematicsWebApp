@@ -13,7 +13,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-    title: 'iTelematics® | EV.ENGINEER™',
+    title: 'iTelematics® | Advanced Automotive Telematics Software for EVs',
     description: 'AI-powered advanced automotive telematics software for Electric Vehicles, battery systems, and secure connected mobility.',
     keywords: ['EV telematics', 'automotive telematics software', 'EV battery diagnostics', 'BMS analytics', 'connected mobility', 'EV cybersecurity'],
 };
