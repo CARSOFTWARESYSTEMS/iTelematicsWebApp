@@ -10,10 +10,23 @@ export default function Navbar() {
 
     const toggleMenu = () => setIsOpen(!isOpen);
 
+    const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+
     const navLinks = [
         { name: 'About', href: '/about' },
         { name: 'EV.ENGINEER™', href: '/ev-engineer' },
         { name: 'EV Academy', href: '/academy' },
+        {
+            name: 'Services',
+            href: '#',
+            subLinks: [
+                { name: 'iOS App Development', href: 'https://carsoftwaresystems.com/', external: true },
+                { name: 'Mobile Repair and Services', href: 'https://imacxrepair.com/', external: true },
+                { name: 'eMobility Consultancy Services', href: 'https://carsoftwaresystems.com/', external: true },
+                { name: 'GenAI & Agentic AI Consultancy Services', href: 'https://carsoftwaresystems.com/', external: true }
+
+            ]
+        },
         { name: 'Contact', href: '/contact' },
     ];
 
@@ -27,13 +40,39 @@ export default function Navbar() {
                 {/* Desktop Links */}
                 <div className={styles.links}>
                     {navLinks.map((link) => (
-                        <Link
-                            key={link.name}
-                            href={link.href}
-                            className={`${styles.link} ${pathname === link.href ? styles.active : ''}`}
-                        >
-                            {link.name}
-                        </Link>
+                        <div key={link.name} className={styles.navItem}>
+                            {link.subLinks ? (
+                                <div
+                                    className={styles.dropdownContainer}
+                                    onMouseEnter={() => setOpenDropdown(link.name)}
+                                    onMouseLeave={() => setOpenDropdown(null)}
+                                >
+                                    <span className={`${styles.link} ${openDropdown === link.name ? styles.active : ''}`}>
+                                        {link.name} <span className={styles.arrow}>▼</span>
+                                    </span>
+                                    <div className={`${styles.dropdown} ${openDropdown === link.name ? styles.show : ''}`}>
+                                        {link.subLinks.map((sub) => (
+                                            <a
+                                                key={sub.name}
+                                                href={sub.href}
+                                                target={sub.external ? "_blank" : "_self"}
+                                                rel={sub.external ? "noopener noreferrer" : ""}
+                                                className={styles.dropdownItem}
+                                            >
+                                                {sub.name}
+                                            </a>
+                                        ))}
+                                    </div>
+                                </div>
+                            ) : (
+                                <Link
+                                    href={link.href}
+                                    className={`${styles.link} ${pathname === link.href ? styles.active : ''}`}
+                                >
+                                    {link.name}
+                                </Link>
+                            )}
+                        </div>
                     ))}
                     <Link href="/contact" className="btn btn-secondary" style={{ padding: '0.5rem 1.25rem', fontSize: '0.9rem' }}>
                         Let's Talk
@@ -48,14 +87,42 @@ export default function Navbar() {
                 {/* Mobile Menu */}
                 <div className={`${styles.mobileMenu} ${isOpen ? styles.open : ''}`}>
                     {navLinks.map((link) => (
-                        <Link
-                            key={link.name}
-                            href={link.href}
-                            className={styles.link}
-                            onClick={() => setIsOpen(false)}
-                        >
-                            {link.name}
-                        </Link>
+                        <div key={link.name}>
+                            {link.subLinks ? (
+                                <>
+                                    <div
+                                        className={`${styles.link} ${styles.mobileSubMenuHeader}`}
+                                        onClick={() => setOpenDropdown(openDropdown === link.name ? null : link.name)}
+                                    >
+                                        {link.name} <span>{openDropdown === link.name ? '▲' : '▼'}</span>
+                                    </div>
+                                    {openDropdown === link.name && (
+                                        <div className={styles.mobileSubLinks}>
+                                            {link.subLinks.map((sub) => (
+                                                <a
+                                                    key={sub.name}
+                                                    href={sub.href}
+                                                    target={sub.external ? "_blank" : "_self"}
+                                                    rel={sub.external ? "noopener noreferrer" : ""}
+                                                    className={styles.mobileSubLink}
+                                                    onClick={() => setIsOpen(false)}
+                                                >
+                                                    {sub.name}
+                                                </a>
+                                            ))}
+                                        </div>
+                                    )}
+                                </>
+                            ) : (
+                                <Link
+                                    href={link.href}
+                                    className={`${styles.link} ${pathname === link.href ? styles.active : ''}`}
+                                    onClick={() => setIsOpen(false)}
+                                >
+                                    {link.name}
+                                </Link>
+                            )}
+                        </div>
                     ))}
                 </div>
             </div>
