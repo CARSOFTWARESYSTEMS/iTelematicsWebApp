@@ -17,7 +17,7 @@ export default function Navbar() {
         { name: 'EV.ENGINEER™', href: '/ev-engineer' },
         { name: 'EV Academy', href: '/academy' },
         {
-            name: 'Services',
+            name: 'Consultancy & Services',
             href: '#',
             subLinks: [
                 { name: 'iOS App Development', href: 'https://carsoftwaresystems.com/', external: true },
