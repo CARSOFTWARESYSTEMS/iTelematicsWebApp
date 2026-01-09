@@ -85,6 +85,8 @@ export default function EVEngineerPage() {
             <div className={styles.useCases}>
                 <h3 style={{ marginBottom: '1.5rem' }}>Common Use Cases</h3>
                 <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '1rem' }}>
+                    <span className="pill">Battery Aadhaar</span>
+                    <span className="pill">Battery Passport</span>
                     <span className="pill">Fleet Battery Monitoring</span>
                     <span className="pill">R&D Battery & Pack Analysis</span>
                     <span className="pill">Service Center Fault Triage</span>
