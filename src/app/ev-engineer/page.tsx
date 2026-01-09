@@ -23,7 +23,7 @@ export default function EVEngineerPage() {
                 <h1 className={styles.title}>EV.ENGINEER™</h1>
                 
                 <p className={styles.intro}>
-                    Solutions for <span style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>Battery Aadhaar & Battery Passport</span> systems.
+                    Solutions for <span style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>Battery Aadhaar</span> & <span style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>Battery Passport</span> systems.
                     <br />
                     AI-powered engineering assistants for diagnostics, safety analysis, and decision-making.
                     <br />
