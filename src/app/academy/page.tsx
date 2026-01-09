@@ -5,6 +5,17 @@ import styles from './academy.module.css';
 export const metadata: Metadata = {
     title: 'EV Academy | Practical EV Engineering Programs & Corporate Training',
     description: 'EV Academy by iTelematics® offers hands-on EV engineering programs, internships, campus collaborations, and corporate workshops powered by EV.ENGINEER™.',
+    keywords: [
+        'Battery Aadhaar',
+        'Battery Passport',
+        'EV Battery Diagnostics',
+        'EV Telematics',
+        'Predictive Maintenance',
+        'Automotive AI Copilot',
+        'Battery SoC SOH RUL',
+        'Engineering AI Agents',
+        'EV Software Platform'
+    ]
 };
 
 export default function AcademyPage() {

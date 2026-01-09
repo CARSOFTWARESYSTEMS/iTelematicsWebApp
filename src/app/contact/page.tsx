@@ -4,6 +4,17 @@ import styles from './contact.module.css';
 export const metadata: Metadata = {
     title: 'Contact | iTelematics Software Private Limited | Bangalore, India',
     description: 'Contact iTelematics Software Private Limited. Powered by EV.ENGINEER™. Email: info@iTelematics.com | Phone: +91 91082 06147 | Bangalore, India.',
+    keywords: [
+        'Battery Aadhaar',
+        'Battery Passport',
+        'EV Battery Diagnostics',
+        'EV Telematics',
+        'Predictive Maintenance',
+        'Automotive AI Copilot',
+        'Battery SoC SOH RUL',
+        'Engineering AI Agents',
+        'EV Software Platform'
+    ]
 };
 
 export default function ContactPage() {

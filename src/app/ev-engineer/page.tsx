@@ -4,13 +4,15 @@ import styles from './eve.module.css';
 
 export const metadata: Metadata = {
     title: 'EV.ENGINEER™ | AI Agents for EV Battery Diagnostics & Automotive Engineering',
-    description: 'EV.ENGINEER™ is an AI-powered engineering assistant platform for EV battery diagnostics, fault analysis, safety assessment, and telematics-driven decision support. Built by iTelematics Software Private Limited, Bangalore, India.',
+    description: 'EV.ENGINEER™ is an AI-powered engineering assistant platform for Battery Aadhaar, EV battery diagnostics, fault analysis, safety assessment, and telematics-driven decision support. Built by iTelematics Software Private Limited, Bangalore, India.',
     keywords: [
+        'Battery Aadhaar',
+        'Battery Passport',
         'EV Battery Diagnostics',
         'EV Telematics',
         'Predictive Maintenance',
         'Automotive AI Copilot',
-        'Battery SOH RUL',
+        'Battery SoC SOH RUL',
         'Engineering AI Agents',
         'EV Software Platform'
     ]

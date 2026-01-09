@@ -4,6 +4,17 @@ import styles from './about.module.css';
 export const metadata: Metadata = {
     title: 'About | iTelematics Software Private Limited (Bangalore, India)',
     description: 'Learn about iTelematics Software Private Limited—engineering-grade EV telematics, battery intelligence, and secure connected mobility. Powered by EV.ENGINEER™. Bangalore, India.',
+    keywords: [
+        'Battery Aadhaar',
+        'Battery Passport',
+        'EV Battery Diagnostics',
+        'EV Telematics',
+        'Predictive Maintenance',
+        'Automotive AI Copilot',
+        'Battery SoC SOH RUL',
+        'Engineering AI Agents',
+        'EV Software Platform'
+    ]
 };
 
 export default function AboutPage() {
