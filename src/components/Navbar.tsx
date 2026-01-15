@@ -20,10 +20,9 @@ export default function Navbar() {
             name: 'Consultancy & Services',
             href: '#',
             subLinks: [
-                { name: 'iOS App Development', href: 'https://carsoftwaresystems.com/', external: true },
+                { name: 'Battery Pack Aadhaar Services', href: '/public/EV.ENGINEER - Battery Pack Aadhaar - Krutarth S Karkala.pdf', external: true },
                 { name: 'Mobile Repair and Services', href: 'https://imacxrepair.com/', external: true },
-                { name: 'eMobility Consultancy Services', href: 'https://carsoftwaresystems.com/', external: true },
-                { name: 'GenAI & Agentic AI Consultancy Services', href: 'https://carsoftwaresystems.com/', external: true }
+                { name: 'AI Driven Solutions', href: 'https://krutarth.in', external: true }
 
             ]
         },
