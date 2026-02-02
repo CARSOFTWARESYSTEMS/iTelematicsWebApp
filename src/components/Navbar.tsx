@@ -15,6 +15,7 @@ export default function Navbar() {
     const navLinks = [
         { name: 'About', href: '/about' },
         { name: 'EV.ENGINEER™', href: '/ev-engineer' },
+        { name: 'eVTOL', href: '/evtol' },
         {
             name: 'EV Academy',
             href: '/academy',
@@ -22,7 +23,6 @@ export default function Navbar() {
                 { name: 'EV Workshops', href: 'https://labs.ev.engineer/', external: true },
                 { name: 'FAQ - Frequently Asked Questions', href: '/public/iTelematics-FrequentlyAskedQuestions.pdf', external: true }
             ]
-
         },
         {
             name: 'Consultancy & Services',

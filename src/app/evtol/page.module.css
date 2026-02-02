@@ -1,0 +1,226 @@
+/* Reusing core styles from eve.module.css for consistency */
+
+.hero {
+    text-align: center;
+    padding: 6rem 1rem 3rem 1rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.title {
+    font-size: 3rem;
+    color: var(--text-primary);
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    text-shadow: 0 0 20px rgba(76, 169, 48, 0.3);
+}
+
+.subtitle {
+    font-size: 1.5rem;
+    color: var(--accent-primary);
+    margin-bottom: 1rem;
+    font-weight: 500;
+}
+
+.intro {
+    max-width: 900px;
+    margin: 0 auto 2.5rem auto;
+    font-size: 1.15rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    gap: 2rem;
+    margin: 3rem 0;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card {
+    padding: 3rem;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out forwards;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    border-radius: var(--radius-lg);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 245, 160, 0.1);
+}
+
+.card:nth-child(1) {
+    animation-delay: 0.2s;
+}
+
+.card:nth-child(2) {
+    animation-delay: 0.4s;
+}
+
+.cardHeader {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.cardTitle {
+    font-size: 1.75rem;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.cardSubtitle {
+    color: var(--accent-primary);
+    /* Changed to accent-primary for neon green pop */
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+}
+
+.sectionTitle {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+}
+
+.workflowStep {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: monospace;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 0.75rem;
+    border-radius: var(--radius-sm);
+    color: var(--accent-primary);
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    flex-wrap: wrap;
+}
+
+.useCases {
+    text-align: center;
+    margin: 5rem 0;
+}
+
+.ctaSection {
+    text-align: center;
+    margin-top: 5rem;
+    padding: 5rem 2rem;
+    background: radial-gradient(circle, rgba(0, 245, 160, 0.08) 0%, transparent 70%);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* NEW STYLES for eVTOL specific sections */
+
+.highlightsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin: 4rem 0;
+}
+
+.highlightCard {
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-md);
+    text-align: center;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 180px;
+}
+
+.highlightCard:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: var(--accent-primary);
+    transform: translateY(-3px);
+}
+
+.highlightIcon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: var(--accent-primary);
+}
+
+.highlightTitle {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.foundationStrip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    padding: 3rem 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin: 4rem 0;
+    text-align: center;
+}
+
+.foundationItem {
+    padding: 1rem;
+}
+
+.foundationTitle {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    font-weight: 500;
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .title {
+        font-size: 2.25rem;
+    }
+
+    .grid {
+        grid-template-columns: 1fr;
+    }
+
+    .highlightsGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .foundationStrip {
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+
+    .card {
+        padding: 2rem;
+    }
+
+    .ctaSection {
+        padding: 3rem 1.5rem;
+    }
+}

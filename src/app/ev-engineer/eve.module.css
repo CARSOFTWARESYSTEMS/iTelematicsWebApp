@@ -44,6 +44,12 @@
     height: 100%;
     opacity: 0;
     animation: fadeInUp 0.8s ease-out forwards;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 245, 160, 0.1);
 }
 
 .card:nth-child(1) {

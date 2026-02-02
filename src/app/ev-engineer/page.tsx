@@ -23,7 +23,7 @@ export default function EVEngineerPage() {
         <div className="container">
             <div className={styles.hero}>
                 <h1 className={styles.title}>EV.ENGINEER™</h1>
-                
+
                 <p className={styles.intro}>
                     AI-powered engineering assistants for diagnostics, safety analysis, and decision-making.
                     <br />
@@ -89,10 +89,12 @@ export default function EVEngineerPage() {
                 <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '1rem' }}>
                     <span className="pill">Battery Aadhaar</span>
                     <span className="pill">Battery Passport</span>
+                    <span className="pill">EV Motor Diagnostics</span>
                     <span className="pill">Fleet Battery Monitoring</span>
                     <span className="pill">R&D Battery & Pack Analysis</span>
                     <span className="pill">Service Center Fault Triage</span>
                     <span className="pill">Warranty & Failure Validation</span>
+                    <span className="pill">Predictive Maintenance</span>
                 </div>
             </div>
 
