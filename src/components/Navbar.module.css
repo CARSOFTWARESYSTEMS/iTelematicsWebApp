@@ -167,3 +167,72 @@
 .mobileSubLink:last-child {
     border-bottom: none;
 }
+
+/* Nested Dropdown Styles (Desktop) */
+.nestedDropdownContainer {
+    position: relative;
+}
+
+.dropdownItemWithArrow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.dropdownItemWithArrow:hover {
+    background: rgba(0, 245, 160, 0.1);
+    color: var(--text-primary);
+    padding-left: 1.75rem;
+}
+
+.arrowRight {
+    font-size: 0.7rem;
+    margin-left: 0.8rem;
+    opacity: 0.7;
+}
+
+.nestedDropdown {
+    position: absolute;
+    top: 0;
+    left: 100%;
+    margin-left: 0.5rem;
+    background: rgba(4, 20, 14, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    min-width: 220px;
+    padding: 0.8rem 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    z-index: 1001;
+}
+
+.nestedDropdown.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Mobile Nested Submenu Styles */
+.mobileNestedHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    font-weight: 600;
+    background: rgba(0, 245, 160, 0.05);
+}
+
+.mobileNestedSubLinks {
+    background: rgba(255, 255, 255, 0.02);
+    border-left: 2px solid rgba(0, 245, 160, 0.3);
+}
