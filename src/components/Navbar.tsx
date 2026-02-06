@@ -21,13 +21,6 @@ export default function Navbar() {
             href: '/academy'
         },
         {
-            name: 'EV & AI Toolkits',
-            href: '#',
-            subLinks: [
-                { name: 'Online Certificate generator', href: 'https://mount-shove-70578530.figma.site/', external: true }
-            ]
-        },
-        {
             name: 'Consultancy & Services',
             href: '#',
             subLinks: [
@@ -35,7 +28,13 @@ export default function Navbar() {
                 { name: 'Battery Pack Aadhaar Services', href: '/public/EV.ENGINEER - Battery Pack Aadhaar - Krutarth S Karkala.pdf', external: true },
                 { name: 'Mobile Repair and Services', href: 'https://imacxrepair.com/', external: true },
                 { name: 'AI Driven Solutions', href: 'https://krutarth.in', external: true },
-                { name: 'FAQ - Frequently Asked Questions', href: '/public/iTelematics-FrequentlyAskedQuestions.pdf', external: true }
+                { name: 'FAQ - Frequently Asked Questions', href: '/public/iTelematics-FrequentlyAskedQuestions.pdf', external: true },
+                {
+                    name: 'EV & AI Toolkits',
+                    href: '#', subLinks: [
+                        { name: 'Online Certificate generator', href: 'https://mount-shove-70578530.figma.site/', external: true }
+                    ]
+                }
 
             ]
         },
