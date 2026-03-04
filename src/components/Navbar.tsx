@@ -39,7 +39,8 @@ export default function Navbar() {
                     name: 'Papers & Presentations',
                     href: '#',
                     subLinks: [
-                        { name: 'Battery Pack Aadhaar Services', href: '/public/EV.ENGINEER - Battery Pack Aadhaar - Krutarth S Karkala.pdf', external: true }
+                        { name: 'Battery Pack Aadhaar Services', href: '/public/EV.ENGINEER - Battery Pack Aadhaar - Krutarth S Karkala.pdf', external: true },
+                        { name: 'Battery Pack Aadhaar Services (POC/UX)', href: 'https://stack-beta-65283525.figma.site/', external: true }
                     ]
                 },
                 {
