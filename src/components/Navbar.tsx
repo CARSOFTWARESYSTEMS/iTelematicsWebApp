@@ -24,7 +24,6 @@ export default function Navbar() {
     const navLinks: NavLink[] = [
         { name: 'About', href: '/about' },
         { name: 'EV.ENGINEER™', href: '/ev-engineer' },
-        { name: 'eVTOL', href: '/evtol' },
         {
             name: 'EV Academy',
             href: '/academy'
