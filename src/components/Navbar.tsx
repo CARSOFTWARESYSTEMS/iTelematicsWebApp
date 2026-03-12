@@ -32,7 +32,18 @@ export default function Navbar() {
             name: 'Consultancy & Services',
             href: '#',
             subLinks: [
-                { name: 'EV Workshops', href: 'https://labs.ev.engineer/', external: true },
+
+                {
+                    name: 'EV & Battery Workshops',
+                    href: '#',
+                    subLinks: [
+                        { name: 'EV Workshops', href: 'https://labs.ev.engineer/', external: true },
+                        { name: 'Battery Workshops', href: 'https://battery.ev.engineer/', external: true },
+                        { name: 'Motor Workshops', href: '#', external: true },
+
+                    ]
+                },
+
                 { name: 'Mobile Repair and Services', href: 'https://imacxrepair.com/', external: true },
                 {
                     name: 'Papers & Presentations',
