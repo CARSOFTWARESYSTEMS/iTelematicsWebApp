@@ -43,7 +43,6 @@ export default function Navbar() {
 
                     ]
                 },
-
                 { name: 'Mobile Repair and Services', href: 'https://imacxrepair.com/', external: true },
                 {
                     name: 'Papers & Presentations',
