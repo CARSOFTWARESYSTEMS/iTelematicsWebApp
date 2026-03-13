@@ -40,10 +40,10 @@ export default function Navbar() {
                         { name: 'EV Workshops', href: 'https://labs.ev.engineer/', external: true },
                         { name: 'Battery Workshops', href: 'https://battery.ev.engineer/', external: true },
                         { name: 'Motor Workshops', href: '#', external: true },
+                        { name: 'Mobile Workshops', href: 'https://imacxrepair.com/', external: true }
 
                     ]
                 },
-                { name: 'Mobile Repair and Services', href: 'https://imacxrepair.com/', external: true },
                 {
                     name: 'Papers & Presentations',
                     href: '#',
