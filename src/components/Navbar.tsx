@@ -41,7 +41,6 @@ export default function Navbar() {
                         { name: 'Battery Workshops', href: 'https://battery.ev.engineer/', external: true },
                         { name: 'Motor Workshops', href: '#', external: true },
                         { name: 'Mobile Workshops', href: 'https://imacxrepair.com/', external: true }
-
                     ]
                 },
                 {
