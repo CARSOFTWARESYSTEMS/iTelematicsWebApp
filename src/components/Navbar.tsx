@@ -65,7 +65,7 @@ export default function Navbar() {
                     href: '#',
                     subLinks: [
                         { name: 'Online Webinar Poster Generator', href: 'https://stove-trial-23088417.figma.site/', external: true },
-                        { name: 'Online Certificate Generator', href: 'https://mount-shove-70578530.figma.site/', external: true },
+                        { name: 'Online Certificate Generator', href: 'https://flat-warmth-44999728.figma.site', external: true },
                         { name: 'Chess Puzzle Generator', href: 'https://krutarth.in', external: true },
                     ]
                 },
