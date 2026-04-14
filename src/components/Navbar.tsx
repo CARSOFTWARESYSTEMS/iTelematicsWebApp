@@ -32,7 +32,7 @@ export default function Navbar() {
             name: 'Consultancy & Services',
             href: '#',
             subLinks: [
-
+                { name: 'Autonomous EV Concepts', href: 'https://autonomous.ev.engineer/', external: true },
                 {
                     name: 'EV & Battery Workshops',
                     href: '#',
