@@ -14,7 +14,8 @@ export const metadata: Metadata = {
         'Automotive AI Copilot',
         'Battery SoC SOH RUL',
         'Engineering AI Agents',
-        'EV Software Platform'
+        'EV Software Platform',
+        'Autonomous EV'
     ]
 };
 
@@ -64,7 +65,7 @@ export default function EVEngineerPage() {
                 {/* Card 2 */}
                 <div className={`bg-glass ${styles.card}`}>
                     <div className={styles.cardHeader}>
-                        <h2 className={styles.cardTitle}>Automotive AI Copilot</h2>
+                        <h2 className={styles.cardTitle}>AI Copilot for Autonomous EV</h2>
                         <span className={styles.cardSubtitle}>RAG-based Decision Support</span>
                     </div>
 
@@ -95,6 +96,7 @@ export default function EVEngineerPage() {
                     <span className="pill">Service Center Fault Triage</span>
                     <span className="pill">Warranty & Failure Validation</span>
                     <span className="pill">Predictive Maintenance</span>
+                    <span className="pill">Autonomous EV</span>
                 </div>
             </div>
 
