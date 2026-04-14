@@ -64,7 +64,7 @@ export default function EVEngineerPage() {
                 {/* Card 2 */}
                 <div className={`bg-glass ${styles.card}`}>
                     <div className={styles.cardHeader}>
-                        <h2 className={styles.cardTitle}>Automotive AI Copilot</h2>
+                        <h2 className={styles.cardTitle}>AI Copilot for Autonomous EV</h2>
                         <span className={styles.cardSubtitle}>RAG-based Decision Support</span>
                     </div>
 
