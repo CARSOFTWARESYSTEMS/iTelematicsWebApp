@@ -32,14 +32,14 @@ export default function Navbar() {
             name: 'Consultancy & Services',
             href: '#',
             subLinks: [
-                { name: 'Autonomous EV Concepts', href: 'https://autonomous.ev.engineer/', external: true },
                 {
-                    name: 'EV & Battery Workshops',
+                    name: 'EV, AV & Battery Workshops',
                     href: '#',
                     subLinks: [
+                        { name: 'AV Workshops', href: 'https://autonomous.ev.engineer/', external: true },
                         { name: 'EV Workshops', href: 'https://repair.ev.engineer/', external: true },
                         { name: 'Battery Workshops', href: 'https://battery.ev.engineer/', external: true },
-                        { name: 'Motor Workshops', href: '#', external: true },
+                        { name: 'Energy Research', href: 'https://autonomous.ev.engineer/si-ems', external: true },
                         { name: 'Mobile Workshops', href: 'https://imacxrepair.com/', external: true },
                         { name: 'EV Training', href: 'https://labs.ev.engineer/', external: true }
                     ]
