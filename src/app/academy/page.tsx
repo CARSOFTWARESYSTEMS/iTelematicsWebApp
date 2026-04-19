@@ -61,7 +61,7 @@ export default function AcademyPage() {
                         </p>
                     </div>
                     <Link href="https://autonomous.ev.engineer/" className="btn btn-secondary">
-                        Live Projects 
+                        Research Projects 
                     </Link>
                 </div>
             </div>
