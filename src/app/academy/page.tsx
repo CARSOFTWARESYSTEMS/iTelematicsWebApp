@@ -57,10 +57,10 @@ export default function AcademyPage() {
                     <div>
                         <h3 className={styles.cardTitle}>Workshops & Training</h3>
                         <p className={styles.cardText}>
-                            Intensive corporate training tracks for upskilling engineering teams in EV software, battery systems, and diagnostics.
+                            Intensive corporate training tracks for upskilling engineering teams in Autonomous EV software development, battery & energy systems, and diagnostics.
                         </p>
                     </div>
-                    <Link href="/contact" className="btn btn-secondary">
+                    <Link href="https://autonomous.ev.engineer/" className="btn btn-secondary">
                         Enquire
                     </Link>
                 </div>
