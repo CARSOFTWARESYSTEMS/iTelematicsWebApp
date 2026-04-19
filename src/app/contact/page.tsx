@@ -74,7 +74,8 @@ export default function ContactPage() {
                                 <span className={styles.label}>Corporate Identity</span>
                                 <p className={styles.value} style={{ fontSize: '0.9rem', opacity: 0.8 }}>
                                     CIN: U72200KA2012PTC065650<br />
-                                    GSTIN: 29AADCI0384D1ZQ
+                                    GSTIN: 29AADCI0384D1ZQ<br />
+                                    MSME: UDYAM-KR-02-0123269
                                 </p>
                             </div>
                         </div>
