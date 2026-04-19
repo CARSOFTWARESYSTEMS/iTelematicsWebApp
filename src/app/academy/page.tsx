@@ -22,7 +22,7 @@ export default function AcademyPage() {
     return (
         <div className="container">
             <div className={styles.hero}>
-                <h1 className={styles.title}>Autonomous EV Academy</h1>
+                <h1 className={styles.title}>EV Academy</h1>
                 <p className={styles.subtitle}>
                     Programs designed to build <span style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>industry-ready EV engineering skills</span> through hands-on labs, real-world data, and production workflows.
                 </p>
