@@ -1,6 +1,6 @@
 .hero {
     text-align: center;
-    padding: 6rem 1rem 0 1rem;
+    padding: 3rem 1rem 0 1rem;
 }
 
 .title {
@@ -15,6 +15,36 @@
     margin: 0 auto;
     font-size: 1.25rem;
     color: var(--text-secondary);
+}
+
+/* Tagline subtitle */
+.tagline {
+    font-size: 1.1rem;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #6db86d;
+    margin: 0 auto 2rem auto;
+    max-width: 900px;
+    line-height: 1.6;
+}
+
+/* Glowing bold keywords */
+.glowWord {
+    font-weight: 700;
+    color: #ffffff;
+    text-shadow: 0 0 6px rgba(61, 181, 61, 0.5);
+    animation: glowPulse 4s ease-in-out infinite;
+    display: inline;
+}
+
+@keyframes glowPulse {
+    0%, 100% {
+        text-shadow: 0 0 6px rgba(61, 181, 61, 0.5);
+    }
+    50% {
+        text-shadow: 0 0 10px rgba(61, 181, 61, 0.7);
+    }
 }
 
 .grid {
@@ -112,6 +142,15 @@
     background: radial-gradient(circle, rgba(0, 245, 160, 0.05) 0%, transparent 70%);
 }
 
+.ctaButtons {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
 @media (max-width: 768px) {
     .title {
         font-size: 2.5rem;
@@ -129,9 +168,14 @@
         padding: 3rem 1.5rem;
     }
 
-    .ctaSection :global(.btn) {
+    .ctaButtons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .ctaButtons :global(.btn) {
         width: 100%;
-        max-width: none;
+        text-align: center;
         padding: 1rem;
     }
 }

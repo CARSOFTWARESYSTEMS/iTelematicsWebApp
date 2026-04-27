@@ -25,14 +25,20 @@ export default function EVEngineerPage() {
             <div className={styles.hero}>
                 <h1 className={styles.title}>EV.ENGINEER™</h1>
 
+                <p className={styles.tagline}>
+                    Building{' '}
+                    <strong className={styles.glowWord}>World-Class Engineers</strong>
+                    {' '}to Solve{' '}
+                    <strong className={styles.glowWord}>Energy</strong>
+                    {' '}and{' '}
+                    <strong className={styles.glowWord}>EV Battery</strong>
+                    {' '}Challenges
+                </p>
+
                 <p className={styles.intro}>
                     AI-powered engineering assistants for diagnostics, safety analysis, and decision-making.
                     <br />
                     Solutions for <span style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>Battery Aadhaar</span> & <span style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>Battery Passport</span> systems.
-                    <br />
-                    <span style={{ display: 'block', marginTop: '1rem', fontSize: '1rem', opacity: 0.8 }}>
-                        Built on real-world EV telematics, battery signals, and engineering knowledge graphs.
-                    </span>
                 </p>
             </div>
 
@@ -102,9 +108,14 @@ export default function EVEngineerPage() {
 
             <div className={styles.ctaSection}>
                 <h2 style={{ marginBottom: '1.5rem' }}>Ready to optimize your EV engineering workflows?</h2>
-                <Link href="/contact" className="btn btn-primary">
-                    Contact for Demo
-                </Link>
+                <div className={styles.ctaButtons}>
+                    <Link href="/contact" className="btn btn-primary">
+                        Contact for Demo
+                    </Link>
+                    <a href="https://autonomous.ev.engineer/" target="_blank" rel="noopener noreferrer" className="btn btn-secondary">
+                        AV Workshops
+                    </a>
+                </div>
             </div>
         </div >
     );
