@@ -48,7 +48,7 @@ export default function AcademyPage() {
                             Hands-on project experience using real-world EV telematics data, battery signals, and diagnostics workflows.
                         </p>
                     </div>
-                    <Link href="/contact" className="btn btn-secondary">
+                    <Link href="https://autonomous.ev.engineer/internships" className="btn btn-secondary">
                         Apply Now
                     </Link>
                 </div>
@@ -61,7 +61,7 @@ export default function AcademyPage() {
                         </p>
                     </div>
                     <Link href="https://autonomous.ev.engineer/" className="btn btn-secondary">
-                        Research Projects 
+                        Research Projects
                     </Link>
                 </div>
             </div>

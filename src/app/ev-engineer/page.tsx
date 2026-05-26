@@ -43,6 +43,14 @@ export default function EVEngineerPage() {
             </div>
 
 
+            <div className={styles.ctaButtons}>
+                <Link href="https://autonomous.ev.engineer/internships" className="btn btn-primary">
+                    Industry Internships
+                </Link>
+                <a href="https://autonomous.ev.engineer/" target="_blank" rel="noopener noreferrer" className="btn btn-secondary">
+                    EV Battery Workshops
+                </a>
+            </div>
 
 
             <div className={styles.grid}>
