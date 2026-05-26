@@ -41,8 +41,6 @@ export default function EVEngineerPage() {
                     Solutions for <span style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>Battery Aadhaar</span> & <span style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>Battery Passport</span> systems.
                 </p>
             </div>
-
-
             <div className={styles.ctaButtons}>
                 <Link href="https://autonomous.ev.engineer/internships" className="btn btn-primary">
                     Industry Internships
