@@ -69,6 +69,8 @@ export default function Navbar() {
                         { name: 'Online Webinar Poster Generator', href: 'https://stove-trial-23088417.figma.site/', external: true },
                         { name: 'Online Certificate Generator', href: 'https://flat-warmth-44999728.figma.site', external: true },
                         { name: 'Chess Puzzle Generator', href: 'https://krutarth.in', external: true },
+                        { name: 'EV Society portal', href: 'https://www.evsociety.org/', external: true },
+                        
                     ]
                 },
                 { name: 'FAQ - Frequently Asked Questions', href: '/public/iTelematics-FrequentlyAskedQuestions.pdf', external: true }
