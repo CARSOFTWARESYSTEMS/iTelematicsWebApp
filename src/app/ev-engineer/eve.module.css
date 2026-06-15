@@ -1,6 +1,6 @@
 .hero {
     text-align: center;
-    padding: 3rem 1rem 0 1rem;
+    padding: 0.5rem 1rem 0 1rem;
 }
 
 .title {
@@ -12,9 +12,10 @@
 
 .intro {
     max-width: 1000px;
-    margin: 0 auto;
+    margin: 2rem auto 3rem auto;
     font-size: 1.25rem;
     color: var(--text-secondary);
+    text-align: center;
 }
 
 /* Tagline subtitle */
@@ -25,8 +26,8 @@
     text-transform: uppercase;
     color: #6db86d;
     margin: 0 auto 2rem auto;
-    max-width: 900px;
     line-height: 1.6;
+    white-space: nowrap;
 }
 
 /* Glowing bold keywords */
@@ -177,5 +178,85 @@
         width: 100%;
         text-align: center;
         padding: 1rem;
+    }
+
+    .imageHeroContainer {
+        min-height: auto;
+        padding: 1.5rem 0;
+        margin-bottom: 0.5rem;
+    }
+
+    .imageWrapper {
+        border-radius: var(--radius-md);
+        border-width: 1.5px;
+    }
+
+    .heroImage {
+        border-radius: calc(var(--radius-md) - 1.5px);
+    }
+
+    .tagline {
+        white-space: normal;
+    }
+}
+
+/* Image Hero Section */
+.imageHeroContainer {
+    width: 100%;
+    min-height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem 0 0.5rem 0;
+    margin-bottom: 0.5rem;
+    perspective: 1200px;
+}
+
+.imageWrapper {
+    width: 100%;
+    max-width: 1100px;
+    position: relative;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 2px solid rgba(76, 169, 48, 0.45);
+    box-shadow: 
+        0 0 30px rgba(76, 169, 48, 0.15), 
+        0 20px 50px rgba(0, 0, 0, 0.6), 
+        inset 0 0 20px rgba(76, 169, 48, 0.05);
+    background: rgba(4, 20, 14, 0.7);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    opacity: 0;
+    transform: translateY(30px) scale(0.96);
+    animation: imageHeroEntrance 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.6s ease, border-color 0.6s ease;
+}
+
+.imageWrapper:hover {
+    transform: translateY(-6px) rotateX(1deg) rotateY(-0.5deg) scale(1.008);
+    box-shadow: 
+        0 0 45px rgba(76, 169, 48, 0.35), 
+        0 30px 60px rgba(0, 0, 0, 0.7), 
+        inset 0 0 30px rgba(76, 169, 48, 0.15);
+    border-color: rgba(76, 169, 48, 0.85);
+}
+
+.heroImage {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: contain;
+    border-radius: calc(var(--radius-lg) - 2px);
+    transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.imageWrapper:hover .heroImage {
+    transform: scale(1.002);
+}
+
+@keyframes imageHeroEntrance {
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
     }
 }

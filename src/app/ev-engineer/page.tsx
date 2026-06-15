@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import Image from 'next/image';
 import styles from './eve.module.css';
 
 export const metadata: Metadata = {
@@ -22,26 +23,34 @@ export const metadata: Metadata = {
 export default function EVEngineerPage() {
     return (
         <div className="container">
+            <div className={styles.imageHeroContainer}>
+                <div className={styles.imageWrapper}>
+                    <Image
+                        src="/images/Sudarshana Karkala EV ENGINEER.png"
+                        alt="Sudarshana Karkala EV ENGINEER - EV ENGINEER"
+                        width={1983}
+                        height={793}
+                        className={styles.heroImage}
+                        priority
+                    />
+                </div>
+            </div>
+
             <div className={styles.hero}>
                 <h1 className={styles.title}>EV.ENGINEER™</h1>
 
                 <p className={styles.tagline}>
                     Building{' '}
-                    <strong className={styles.glowWord}>World-Class Engineers</strong>
-                    {' '}to Solve{' '}
-                    <strong className={styles.glowWord}>Energy</strong>
-                    {' '}and{' '}
-                    <strong className={styles.glowWord}>EV Battery</strong>
-                    {' '}Challenges
-                </p>
-
-                <p className={styles.intro}>
-                    AI-powered engineering assistants for diagnostics, safety analysis, and decision-making.
-                    <br />
-                    Solutions for <span style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>Battery Aadhaar</span> & <span style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>Battery Passport</span> systems.
+                    <strong className={styles.glowWord}>Battery Intelligence</strong>
+                    {', '}
+                    <strong className={styles.glowWord}>Safety</strong>
+                    {' & '}
+                    <strong className={styles.glowWord}>Cybersecurity</strong>
+                    {' for '}
+                    <strong className={styles.glowWord}>eVTOL</strong>
                 </p>
             </div>
-            <br /><br />
+
             <div className={styles.ctaButtons}>
                 <Link href="https://autonomous.ev.engineer/internships" className="btn btn-primary">
                     Industry Internships
@@ -50,6 +59,10 @@ export default function EVEngineerPage() {
                     EV Battery Workshops
                 </a>
             </div>
+
+            <p className={styles.intro}>
+                Building intelligent battery ecosystems through AI-driven diagnostics, thermal safety systems, battery lifecycle intelligence, second-life battery technologies, and deep-tech engineering innovation.
+            </p>
 
 
             <div className={styles.grid}>
@@ -101,6 +114,9 @@ export default function EVEngineerPage() {
             <div className={styles.useCases}>
                 <h3 style={{ marginBottom: '1.5rem' }}>Common Use Cases</h3>
                 <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '1rem' }}>
+                    <span className="pill">eVTOL</span>
+                    <span className="pill">AirTaxi</span>
+                    <span className="pill">Drone</span>
                     <span className="pill">Battery Aadhaar</span>
                     <span className="pill">Battery Passport</span>
                     <span className="pill">EV Motor Diagnostics</span>
