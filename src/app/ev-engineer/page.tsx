@@ -118,7 +118,6 @@ export default function EVEngineerPage() {
                     <span className="pill">AirTaxi</span>
                     <span className="pill">Drone</span>
                     <span className="pill">Battery Aadhaar</span>
-                    <span className="pill">Battery Passport</span>
                     <span className="pill">EV Motor Diagnostics</span>
                     <span className="pill">Fleet Battery Monitoring</span>
                     <span className="pill">R&D Battery & Pack Analysis</span>
