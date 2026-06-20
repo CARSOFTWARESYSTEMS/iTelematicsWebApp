@@ -23,34 +23,7 @@ export const metadata: Metadata = {
 export default function EVEngineerPage() {
     return (
         <div className="container">
-            <div className={styles.imageHeroContainer}>
-                <div className={styles.imageWrapper}>
-                    <Image
-                        src="/images/Sudarshana Karkala EV ENGINEER.png"
-                        alt="Sudarshana Karkala EV ENGINEER - EV ENGINEER"
-                        width={1983}
-                        height={793}
-                        className={styles.heroImage}
-                        priority
-                    />
-                </div>
-            </div>
-
-            <div className={styles.hero}>
-                <h1 className={styles.title}>EV.ENGINEER™</h1>
-
-                <p className={styles.tagline}>
-                    Building{' '}
-                    <strong className={styles.glowWord}>Battery Intelligence</strong>
-                    {', '}
-                    <strong className={styles.glowWord}>Safety</strong>
-                    {' & '}
-                    <strong className={styles.glowWord}>Cybersecurity</strong>
-                    {' for '}
-                    <strong className={styles.glowWord}>eVTOL</strong>
-                </p>
-            </div>
-
+            <br></br>
             <div className={styles.ctaButtons}>
                 <Link href="https://autonomous.ev.engineer/internships" className="btn btn-primary">
                     Industry Internships
