@@ -28,7 +28,7 @@ export default function EVEngineerPage() {
                 <div className={styles.imageWrapper}>
                     <Image
                         src="/images/Sudarshana Karkala EV ENGINEER.png"
-                        alt="Sudarshana Karkala EV ENGINEER - EV ENGINEER"
+                        alt="Sudarshana Karkala EV ENGINEER"
                         width={1983}
                         height={793}
                         className={styles.heroImage}
