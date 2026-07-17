@@ -40,8 +40,16 @@ export default function ContactPage() {
                         </p>
 
                         <div className={`bg-glass ${styles.infoCard}`}>
+                            
                             <div className={styles.detailGroup}>
-                                <span className={styles.label}>Email</span>
+                                <span className={styles.label}>HR EMAIL</span>
+                                <p className={styles.value}>
+                                    <a href="mailto:hr@iTelematics.com">hr@iTelematics.com</a>
+                                </p>
+                            </div>
+                            
+                            <div className={styles.detailGroup}>
+                                <span className={styles.label}>Business Email</span>
                                 <p className={styles.value}>
                                     <a href="mailto:info@iTelematics.com">info@iTelematics.com</a>
                                 </p>
