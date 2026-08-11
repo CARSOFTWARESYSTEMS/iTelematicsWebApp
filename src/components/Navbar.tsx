@@ -48,9 +48,9 @@ export default function Navbar() {
                     name: 'Papers & Presentations',
                     href: '#',
                     subLinks: [
-                        
-                        { name: 'Battery Intelligence v.1', href: '/public/Battery Intelligence v.1.pdf', external: true },
-                        { name: 'Battery Pack Aadhaar Services', href: '/public/EV.ENGINEER - Battery Pack Aadhaar - Krutarth S Karkala.pdf', external: true }
+                        { name: 'IEEE - Battery Intelligence', href: '/research/IEEE conference certificate - Battery Intelligence.pdf', external: true },
+                        { name: 'PPT  - Battery Intelligence v.1', href: '/public/Battery Intelligence v.1.pdf', external: true },
+                        { name: 'PPT  - Battery Pack Aadhaar Services', href: '/public/EV.ENGINEER - Battery Pack Aadhaar - Krutarth S Karkala.pdf', external: true }
                     ]
                 },
                 {
