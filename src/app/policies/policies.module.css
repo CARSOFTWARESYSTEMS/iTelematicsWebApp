@@ -1,0 +1,46 @@
+.section {
+    padding: 6rem 0 4rem;
+    max-width: 860px;
+    margin: 0 auto;
+}
+
+.title {
+    font-size: 2.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.updated {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 2.5rem;
+}
+
+.section h2 {
+    font-size: 1.35rem;
+    margin-top: 2.5rem;
+    margin-bottom: 0.85rem;
+}
+
+.section p,
+.section li {
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: 0.85rem;
+}
+
+.section ul,
+.section ol {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.section a {
+    color: var(--accent-primary);
+    text-decoration: underline;
+}
+
+.companyBlock {
+    padding: 1.5rem;
+    margin-top: 2.5rem;
+    font-size: 0.9rem;
+}

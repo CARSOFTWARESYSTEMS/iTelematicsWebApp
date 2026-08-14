@@ -1,0 +1,78 @@
+.page {
+    padding: 6rem 0 4rem;
+    display: flex;
+    justify-content: center;
+}
+
+.panel {
+    padding: 2.5rem;
+    max-width: 560px;
+    width: 100%;
+}
+
+.panel h1 {
+    font-size: 1.75rem;
+    margin-bottom: 1rem;
+}
+
+.introText {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form label {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.form textarea {
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 0.85rem;
+    resize: vertical;
+    margin-bottom: 1rem;
+}
+
+.form textarea:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+}
+
+.resultBox {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--glass-border);
+}
+
+.validLabel {
+    color: var(--success);
+    font-weight: 600;
+}
+
+.invalidLabel {
+    color: var(--error);
+}
+
+.limitationNote {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 1.5rem;
+}
+
+.limitationNote a {
+    color: var(--accent-primary);
+    text-decoration: underline;
+}

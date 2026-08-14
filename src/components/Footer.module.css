@@ -50,6 +50,23 @@
     font-weight: 700;
 }
 
+.policyLinks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
+    font-size: 0.85rem;
+}
+
+.policyLinks a {
+    color: var(--text-muted);
+    transition: color 0.2s ease;
+}
+
+.policyLinks a:hover,
+.policyLinks a:focus-visible {
+    color: var(--accent-primary);
+}
+
 @media (max-width: 768px) {
     .container {
         flex-direction: column;
