@@ -33,6 +33,21 @@ export default function Navbar() {
             name: 'Consultancy & Services',
             href: '#',
             subLinks: [
+                
+                {
+                    name: 'Space Technologies',
+                    href: '#',
+                    subLinks: [
+                        { name: 'Space Technologies', href: 'https://aerospace.ev.engineer/space', external: true },
+                        { name: 'Model Rocketry Workshops', href: 'https://aerospace.ev.engineer/space/model-rocketry', external: true },
+                        { name: 'CubeTwin Simulator', href: 'https://aerospace.ev.engineer/space/cubesat', external: true },
+                        { name: 'Aerospace Cybersecurity', href: 'https://aerospace.ev.engineer', external: true },
+                        { name: 'Space Applications', href: 'https://aerospace.ev.engineer/space/everyday-applications', external: true },
+                        { name: 'Space Career Opportunities', href: '/space/Space Career Opportunities - iTelematics Software Private Limited.pdf', external: true }
+                        
+                    ]
+                },
+                
                 {
                     name: 'EV, AV & Battery Workshops',
                     href: '#',
