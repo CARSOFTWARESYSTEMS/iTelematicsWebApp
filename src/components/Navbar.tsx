@@ -35,11 +35,11 @@ export default function Navbar() {
             subLinks: [
                 
                 {
-                    name: 'Space Technologies',
+                    name: 'Space & Model Rocketry Workshops',
                     href: '#',
                     subLinks: [
                         { name: 'Space Technologies', href: 'https://aerospace.ev.engineer/space', external: true },
-                        { name: 'Model Rocketry Workshops', href: 'https://aerospace.ev.engineer/space/model-rocketry', external: true },
+                        { name: 'CanSat Model Rocketry Workshops', href: 'https://aerospace.ev.engineer/space/model-rocketry', external: true },
                         { name: 'CubeTwin Simulator', href: 'https://aerospace.ev.engineer/space/cubesat', external: true },
                         { name: 'Aerospace Cybersecurity', href: 'https://aerospace.ev.engineer', external: true },
                         { name: 'Space Applications', href: 'https://aerospace.ev.engineer/space/everyday-applications', external: true },
@@ -49,10 +49,9 @@ export default function Navbar() {
                 },
                 
                 {
-                    name: 'EV, AV & Battery Workshops',
+                    name: 'EV Battery Workshops',
                     href: '#',
                     subLinks: [
-                        { name: 'AV Workshops', href: 'https://autonomous.ev.engineer/', external: true },
                         { name: 'EV Workshops', href: 'https://repair.ev.engineer/', external: true },
                         { name: 'Battery Workshops', href: 'https://battery.ev.engineer/', external: true },
                         { name: 'Energy Research', href: 'https://autonomous.ev.engineer/si-ems', external: true },
