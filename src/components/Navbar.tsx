@@ -40,6 +40,7 @@ export default function Navbar() {
                     subLinks: [
                         { name: 'Space Technologies', href: 'https://aerospace.ev.engineer/space', external: true },
                         { name: 'CanSat Model Rocketry Workshops', href: 'https://aerospace.ev.engineer/space/model-rocketry', external: true },
+                        { name: 'CanSat Model Rocketry - 1', href: 'https://drive.google.com/file/d/1syaneI6zCLfm4NPquCoEpwQDmth3pZqY/view', external: true },
                         { name: 'CubeTwin Simulator', href: 'https://aerospace.ev.engineer/space/cubesat', external: true },
                         { name: 'Aerospace Cybersecurity', href: 'https://aerospace.ev.engineer', external: true },
                         { name: 'Space Applications', href: 'https://aerospace.ev.engineer/space/everyday-applications', external: true },
