@@ -44,6 +44,7 @@ export default function Navbar() {
                         { name: 'CubeTwin Simulator', href: 'https://aerospace.ev.engineer/space/cubesat', external: true },
                         { name: 'Aerospace Cybersecurity', href: 'https://aerospace.ev.engineer', external: true },
                         { name: 'Space Applications', href: 'https://aerospace.ev.engineer/space/everyday-applications', external: true },
+                        { name: 'Space Station Research', href: 'https://ishavasyam.org/', external: true },
                         { name: 'Space Career Opportunities', href: '/space/Space Career Opportunities - iTelematics Software Private Limited.pdf', external: true }
                         
                     ]
