@@ -35,7 +35,7 @@ export default function Navbar() {
             subLinks: [
                 
                 {
-                    name: 'Space & Model Rocketry Workshops',
+                    name: 'Space Research & Workshops',
                     href: '#',
                     subLinks: [
                         { name: 'Space Technologies', href: 'https://aerospace.ev.engineer/space', external: true },
