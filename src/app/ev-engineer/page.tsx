@@ -1,131 +1,118 @@
 import type { Metadata } from 'next';
+import { pageMetadata } from '@/lib/metadata';
 import Link from 'next/link';
-import Image from 'next/image';
-import styles from './eve.module.css';
+import styles from './page.module.css';
+import JsonLd, { pageSchema } from '@/components/JsonLd';
+import ExternalLink from '@/components/site/ExternalLink';
+import { PageHero } from '@/components/site/blocks';
+import { RESOURCES } from '@/lib/site';
 
-export const metadata: Metadata = {
-    title: 'EV.ENGINEER™ | AI Agents for EV Battery Diagnostics & Automotive Engineering',
-    description: 'EV.ENGINEER™ is an AI-powered engineering assistant platform for Battery Aadhaar, EV battery diagnostics, fault analysis, safety assessment, and telematics-driven decision support. Built by iTelematics Software Private Limited, Bangalore, India.',
-    keywords: [
-        'Battery Aadhaar',
-        'Battery Passport',
-        'EV Battery Diagnostics',
-        'EV Telematics',
-        'Predictive Maintenance',
-        'Automotive AI Copilot',
-        'Battery SoC SOH RUL',
-        'Engineering AI Agents',
-        'EV Software Platform',
-        'Autonomous EV'
-    ]
-};
+const PATH = '/ev-engineer';
+const TITLE = 'EV.ENGINEER™ Engineering-Learning Platform';
+const DESCRIPTION =
+    'EV.ENGINEER™ is the iTelematics engineering-learning platform, hosting the Satellite Engineering course and the Interactive 3D Satellite explorer.';
+
+export const metadata: Metadata = pageMetadata({ path: PATH, title: TITLE, description: DESCRIPTION });
+
+const AGENTS = [
+    {
+        name: 'Battery diagnostic agent',
+        role: 'Fault classification and risk assessment',
+        delivers: 'Automated fault root-cause analysis, thermal-runaway likelihood estimation and maintenance-urgency classification.',
+        workflow: 'ingest_telemetry → detect_anomalies → explain_risk → recommend_action',
+    },
+    {
+        name: 'Engineering copilot',
+        role: 'Retrieval-based decision support',
+        delivers: 'Question answering over engineering documentation, fault logs and service records to speed up troubleshooting.',
+        workflow: 'connect_docs → retrieve_context → analyze_logs → guide_engineer',
+    },
+];
 
 export default function EVEngineerPage() {
     return (
-        <div className="container">
-
-            <div className={styles.imageHeroContainer}>
-                <div className={styles.imageWrapper}>
-                    <Image
-                        src="/images/Sudarshana Karkala EV ENGINEER.png"
-                        alt="Sudarshana Karkala EV ENGINEER"
-                        width={1983}
-                        height={793}
-                        className={styles.heroImage}
-                        priority
-                    />
+        <>
+            <JsonLd
+                data={pageSchema({
+                    path: PATH,
+                    name: TITLE,
+                    description: DESCRIPTION,
+                    breadcrumbs: [
+                        { name: 'Partners & Ecosystem', path: '/partners' },
+                        { name: 'EV.ENGINEER™', path: PATH },
+                    ],
+                })}
+            />
+            <PageHero
+                eyebrow="Partners & Ecosystem"
+                title="EV.ENGINEER™"
+                lead="The iTelematics engineering-learning platform. It supports our Satellite Engineering research with structured learning and interactive models, and hosts battery-intelligence engineering resources."
+                breadcrumbs={[
+                    { name: 'Partners & Ecosystem', path: '/partners' },
+                    { name: 'EV.ENGINEER™', path: PATH },
+                ]}
+            >
+                <div className="actions hero-actions">
+                    <ExternalLink href="https://autonomous.ev.engineer/" className="btn btn-secondary" trackName="autonomous.ev.engineer">
+                        Visit autonomous.ev.engineer ↗
+                    </ExternalLink>
                 </div>
-            </div>
+            </PageHero>
 
-            <br></br>
-            <div className={styles.ctaButtons}>
-                <Link href="https://autonomous.ev.engineer/internships" className="btn btn-primary">
-                    Industry Internships
-                </Link>
-                <a href="https://autonomous.ev.engineer/" target="_blank" rel="noopener noreferrer" className="btn btn-secondary">
-                    EV Battery Workshops
-                </a>
-            </div>
-
-            <p className={styles.intro}>
-                Building intelligent battery ecosystems through AI-driven diagnostics, thermal safety systems, battery lifecycle intelligence, second-life battery technologies, and deep-tech engineering innovation.
-            </p>
-
-
-            <div className={styles.grid}>
-                {/* Card 1 */}
-                <div className={`bg-glass ${styles.card}`}>
-                    <div className={styles.cardHeader}>
-                        <h2 className={styles.cardTitle}>EV Battery Diagnostic Agent</h2>
-                        <span className={styles.cardSubtitle}>Fault Classification & Risk Assessment</span>
+            <section className="section" data-analytics-section="satellite-resources">
+                <div className="container">
+                    <div className="section-head">
+                        <p className="eyebrow">Satellite Engineering on EV.ENGINEER™</p>
+                        <h2>Learning resources used by our research</h2>
                     </div>
-
-                    <div style={{ marginBottom: '2rem' }}>
-                        <h4 className={styles.sectionTitle}>Delivers</h4>
-                        <p style={{ color: 'var(--text-secondary)' }}>
-                            Automated fault root cause analysis, thermal runaway likelihood prediction, and maintenance urgency classification.
-                        </p>
-                    </div>
-
-                    <div>
-                        <h4 className={styles.sectionTitle}>Agent Workflow</h4>
-                        <div className={styles.workflowStep}>
-                            ingest_telemetry ➔ detect_anomalies ➔ explain_risk ➔ recommend_action
+                    <div className="grid grid-2">
+                        <div className="card">
+                            <h3>{RESOURCES.satelliteEngineering.name}</h3>
+                            <p>{RESOURCES.satelliteEngineering.description}</p>
+                            <ExternalLink href={RESOURCES.satelliteEngineering.href} className="text-link" trackName={RESOURCES.satelliteEngineering.cta}>
+                                {RESOURCES.satelliteEngineering.cta} ↗
+                            </ExternalLink>
+                        </div>
+                        <div className="card">
+                            <h3>{RESOURCES.interactive3d.name}</h3>
+                            <p>{RESOURCES.interactive3d.description}</p>
+                            <ExternalLink href={RESOURCES.interactive3d.href} className="text-link" trackName={RESOURCES.interactive3d.cta}>
+                                {RESOURCES.interactive3d.cta} ↗
+                            </ExternalLink>
                         </div>
                     </div>
                 </div>
+            </section>
 
-                {/* Card 2 */}
-                <div className={`bg-glass ${styles.card}`}>
-                    <div className={styles.cardHeader}>
-                        <h2 className={styles.cardTitle}>AI Copilot for Autonomous EV</h2>
-                        <span className={styles.cardSubtitle}>RAG-based Decision Support</span>
+            <section className="section" data-analytics-section="battery-intelligence">
+                <div className="container">
+                    <div className="section-head">
+                        <p className="eyebrow">Battery intelligence</p>
+                        <h2>Engineering agents</h2>
+                        <p>Battery diagnostics and decision-support workflows developed on the platform.</p>
                     </div>
-
-                    <div style={{ marginBottom: '2rem' }}>
-                        <h4 className={styles.sectionTitle}>Delivers</h4>
-                        <p style={{ color: 'var(--text-secondary)' }}>
-                            Interactive Q&A over engineering documentation, DTC logs, and historical service records to speed up troubleshooting.
-                        </p>
-                    </div>
-
-                    <div>
-                        <h4 className={styles.sectionTitle}>Agent Workflow</h4>
-                        <div className={styles.workflowStep}>
-                            connect_docs ➔ retrieve_context ➔ analyze_logs ➔ guide_engineer
-                        </div>
+                    <div className="grid grid-2">
+                        {AGENTS.map((a) => (
+                            <article key={a.name} className="card">
+                                <h3>{a.name}</h3>
+                                <p className={styles.role}>{a.role}</p>
+                                <p>{a.delivers}</p>
+                                <p className={`mono ${styles.workflow}`}>{a.workflow}</p>
+                            </article>
+                        ))}
                     </div>
                 </div>
-            </div>
+            </section>
 
-            <div className={styles.useCases}>
-                <h3 style={{ marginBottom: '1.5rem' }}>Common Use Cases</h3>
-                <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '1rem' }}>
-                    <span className="pill">eVTOL</span>
-                    <span className="pill">AirTaxi</span>
-                    <span className="pill">Drone</span>
-                    <span className="pill">Battery Aadhaar</span>
-                    <span className="pill">EV Motor Diagnostics</span>
-                    <span className="pill">Fleet Battery Monitoring</span>
-                    <span className="pill">R&D Battery & Pack Analysis</span>
-                    <span className="pill">Service Center Fault Triage</span>
-                    <span className="pill">Warranty & Failure Validation</span>
-                    <span className="pill">Predictive Maintenance</span>
-                    <span className="pill">Autonomous EV</span>
+            <section className="section">
+                <div className="container">
+                    <p>
+                        EV.ENGINEER™ is one of several organisations and platforms in the{' '}
+                        <Link href="/partners" className="inline-link">iTelematics engineering ecosystem</Link>. The company’s
+                        primary focus is <Link href="/satellite-engineering" className="inline-link">Satellite Engineering R&amp;D</Link>.
+                    </p>
                 </div>
-            </div>
-
-            <div className={styles.ctaSection}>
-                <h2 style={{ marginBottom: '1.5rem' }}>Ready to optimize your EV engineering workflows?</h2>
-                <div className={styles.ctaButtons}>
-                    <Link href="/contact" className="btn btn-primary">
-                        Contact for Demo
-                    </Link>
-                    <a href="https://autonomous.ev.engineer/" target="_blank" rel="noopener noreferrer" className="btn btn-secondary">
-                        AV Workshops
-                    </a>
-                </div>
-            </div>
-        </div >
+            </section>
+        </>
     );
 }

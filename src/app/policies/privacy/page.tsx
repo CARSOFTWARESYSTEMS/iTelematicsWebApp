@@ -1,66 +1,71 @@
 import type { Metadata } from 'next';
-import styles from '../policies.module.css';
+import { pageMetadata } from '@/lib/metadata';
+import JsonLd, { pageSchema } from '@/components/JsonLd';
+import { PageHero } from '@/components/site/blocks';
+import { SITE } from '@/lib/site';
 
-export const metadata: Metadata = {
-    title: 'Privacy Policy | iTelematics Software Private Limited',
-    description: 'Privacy Policy for iTelematics Software Private Limited, including Events & Registration.',
-};
+const PATH = '/policies/privacy';
+const TITLE = 'Privacy Policy';
+const DESCRIPTION = 'How iTelematics Software Private Limited handles enquiry details and website analytics on itelematics.com.';
+
+export const metadata: Metadata = pageMetadata({ path: PATH, title: TITLE, description: DESCRIPTION });
 
 export default function PrivacyPolicyPage() {
     return (
-        <div className="container">
-            <div className={styles.section}>
-                <h1 className={styles.title}>Privacy Policy</h1>
-                <p className={styles.updated}>Applies to itelematics.com, including the Events &amp; Registration section.</p>
+        <>
+            <JsonLd data={pageSchema({ path: PATH, name: TITLE, description: DESCRIPTION, breadcrumbs: [{ name: TITLE, path: PATH }] })} />
+            <PageHero eyebrow="Legal" title={TITLE} lead="Applies to itelematics.com." breadcrumbs={[{ name: TITLE, path: PATH }]} />
 
-                <h2>What We Collect</h2>
-                <p>
-                    For event registration, we collect only your full name, email address and mobile number. Phase 1
-                    registration does not require an account, password, or login — we do not collect or store
-                    credentials for event registration.
-                </p>
-                <p>
-                    For paid events, payment is intended to be processed by CCAvenue, a third-party payment gateway.
-                    iTelematics does not collect or store card numbers, CVV, UPI PINs or internet-banking credentials.
-                    As of this release, real CCAvenue checkout is not yet integrated (see Terms &amp; Conditions and
-                    the event registration flow for details) — no live card/UPI/bank data is transmitted or
-                    processed through this site today.
-                </p>
+            <section className="section">
+                <div className="container prose">
+                    <h2>Enquiries</h2>
+                    <p>
+                        When you send an enquiry through the contact form, we collect your name, email address, enquiry
+                        type and message, and optionally your organisation and country. We use these details only to reply
+                        to you and to handle the internship, research, collaboration or consultancy matter you raise.
+                    </p>
+                    <p>
+                        Enquiries are delivered to our team by email using Resend, an email delivery provider acting on our
+                        behalf. We do not sell enquiry details, add you to marketing lists or publish them.
+                    </p>
 
-                <h2>How We Use It</h2>
-                <ul>
-                    <li>To process and confirm your event registration.</li>
-                    <li>To send event-related communication (e.g. confirmation, access details, QR Event Pass), where email delivery is implemented.</li>
-                    <li>To prevent duplicate or abusive registration attempts.</li>
-                    <li>To meet legal, tax and accounting obligations related to paid events.</li>
-                </ul>
+                    <h2>Website analytics</h2>
+                    <p>
+                        With your permission, we use Google Analytics 4 to understand how the website is used: which pages
+                        are visited, which engineering resources, partner links and enquiry options are opened, and whether
+                        visitors use a phone, tablet or desktop. Google derives an approximate country or region from your
+                        connection; Google Analytics 4 does not log or store IP addresses.
+                    </p>
+                    <ul>
+                        <li>Analytics is off until you choose “Allow analytics”. You can change or withdraw your choice at any time using “Analytics preferences” in the footer.</li>
+                        <li>We treat the Global Privacy Control browser signal as a refusal.</li>
+                        <li>We never send form contents, names, email addresses, phone numbers or URL query strings to analytics. For a successful enquiry we record only its broad category (for example “internship” or “research”).</li>
+                        <li>Analytics is not used for advertising, remarketing or Google signals.</li>
+                        <li>Analytics cookies (<code>_ga</code>, <code>_ga_*</code>) are set only after you allow analytics and are removed when you withdraw consent.</li>
+                    </ul>
 
-                <h2>What We Do Not Do</h2>
-                <ul>
-                    <li>We do not sell your personal information.</li>
-                    <li>We do not request more personal information than is needed to register for an event.</li>
-                    <li>We do not publicly display your registration, email or mobile number.</li>
-                </ul>
+                    <h2>Retention</h2>
+                    <p>
+                        We keep enquiry emails for as long as needed to respond and to maintain a record of the discussion,
+                        and delete them on request where we are not required to keep them.
+                    </p>
 
-                <h2>Third Parties</h2>
-                <p>
-                    When real payment processing is integrated, CCAvenue will process payment details directly and
-                    will act as an independent data controller for payment data under its own privacy practices.
-                </p>
+                    <h2>Your rights</h2>
+                    <p>
+                        You may ask to access, correct or delete the personal data you have sent us by writing to{' '}
+                        <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.
+                    </p>
 
-                <h2>Your Rights</h2>
-                <p>
-                    You may request access to, correction of, or deletion of your registration details by writing to{' '}
-                    <a href="mailto:info@iTelematics.com">info@iTelematics.com</a>.
-                </p>
-
-                <h2>Contact</h2>
-                <div className={`bg-glass ${styles.companyBlock}`}>
-                    <p>iTelematics Software Private Limited</p>
-                    <p>Bhoganahalli, Bangalore - 560103, India</p>
-                    <p>Email: <a href="mailto:info@iTelematics.com">info@iTelematics.com</a> · Phone: <a href="tel:+919108206147">+91 91082 06147</a></p>
+                    <h2>Contact</h2>
+                    <p>
+                        {SITE.legalName}
+                        <br />
+                        {SITE.address.display}
+                        <br />
+                        Email: <a href={`mailto:${SITE.email}`}>{SITE.email}</a> · Phone: <a href={SITE.phoneHref}>{SITE.phone}</a>
+                    </p>
                 </div>
-            </div>
-        </div>
+            </section>
+        </>
     );
 }

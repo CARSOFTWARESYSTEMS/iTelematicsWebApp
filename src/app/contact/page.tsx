@@ -1,95 +1,71 @@
 import type { Metadata } from 'next';
-import styles from './contact.module.css';
+import { pageMetadata } from '@/lib/metadata';
+import styles from './page.module.css';
+import ContactForm from '@/components/ContactForm';
+import JsonLd, { pageSchema } from '@/components/JsonLd';
+import { PageHero } from '@/components/site/blocks';
+import { SITE } from '@/lib/site';
 
-export const metadata: Metadata = {
-    title: 'Contact | iTelematics Software Private Limited | Bangalore, India',
-    description: 'Contact iTelematics Software Private Limited. Powered by EV.ENGINEER™. Email: info@iTelematics.com | Phone: +91 91082 06147 | Bangalore, India.',
-    keywords: [
-        'Battery Aadhaar',
-        'Battery Passport',
-        'EV Battery Diagnostics',
-        'EV Telematics',
-        'Predictive Maintenance',
-        'Automotive AI Copilot',
-        'Battery SoC SOH RUL',
-        'Engineering AI Agents',
-        'EV Software Platform'
-    ]
-};
+const PATH = '/contact';
+const TITLE = 'Contact: Discuss Satellite Engineering';
+const DESCRIPTION =
+    'Contact iTelematics about Satellite Engineering internships, research or academic collaboration, technical reviews, consultancy or investment.';
+
+export const metadata: Metadata = pageMetadata({ path: PATH, title: TITLE, description: DESCRIPTION });
 
 export default function ContactPage() {
     return (
-        <div className="container">
-            <div className={styles.section}>
-                <div className={styles.grid}>
+        <>
+            <JsonLd data={pageSchema({ path: PATH, name: TITLE, description: DESCRIPTION, type: 'ContactPage', breadcrumbs: [{ name: 'Contact', path: PATH }] })} />
+            <PageHero
+                eyebrow="Contact"
+                title="Discuss Satellite Engineering"
+                lead="Internships, research and academic collaboration, technical reviews, industry collaboration, consultancy, the research platform, or investment and strategic discussions."
+                breadcrumbs={[{ name: 'Contact', path: PATH }]}
+            />
 
-                    {/* Form Only - Centered */}
-                    <div className={styles.centeredWrapper}>
-                        <h1 className={styles.contactTitle}>Contact Us</h1>
-                        <p style={{
-                            maxWidth: '1000px',
-                            margin: '0 auto 1.5rem',
-                            fontSize: '1.15rem',
-                            color: 'var(--text-secondary)',
-                            lineHeight: 1.6
-                        }}>
-                            Let’s discuss EV engineering platforms, AI agents, diagnostics, or training collaborations.
-                        </p>
-                        <p className={styles.intro} style={{ fontWeight: 700 }}>
-                            iTelematics Software Private Limited
-                        </p>
+            <section className="section" id="enquiry" data-analytics-section="contact">
+                <div className={`container ${styles.grid}`}>
+                    <ContactForm location="contact-page" />
 
-                        <div className={`bg-glass ${styles.infoCard}`}>
-                            
-                            <div className={styles.detailGroup}>
-                                <span className={styles.label}>HR EMAIL</span>
-                                <p className={styles.value}>
-                                    <a href="mailto:hr@iTelematics.com">hr@iTelematics.com</a>
-                                </p>
+                    <aside className={styles.details} aria-label="Direct contact details">
+                        <h2 className="h3-like">Direct contact</h2>
+                        <dl>
+                            <div>
+                                <dt>Research, internships &amp; business</dt>
+                                <dd><a href={`mailto:${SITE.email}`}>{SITE.email}</a></dd>
                             </div>
-                            
-                            <div className={styles.detailGroup}>
-                                <span className={styles.label}>Business Email</span>
-                                <p className={styles.value}>
-                                    <a href="mailto:info@iTelematics.com">info@iTelematics.com</a>
-                                </p>
+                            <div>
+                                <dt>HR</dt>
+                                <dd><a href={`mailto:${SITE.hrEmail}`}>{SITE.hrEmail}</a></dd>
                             </div>
-
-                            <div className={styles.detailGroup}>
-                                <span className={styles.label}>Phone</span>
-                                <p className={styles.value}>
-                                    <a href="tel:+919108206147">+91 91082 06147</a>
-                                </p>
+                            <div>
+                                <dt>Phone</dt>
+                                <dd><a href={SITE.phoneHref}>{SITE.phone}</a></dd>
                             </div>
-
-                            <div className={styles.detailGroup}>
-                                <span className={styles.label}>WhatsApp</span>
-                                <p className={styles.value}>
-                                    <a href="https://wa.me/919108206147" target="_blank" rel="noopener noreferrer">
-                                        +91 91082 06147
+                            <div>
+                                <dt>WhatsApp</dt>
+                                <dd>
+                                    <a href={SITE.whatsappHref} target="_blank" rel="noopener noreferrer">
+                                        {SITE.phone}<span className="visually-hidden"> (opens WhatsApp in a new tab)</span>
                                     </a>
-                                </p>
+                                </dd>
                             </div>
-
-                            <div className={styles.detailGroup}>
-                                <span className={styles.label}>Address</span>
-                                <p className={styles.value}>
-                                    Bhoganahalli, Bangalore - 560103, India
-                                </p>
+                            <div>
+                                <dt>Address</dt>
+                                <dd>{SITE.legalName}<br />{SITE.address.display}</dd>
                             </div>
-
-                            <div className={styles.detailGroup}>
-                                <span className={styles.label}>Corporate Identity</span>
-                                <p className={styles.value} style={{ fontSize: '0.9rem', opacity: 0.8 }}>
-                                    CIN: U72200KA2012PTC065650<br />
-                                    GSTIN: 29AADCI0384D1ZQ<br />
-                                    MSME: UDYAM-KR-02-0123269
-                                </p>
+                            <div>
+                                <dt>Corporate identity</dt>
+                                <dd className="mono">CIN {SITE.cin}<br />GSTIN {SITE.gstin}<br />MSME {SITE.msme}</dd>
                             </div>
-                        </div>
-                    </div>
+                        </dl>
+                        <p className={styles.global}>
+                            Researchers and engineers from India, the USA, Europe, Asia-Pacific and elsewhere are welcome.
+                        </p>
+                    </aside>
                 </div>
-            </div>
-        </div>
+            </section>
+        </>
     );
 }
