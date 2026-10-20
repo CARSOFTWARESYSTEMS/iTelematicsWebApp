@@ -21,7 +21,7 @@ export const LIMITS = {
     organisation: 120,
     country: 60,
     messageMin: 20,
-    messageMax: 4000,
+    messageMax: 1500, // keeps the mailto: draft within what email apps accept
 } as const;
 
 // Unicode letters so names from any country validate; rejects markup and digits.

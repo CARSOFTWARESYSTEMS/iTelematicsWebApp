@@ -20,13 +20,14 @@ export default function PrivacyPolicyPage() {
                 <div className="container prose">
                     <h2>Enquiries</h2>
                     <p>
-                        When you send an enquiry through the contact form, we collect your name, email address, enquiry
-                        type and message, and optionally your organisation and country. We use these details only to reply
-                        to you and to handle the internship, research, collaboration or consultancy matter you raise.
+                        The contact form does not send or store anything. It prepares an email draft in your own email app,
+                        addressed to {SITE.email}; nothing reaches us unless you choose to send it. When you do, we receive
+                        the details you included (typically your name, email address, enquiry type and message, and
+                        optionally your organisation and country).
                     </p>
                     <p>
-                        Enquiries are delivered to our team by email using Resend, an email delivery provider acting on our
-                        behalf. We do not sell enquiry details, add you to marketing lists or publish them.
+                        We use those details only to reply and to handle the internship, research, collaboration or
+                        consultancy matter you raise. We do not sell them, add you to marketing lists or publish them.
                     </p>
 
                     <h2>Website analytics</h2>
@@ -39,7 +40,7 @@ export default function PrivacyPolicyPage() {
                     <ul>
                         <li>Analytics is off until you choose “Allow analytics”. You can change or withdraw your choice at any time using “Analytics preferences” in the footer.</li>
                         <li>We treat the Global Privacy Control browser signal as a refusal.</li>
-                        <li>We never send form contents, names, email addresses, phone numbers or URL query strings to analytics. For a successful enquiry we record only its broad category (for example “internship” or “research”).</li>
+                        <li>We never send form contents, names, email addresses, phone numbers or URL query strings to analytics. When an email draft is opened we record only the enquiry’s broad category (for example “internship” or “research”), not whether it was sent.</li>
                         <li>Analytics is not used for advertising, remarketing or Google signals.</li>
                         <li>Analytics cookies (<code>_ga</code>, <code>_ga_*</code>) are set only after you allow analytics and are removed when you withdraw consent.</li>
                     </ul>

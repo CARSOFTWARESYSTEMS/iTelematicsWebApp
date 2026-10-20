@@ -1,0 +1,183 @@
+.explorer {
+    display: grid;
+    gap: 2rem;
+}
+
+/* Let grid/flex children shrink so the scrolling tab rail stays inside the screen */
+.explorer > *,
+.diagram > * {
+    min-width: 0;
+}
+
+/* ---------- Phones & tablets: scrolling tab rail, spacecraft, panel ---------- */
+
+.diagram {
+    position: relative;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 1.25rem;
+}
+
+.connectors {
+    display: none;
+}
+
+.craft {
+    max-width: 380px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.nodes {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: var(--gutter);
+    scrollbar-width: none;
+    margin: 0 calc(var(--gutter) * -1);
+    padding: 0.25rem var(--gutter);
+}
+
+.nodes::-webkit-scrollbar {
+    display: none;
+}
+
+.node {
+    flex-shrink: 0;
+    min-height: 46px;
+    padding: 0 1rem;
+    scroll-snap-align: start;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-control);
+    background: var(--bg);
+    font-size: 0.95rem;
+    font-weight: 560;
+    color: var(--text-2);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color 0.2s var(--ease), border-color 0.2s var(--ease), background-color 0.2s var(--ease);
+}
+
+.node:hover {
+    color: var(--text);
+}
+
+.node[aria-selected='true'] {
+    color: var(--text);
+    border-color: rgba(34, 211, 238, 0.6);
+    background: var(--accent-soft);
+}
+
+.panel h3 {
+    font-size: clamp(1.5rem, 1.25rem + 1vw, 2.1rem);
+    margin-bottom: 1.25rem;
+}
+
+.panel dl {
+    display: grid;
+    gap: 1.25rem;
+}
+
+.panel dd {
+    margin-top: 0.35rem;
+    font-size: 1.02rem;
+    color: var(--text-2);
+    max-width: 50ch;
+}
+
+.panel .telemetry {
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    color: var(--telemetry);
+    line-height: 1.6;
+}
+
+.panel .question {
+    color: var(--text);
+    font-weight: 500;
+}
+
+/* ---------- Desktop: subsystems placed around the spacecraft ---------- */
+
+@media (min-width: 1024px) {
+    .explorer {
+        grid-template-columns: 1.25fr 1fr;
+        align-items: center;
+        gap: 3.5rem;
+    }
+
+    .diagram {
+        display: block;
+        aspect-ratio: 1.2;
+        width: 100%;
+    }
+
+    .connectors {
+        display: block;
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    .connector {
+        stroke: rgba(148, 163, 184, 0.14);
+        stroke-width: 1;
+        vector-effect: non-scaling-stroke;
+    }
+
+    .connectorOn {
+        stroke: var(--telemetry);
+        stroke-dasharray: 4 5;
+        animation: connect 1s linear infinite;
+    }
+
+    .craft {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 62%;
+        max-width: none;
+        transform: translate(-50%, -50%);
+    }
+
+    .nodes {
+        display: block;
+        overflow: visible;
+        margin: 0;
+        padding: 0;
+    }
+
+    .node {
+        position: absolute;
+        left: var(--x);
+        top: var(--y);
+        transform: translate(-50%, -50%);
+        min-height: 44px;
+        font-size: 0.92rem;
+    }
+}
+
+/* Small laptops: give the diagram more of the row and tighten the labels so they stay inside it */
+@media (min-width: 1024px) and (max-width: 1279px) {
+    .explorer {
+        grid-template-columns: 1.4fr 1fr;
+        gap: 2.5rem;
+    }
+
+    .node {
+        padding: 0 0.8rem;
+        font-size: 0.85rem;
+    }
+}
+
+@keyframes connect {
+    to { stroke-dashoffset: -18; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .connectorOn {
+        animation: none;
+    }
+}

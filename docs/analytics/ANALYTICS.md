@@ -43,8 +43,8 @@ Visitors can change their choice with **Analytics preferences** in the footer.
 | `research_collaboration_click` | A "Discuss R&D Collaboration" / "Join Research" style CTA | `data-track="research_collaboration_click"` |
 | `consultancy_click` | Any link inside the Consultancy & Services menu, or to internal `/consultancy…` | `data-track-fallback` / destination rule |
 | `partner_click` | Link to Gamyaa AeroSystems, APEX (official site and ecosystem page), iFab, EV Society, `autonomous.ev.engineer`, or `/ev-engineer` | Destination rule |
-| `contact_submit` | An enquiry was **delivered**: `/api/contact` returned 2xx with `ok: true` after Resend accepted the email. Validation errors, rate limits, delivery failures and network errors never fire it. | `ContactForm` |
-| `join_rnd_click` | The "Join Satellite R&D" primary CTA | `data-track="join_rnd_click"` |
+| `contact_submit` | A validated enquiry was handed to the visitor's email app: the form opened a `mailto:` draft to info@iTelematics.com. It measures intent, not delivery; the website cannot see whether the email was sent. Count actual enquiries in the mailbox. Invalid forms never fire it. | `ContactForm` |
+| `join_rnd_click` | The Join R&D / Join Research CTAs | `data-track="join_rnd_click"` |
 | `mobile_navigation_use` | Mobile menu opened, or a mobile-menu link tapped that no other event claims | `Navbar` / `data-track-fallback` |
 
 Destination rules are matched by URL, so the same link fires the same event in the hero, nav, footer,
@@ -97,7 +97,7 @@ partners and consultancy. Explicit `data-track` is used only where the URL doesn
 
 | CTA | Event | Where |
 |---|---|---|
-| Join Satellite R&D / Join R&D | `join_rnd_click` | Header (desktop + mobile), home hero, About |
+| Join R&D (header) / Join Satellite R&D (mobile menu) / Join Research (home hero) → `/contact?enquiry=research` (Research Collaboration preselected, changeable) | `join_rnd_click` | Header desktop + mobile, home hero |
 | Apply for Internship | `internship_apply_click` | Home, Internships, Satellite Engineering, Research Platform |
 | Discuss R&D / Research Collaboration | `research_collaboration_click` | Home, Satellite Engineering, Research Platform |
 | Discuss Industry Collaboration | `research_collaboration_click` | Partners |
@@ -127,8 +127,8 @@ Build these as GA4 **Explore → Funnel exploration** reports (open funnel, step
 | Home → Satellite Engineering → Internship | `page_view` path = `/` | `satellite_engineering_click` | `internship_view` or `internship_apply_click` |
 | Home → Satellite Engineering → Interactive 3D | `page_view` path = `/` | `satellite_engineering_click` | `interactive_3d_click` |
 | Home → Research Platform → Collaboration | `page_view` path = `/` | `research_platform_view` | `research_collaboration_click` |
-| Home → Partners & Ecosystem → Partner | `page_view` path = `/` | `page_view` path = `/partners` | `partner_click` |
-| Home → Consultancy & Services → Contact | `page_view` path = `/` | `consultancy_click` (nav menu or `/consultancy`) | `contact_submit` with `enquiry_type = consultancy` |
+| Home → Ecosystem → Partner | `page_view` path = `/` | `page_view` path = `/partners` | `partner_click` |
+| Home → Consultancy → Contact | `page_view` path = `/` | `consultancy_click` (nav menu or `/consultancy`) | `contact_submit` with `enquiry_type = consultancy` |
 
 Questions this answers:
 
@@ -139,7 +139,7 @@ Questions this answers:
 - **Best-performing collaboration CTAs**: `research_collaboration_click` by `cta_name` × `cta_location`.
 - **Ecosystem links used**: `partner_click` by `destination`.
 - **Device mix**: built-in Device category, or `device_category`.
-- **What delivered enquiries are about**: `contact_submit` by `enquiry_type`.
+- **What enquiries are about**: `contact_submit` (email drafts opened) by `enquiry_type`; compare with enquiries actually received.
 
 ## One-time GA4 property setup (required)
 
@@ -164,8 +164,8 @@ Questions this answers:
 
 1. Locally: `NEXT_PUBLIC_ANALYTICS_DEBUG=true npm run dev`. Allow analytics in the banner and watch the
    console as you navigate and click. Expect one `page_view` per route change and nothing for plain
-   links like About. Submitting the contact form without Resend configured must show "Not sent" and
-   log no `contact_submit`.
+   links like About. Submitting a valid contact form opens an email draft and logs exactly one
+   `contact_submit`; an invalid form logs nothing.
 2. In production: open the site with the [Google Analytics Debugger](https://chromewebstore.google.com/detail/google-analytics-debugger/jnkmfdileelhofjcijamephohjechhna)
    extension, allow analytics, and use **Admin → DebugView**. Confirm no `page_view` arrives before
    consent, exactly one per navigation after it, and none after declining via Analytics preferences.

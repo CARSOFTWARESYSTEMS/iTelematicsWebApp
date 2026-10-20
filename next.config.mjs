@@ -20,6 +20,14 @@ const nextConfig = {
             { source: "/academy", destination: "/internships", statusCode: 301 },
             { source: "/policies/refund", destination: "/policies/terms", statusCode: 301 },
             { source: "/policies/delivery", destination: "/policies/terms", statusCode: 301 },
+            // Documents republished under neutral filenames (originals in archive/public-originals).
+            // Sources are matched against the percent-encoded path, so encode filenames with spaces.
+            ...[
+                ["/public/iTelematics-FrequentlyAskedQuestions.pdf", "/documents/itelematics-faq.pdf"],
+                ["/space/Space Career Opportunities - iTelematics Software Private Limited.pdf", "/documents/space-career-opportunities.pdf"],
+                ["/public/EV.ENGINEER - Battery Pack Aadhaar - Krutarth S Karkala.pdf", "/documents/battery-pack-aadhaar.pdf"],
+                ["/research/IEEE conference certificate - Battery Intelligence.pdf", "/research/IEEE conference certificate - Battery Intelligence - secure.pdf"],
+            ].map(([source, destination]) => ({ source: encodeURI(source), destination: encodeURI(destination), statusCode: 301 })),
         ];
     },
 };

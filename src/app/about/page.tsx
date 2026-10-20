@@ -1,115 +1,80 @@
 import type { Metadata } from 'next';
-import { pageMetadata } from '@/lib/metadata';
 import Link from 'next/link';
+import styles from './page.module.css';
+import { pageMetadata } from '@/lib/metadata';
 import JsonLd, { pageSchema } from '@/components/JsonLd';
-import { CtaBand, PageHero } from '@/components/site/blocks';
-import { FLAGSHIP, REGIONS, SITE } from '@/lib/site';
+import StepFlow from '@/components/site/StepFlow';
+import { PageHero } from '@/components/site/blocks';
+import { SITE } from '@/lib/site';
 
 const PATH = '/about';
-const TITLE = 'About iTelematics: Satellite Engineering R&D';
+const TITLE = 'About iTelematics®';
 const DESCRIPTION =
-    'iTelematics Software Private Limited, Bangalore: intern-driven Satellite Engineering R&D in spacecraft energy, telemetry and system health.';
+    'iTelematics Software Private Limited, Bangalore: applied Satellite Engineering projects shaped by startup opportunities, industry requirements and real career pathways.';
 
 export const metadata: Metadata = pageMetadata({ path: PATH, title: TITLE, description: DESCRIPTION });
 
-const DIRECTION = [
-    ['Problem', 'Satellites depend on reliable energy generation, storage, telemetry and an understanding of subsystem health. A spacecraft cannot be repaired after launch, so these must be engineered and evidenced in advance.'],
-    ['Research direction', 'iTelematics is building Satellite Engineering capability through an intern-driven R&D model, organised around one flagship platform: ' + FLAGSHIP + '.'],
-    ['Technical focus', 'Spacecraft energy, telemetry and system health: solar arrays, the EPS, batteries, sensors, telemetry and health intelligence.'],
-    ['Talent engine', 'Students and interns learn by carrying out structured engineering research and producing evidence that goes through technical review.'],
-    ['Long-term value', 'Accumulated engineering models, simulations, datasets, workflows and system knowledge form reusable Satellite Engineering intellectual capital.'],
+const PILLARS = [
+    ['Mission', 'Practical Satellite Engineering capability in spacecraft energy, telemetry and system health.'],
+    ['Method', 'Applied projects built on startup ideas, industry requirements and real engineering problems.'],
+    ['Evidence', 'Model, simulate, validate and document. Every result carries an honest maturity label.'],
 ] as const;
-
-const PRINCIPLES = [
-    'Every result carries a maturity label: Concept, Research, Simulation, Prototype, Experimental, Validated or Planned.',
-    'We do not claim flight heritage, satellite deployments or partnerships we cannot document.',
-    'Assumptions and limitations are published alongside models and results.',
-    'Students build the evidence; reviewers and experts are invited to challenge it.',
-];
 
 export default function AboutPage() {
     return (
         <>
             <JsonLd data={pageSchema({ path: PATH, name: TITLE, description: DESCRIPTION, type: 'AboutPage', breadcrumbs: [{ name: 'About', path: PATH }] })} />
             <PageHero
-                eyebrow="About iTelematics"
-                title="Satellite Engineering R&D, built by engineers in training"
-                lead={`${SITE.legalName} provides an intern-driven Satellite Engineering research environment where students, engineers and researchers learn, simulate, experiment and develop engineering evidence around spacecraft energy, telemetry and system health.`}
+                eyebrow="Why iTelematics®"
+                title="Satellite Engineering"
+                lead="Applied projects shaped by startup opportunities, industry requirements and real career pathways in space engineering."
                 breadcrumbs={[{ name: 'About', path: PATH }]}
+                visual={
+                    <StepFlow
+                        variant="ladder"
+                        label="Mission, energy, telemetry, evidence"
+                        steps={[
+                            { name: 'Mission', tone: 'orbit' },
+                            { name: 'Energy', tone: 'solar' },
+                            { name: 'Telemetry', tone: 'telemetry' },
+                            { name: 'Evidence', tone: 'nominal' },
+                        ]}
+                    />
+                }
             />
 
-            <section className="section" data-analytics-section="direction">
+            <section className="section section-alt" data-analytics-section="pillars">
                 <div className="container">
-                    <div className="section-head">
-                        <p className="eyebrow">What we are building</p>
-                        <h2>Research direction</h2>
-                    </div>
-                    <div className="grid grid-3">
-                        {DIRECTION.map(([title, text]) => (
-                            <div key={title} className="card">
-                                <h3>{title}</h3>
+                    <ol className={styles.pillars}>
+                        {PILLARS.map(([title, text], i) => (
+                            <li key={title} data-reveal>
+                                <span className="mono">0{i + 1}</span>
+                                <h2>{title}</h2>
                                 <p>{text}</p>
-                            </div>
+                            </li>
                         ))}
-                    </div>
-                </div>
-            </section>
-
-            <section className="section" data-analytics-section="principles">
-                <div className="container">
-                    <div className="section-head">
-                        <p className="eyebrow">How we work</p>
-                        <h2>Credibility through evidence</h2>
-                    </div>
-                    <ul className="prose">
-                        {PRINCIPLES.map((p) => <li key={p}>{p}</li>)}
-                    </ul>
-                </div>
-            </section>
-
-            <section className="section" data-analytics-section="global">
-                <div className="container">
-                    <div className="section-head">
-                        <p className="eyebrow">Global participation</p>
-                        <h2>Open to researchers worldwide</h2>
-                        <p>
-                            Satellite Engineering is inherently global. iTelematics welcomes research discussions, technical
-                            reviews, mentorship, academic collaboration and experimental contributions from engineers,
-                            scientists and researchers worldwide.
-                        </p>
-                    </div>
-                    <p className="regions">{REGIONS.join(' · ')}</p>
-                </div>
-            </section>
-
-            <section className="section" data-analytics-section="company">
-                <div className="container">
-                    <div className="section-head">
-                        <p className="eyebrow">Company</p>
-                        <h2>{SITE.legalName}</h2>
-                    </div>
-                    <div className="table-wrap">
-                        <table className="data-table">
-                            <tbody>
-                                <tr><td>Registered office</td><td>{SITE.address.display}</td></tr>
-                                <tr><td>CIN</td><td className="mono">{SITE.cin}</td></tr>
-                                <tr><td>GSTIN</td><td className="mono">{SITE.gstin}</td></tr>
-                                <tr><td>MSME</td><td className="mono">{SITE.msme}</td></tr>
-                                <tr><td>Email</td><td><a href={`mailto:${SITE.email}`} className="inline-link">{SITE.email}</a></td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <p className="hero-actions">
-                        Consultancy, workshops and technical resources are offered alongside the research. See{' '}
+                    </ol>
+                    <p className={styles.principle}>
+                        We do not claim flight heritage, satellite deployments or partnerships we cannot document.
+                        Consultancy and workshops are offered alongside this work; see{' '}
                         <Link href="/consultancy" className="inline-link">Consultancy &amp; Services</Link>.
                     </p>
                 </div>
             </section>
 
-            <CtaBand title="Work with us" text="Internships, research collaboration, technical review or strategic discussion.">
-                <Link href="/contact?enquiry=research" className="btn btn-primary" data-track="join_rnd_click">Join Satellite R&amp;D</Link>
-                <Link href="/research-platform" className="btn btn-secondary">See the Research Platform</Link>
-            </CtaBand>
+            <section className="section" data-analytics-section="company">
+                <div className="container">
+                    <h2 className={styles.companyTitle}>Company information</h2>
+                    <dl className={styles.company}>
+                        <div><dt className="label">Company</dt><dd>{SITE.legalName}</dd></div>
+                        <div><dt className="label">Registered office</dt><dd>{SITE.address.display}</dd></div>
+                        <div><dt className="label">CIN</dt><dd className="mono">{SITE.cin}</dd></div>
+                        <div><dt className="label">GSTIN</dt><dd className="mono">{SITE.gstin}</dd></div>
+                        <div><dt className="label">MSME</dt><dd className="mono">{SITE.msme}</dd></div>
+                        <div><dt className="label">Email</dt><dd><a href={`mailto:${SITE.email}`} className="inline-link">{SITE.email}</a></dd></div>
+                    </dl>
+                </div>
+            </section>
         </>
     );
 }

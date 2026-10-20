@@ -1,0 +1,138 @@
+.wrap {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.svg {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+}
+
+/* Base drawing: quiet hairlines */
+.body {
+    fill: #0C1722;
+    stroke: rgba(148, 163, 184, 0.45);
+    stroke-width: 1.2;
+}
+
+.side {
+    fill: #0A141E;
+    stroke: rgba(148, 163, 184, 0.45);
+    stroke-width: 1.2;
+}
+
+.panel {
+    fill: rgba(30, 48, 96, 0.55);
+    stroke: rgba(148, 163, 184, 0.5);
+    stroke-width: 1.2;
+}
+
+.cell,
+.hatch {
+    stroke: rgba(148, 163, 184, 0.28);
+    stroke-width: 1;
+}
+
+.part {
+    fill: rgba(17, 32, 51, 0.6);
+    stroke: rgba(148, 163, 184, 0.55);
+    stroke-width: 1.3;
+}
+
+.solid {
+    fill: rgba(148, 163, 184, 0.55);
+}
+
+.orbit {
+    fill: none;
+    stroke: rgba(165, 180, 252, 0.3);
+    stroke-width: 1.2;
+    stroke-dasharray: 3 6;
+}
+
+.link {
+    fill: none;
+    stroke: rgba(148, 163, 184, 0.25);
+    stroke-width: 1.2;
+    stroke-dasharray: 4 6;
+}
+
+/* Highlight: one subsystem at a time */
+.region * {
+    transition: stroke 0.5s var(--ease), fill 0.5s var(--ease), opacity 0.5s var(--ease);
+}
+
+.on .part,
+.on .panel,
+.on .side,
+.on .orbit,
+.on .link {
+    stroke: var(--telemetry);
+}
+
+.on .part,
+.on .side {
+    fill: rgba(34, 211, 238, 0.12);
+}
+
+.on .solid {
+    fill: var(--telemetry);
+}
+
+.on .link {
+    stroke-opacity: 1;
+    animation: flow 1.2s linear infinite;
+}
+
+.on .orbit {
+    stroke: var(--orbit);
+    stroke-width: 1.8;
+}
+
+.on .hatch {
+    stroke: rgba(34, 211, 238, 0.6);
+}
+
+/* Power is colour-coded amber: generation and energy */
+.on.power .part,
+.on.power .panel {
+    stroke: var(--solar);
+}
+
+.on.power .part {
+    fill: rgba(251, 191, 36, 0.12);
+}
+
+.on.power .panel {
+    fill: rgba(251, 191, 36, 0.14);
+}
+
+.on.power .cell {
+    stroke: rgba(251, 191, 36, 0.45);
+}
+
+.caption {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    margin-top: 0.75rem;
+    font-family: var(--font-mono);
+    font-size: clamp(0.72rem, 0.68rem + 0.15vw, 0.82rem);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-2);
+}
+
+.dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--telemetry);
+}
+
+@keyframes flow {
+    to { stroke-dashoffset: -20; }
+}

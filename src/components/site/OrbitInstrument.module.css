@@ -1,0 +1,217 @@
+.instrument {
+    display: grid;
+    gap: clamp(1.5rem, 1rem + 2vw, 3rem);
+    align-items: center;
+}
+
+@media (min-width: 960px) {
+    .instrument {
+        grid-template-columns: 55fr 45fr;
+    }
+}
+
+.figure {
+    max-width: 560px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.svg {
+    width: 100%;
+    height: auto;
+}
+
+@media (max-width: 640px) {
+    .figure {
+        max-width: 340px;
+    }
+
+    .svgLabel {
+        display: none;
+    }
+}
+
+.caption {
+    margin-top: 0.5rem;
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--text-3);
+}
+
+/* ---------- Drawing ---------- */
+
+.ray line {
+    stroke: var(--solar);
+    stroke-width: 1.5;
+    stroke-opacity: 0.75;
+}
+
+.ray path {
+    fill: var(--solar);
+    fill-opacity: 0.75;
+}
+
+.svgLabel {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+}
+
+.sunLabel {
+    fill: var(--solar);
+}
+
+.shadow {
+    fill: rgba(165, 180, 252, 0.07);
+}
+
+.sunArc {
+    fill: none;
+    stroke: var(--solar);
+    stroke-opacity: 0.55;
+    stroke-width: 1.5;
+}
+
+.eclipseArc {
+    fill: none;
+    stroke: var(--orbit);
+    stroke-width: 2.5;
+}
+
+.earth {
+    stroke: rgba(165, 180, 252, 0.4);
+    stroke-width: 1;
+}
+
+.station path {
+    fill: var(--text-2);
+}
+
+.link {
+    stroke: var(--telemetry);
+    stroke-width: 1.5;
+    stroke-dasharray: 4 5;
+    animation: link 0.9s linear infinite;
+}
+
+.panel {
+    fill: rgba(59, 130, 246, 0.45);
+    stroke: #60A5FA;
+    stroke-width: 1;
+}
+
+.body {
+    fill: #0C1722;
+    stroke: var(--text);
+    stroke-width: 1.4;
+}
+
+@keyframes link {
+    to { stroke-dashoffset: -18; }
+}
+
+/* ---------- Readouts ---------- */
+
+.panelArea {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.readouts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.75rem 1.5rem;
+}
+
+@media (min-width: 640px) and (max-width: 959px) {
+    .readouts {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+.readout {
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--border);
+}
+
+.value {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.4rem;
+    font-size: clamp(1.5rem, 1.2rem + 1vw, 2rem);
+    font-weight: 560;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    color: var(--text);
+}
+
+.dot {
+    width: 9px;
+    height: 9px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.note {
+    margin-top: 0.25rem;
+    font-size: 0.85rem;
+    color: var(--text-3);
+}
+
+.controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.play {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border: 1px solid var(--border-strong);
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-2);
+    font-size: 0.7rem;
+    cursor: pointer;
+}
+
+.play:hover {
+    color: var(--text);
+}
+
+.scrub {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+}
+
+.scrub input {
+    flex: 1;
+    accent-color: var(--telemetry);
+    min-height: 44px;
+}
+
+.time {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--text-3);
+    white-space: nowrap;
+}
+
+.footnote {
+    font-size: 0.8rem;
+    color: var(--text-3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .link {
+        animation: none;
+    }
+}

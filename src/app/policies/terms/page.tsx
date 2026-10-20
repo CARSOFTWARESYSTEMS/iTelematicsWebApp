@@ -20,14 +20,14 @@ export default function TermsPage() {
                 <div className="container prose">
                     <h2>About this website</h2>
                     <p>
-                        This website is published by {SITE.legalName} (“iTelematics”, “we”, “us”) to describe its Satellite
+                        This website is published by {SITE.legalName} (“iTelematics®”, “we”, “us”) to describe its Satellite
                         Engineering research, internships, consultancy and engineering ecosystem.
                     </p>
 
                     <h2>Technical content</h2>
                     <p>
                         Engineering content on this site, including models, equations, reference cases and telemetry values,
-                        is provided for learning and research. Values described as illustrative, simulated or reference are
+                        is provided for engineering reference and research. Values described as illustrative, simulated or reference are
                         not flight data and are not specifications for real spacecraft. Maturity labels describe the current
                         state of each item. Nothing on this site is flight-qualified or certified for operational use.
                     </p>
@@ -36,18 +36,18 @@ export default function TermsPage() {
                     <p>
                         Links to ecosystem organisations and external resources open websites we do not control. Their
                         content and privacy practices are their own. Listing an organisation does not mean it endorses
-                        iTelematics, and relationships are described as they currently stand.
+                        iTelematics®, and relationships are described as they currently stand.
                     </p>
 
                     <h2>Intellectual property</h2>
                     <p>
-                        All content on this site is the property of iTelematics or its licensors and may not be reproduced
+                        All content on this site is the property of iTelematics® or its licensors and may not be reproduced
                         without permission, except for brief quotation with attribution for research or review.
                     </p>
 
                     <h2>Limitation of liability</h2>
                     <p>
-                        iTelematics is not liable for indirect or consequential loss arising from use of this website or its
+                        iTelematics® is not liable for indirect or consequential loss arising from use of this website or its
                         content, to the extent permitted by applicable law.
                     </p>
 

@@ -6,18 +6,17 @@
 import type { ClickEvent } from '@/lib/analytics/taxonomy';
 
 export const SITE = {
-    name: 'iTelematics',
+    name: 'iTelematics®',
     legalName: 'iTelematics Software Private Limited',
     url: 'https://itelematics.com',
-    positioning: 'Satellite Engineering R&D',
+    positioning: 'Satellite Engineering',
     descriptor: 'Solar · EPS · Battery · Sensors · Telemetry · Spacecraft Health',
     description:
-        'iTelematics Software Private Limited provides intern-driven Satellite Engineering R&D focused on spacecraft solar energy, batteries, EPS, sensors, telemetry and satellite health intelligence.',
+        'Applied Satellite Engineering projects in spacecraft energy, batteries, EPS, sensors, telemetry and health, shaped by startup and industry requirements.',
     email: 'info@iTelematics.com',
     hrEmail: 'hr@iTelematics.com',
     phone: '+91 91082 06147',
     phoneHref: 'tel:+919108206147',
-    whatsappHref: 'https://wa.me/919108206147',
     address: {
         street: 'Bhoganahalli',
         locality: 'Bangalore',
@@ -54,7 +53,8 @@ export type PrimaryNavItem = NavItem & {
 };
 
 // Existing Consultancy & Services structure, kept as-is. Removed: "Battery Diagnostics (POC/UX) - 3"
-// (demo.battery.ev.engineer fails its TLS handshake).
+// (demo.battery.ev.engineer fails its TLS handshake). Documents under /documents are the public
+// versions with neutral filenames; unredacted originals are kept, unserved, in archive/public-originals.
 export const CONSULTANCY_GROUPS: NavGroup[] = [
     {
         name: 'Space Research & Workshops',
@@ -66,7 +66,7 @@ export const CONSULTANCY_GROUPS: NavGroup[] = [
             { name: 'Aerospace Cybersecurity', href: 'https://aerospace.ev.engineer', external: true },
             { name: 'Space Applications', href: 'https://aerospace.ev.engineer/space/everyday-applications', external: true },
             { name: 'Space Station Research', href: 'https://ishavasyam.org/', external: true },
-            { name: 'Space Career Opportunities', href: '/space/Space Career Opportunities - iTelematics Software Private Limited.pdf', external: true },
+            { name: 'Space Career Opportunities', href: '/documents/space-career-opportunities.pdf', external: true },
         ],
     },
     {
@@ -76,7 +76,7 @@ export const CONSULTANCY_GROUPS: NavGroup[] = [
             { name: 'Battery Workshops', href: 'https://battery.ev.engineer/', external: true },
             { name: 'Energy Research', href: 'https://autonomous.ev.engineer/si-ems', external: true },
             { name: 'Mobile Workshops', href: 'https://imacxrepair.com/', external: true },
-            { name: 'EV Training', href: 'https://labs.ev.engineer/', external: true },
+            { name: 'EV Engineering Labs', href: 'https://labs.ev.engineer/', external: true },
         ],
     },
     {
@@ -84,13 +84,13 @@ export const CONSULTANCY_GROUPS: NavGroup[] = [
         links: [
             { name: 'IEEE - Battery Intelligence', href: '/research/IEEE conference certificate - Battery Intelligence - secure.pdf', external: true },
             { name: 'PPT - Battery Intelligence v.1', href: '/public/Battery Intelligence v.1.pdf', external: true },
-            { name: 'PPT - Battery Pack Aadhaar Services', href: '/public/EV.ENGINEER - Battery Pack Aadhaar - Krutarth S Karkala.pdf', external: true },
+            { name: 'PPT - Battery Pack Aadhaar Services', href: '/documents/battery-pack-aadhaar.pdf', external: true },
         ],
     },
     {
         name: 'Battery Pack Aadhaar Systems',
         links: [
-            { name: 'Battery Pack Aadhaar (Draft)', href: '/public/EV.ENGINEER - Battery Pack Aadhaar - Krutarth S Karkala.pdf', external: true },
+            { name: 'Battery Pack Aadhaar (Draft)', href: '/documents/battery-pack-aadhaar.pdf', external: true },
             { name: 'Battery Pack Aadhaar (POC/UX) - 1', href: 'https://tweak-stand-28567793.figma.site/', external: true },
             { name: 'Battery Pack Aadhaar (POC/UX) - 2', href: 'https://stack-beta-65283525.figma.site/', external: true },
         ],
@@ -108,24 +108,59 @@ export const CONSULTANCY_GROUPS: NavGroup[] = [
 ];
 
 export const CONSULTANCY_EXTRA_LINKS: NavItem[] = [
-    { name: 'FAQ - Frequently Asked Questions', href: '/public/iTelematics-FrequentlyAskedQuestions.pdf', external: true },
+    { name: 'FAQ - Frequently Asked Questions', href: '/documents/itelematics-faq.pdf', external: true },
+];
+
+/** Curated three-group menu for the header; every existing link remains on /consultancy. */
+export const CONSULTANCY_MENU: NavGroup[] = [
+    {
+        name: 'Space & Research',
+        links: [
+            { name: 'Space Technologies', href: 'https://aerospace.ev.engineer/space', external: true },
+            { name: 'CanSat / Model Rocketry', href: 'https://aerospace.ev.engineer/space/model-rocketry', external: true },
+            { name: 'CubeTwin Simulator', href: 'https://aerospace.ev.engineer/space/cubesat', external: true },
+            { name: 'Space Applications', href: 'https://aerospace.ev.engineer/space/everyday-applications', external: true },
+            { name: 'Space Station Research', href: 'https://ishavasyam.org/', external: true },
+        ],
+    },
+    {
+        name: 'Energy & Engineering',
+        links: [
+            { name: 'Battery Workshops', href: 'https://battery.ev.engineer/', external: true },
+            { name: 'Energy Research', href: 'https://autonomous.ev.engineer/si-ems', external: true },
+            { name: 'EV Engineering Labs', href: 'https://labs.ev.engineer/', external: true },
+            { name: 'Battery Pack Aadhaar', href: '/documents/battery-pack-aadhaar.pdf', external: true },
+        ],
+    },
+    {
+        name: 'Tools & Resources',
+        links: [
+            { name: 'AS9102 FAI Reports', href: 'https://fai.ev.engineer/', external: true },
+            { name: 'Presentations', href: '/consultancy#papers-presentations' },
+            { name: 'FAQs', href: '/documents/itelematics-faq.pdf', external: true },
+            { name: 'Engineering Resources', href: '/consultancy#ev-ai-toolkits' },
+        ],
+    },
 ];
 
 export const PRIMARY_NAV: PrimaryNavItem[] = [
     { name: 'Satellite Engineering', href: '/satellite-engineering' },
-    { name: 'Research Platform', href: '/research-platform' },
+    { name: 'Research', href: '/research-platform' },
     { name: 'Internships', href: '/internships' },
+    { name: 'Ecosystem', href: '/partners' },
     {
-        name: 'Consultancy & Services',
+        name: 'Consultancy',
         href: '/consultancy',
-        groups: CONSULTANCY_GROUPS,
-        extraLinks: CONSULTANCY_EXTRA_LINKS,
+        groups: CONSULTANCY_MENU,
         track: 'consultancy_click',
     },
-    { name: 'Partners & Ecosystem', href: '/partners' },
     { name: 'About', href: '/about' },
-    { name: 'Contact', href: '/contact' },
 ];
+
+export const CONTACT_NAV: NavItem = { name: 'Contact', href: '/contact' };
+
+/** Join R&D opens the enquiry form with Research Collaboration preselected; visitors can change it. */
+export const JOIN_HREF = '/contact?enquiry=research';
 
 export const RESOURCES = {
     satelliteEngineering: {
@@ -134,7 +169,7 @@ export const RESOURCES = {
         cta: 'Explore Satellite Engineering',
         description:
             'Learn Satellite Engineering from spacecraft architecture and mission requirements through subsystem design, verification and engineering reviews.',
-        detail: 'Architecture track built around a 6U Earth-observation reference mission, with formal SRR → MRR reviews.',
+        detail: 'Spacecraft architecture around a 6U Earth-observation reference mission, through formal SRR → MRR reviews.',
     },
     interactive3d: {
         name: 'Interactive 3D Satellite',
@@ -153,9 +188,8 @@ export type EcosystemLink = { label: string; href: string; kind: 'official' | 'c
 
 export type EcosystemOrg = {
     name: string;
-    summary: string;
-    relationship: string;
-    relationshipLabel: string;
+    line: string;
+    status: string;
     links: EcosystemLink[];
 };
 
@@ -163,44 +197,36 @@ export type EcosystemOrg = {
 export const ECOSYSTEM: EcosystemOrg[] = [
     {
         name: 'Gamyaa AeroSystems',
-        summary: 'Bangalore-based engineering assurance intelligence for aerospace and defence, linking design, airworthiness, manufacturing, inspection and approval evidence.',
-        relationshipLabel: 'Engineering collaboration',
-        relationship: 'Gamyaa AeroSystems lists iTelematics in its Partners & Ecosystem for engineering software, connected systems and technology.',
-        links: [{ label: 'Official website', href: 'https://aerosystems.gamyaa.in/', kind: 'official' }],
+        line: 'Aerospace and defence engineering assurance.',
+        status: 'Engineering collaboration',
+        links: [{ label: 'Visit', href: 'https://aerosystems.gamyaa.in/', kind: 'official' }],
     },
     {
         name: 'APEX Rocket Systems',
-        summary: 'Rocket propulsion and launch-systems engineering, turning engineering concepts into physical hardware.',
-        relationshipLabel: 'Proposed capability partnership · concept stage',
-        relationship: "APEX's ecosystem concept lists iTelematics as a proposed capability partner for cybersecurity and AI. The relationship is proposed, not yet confirmed.",
+        line: 'Rocket propulsion and launch systems.',
+        status: 'Proposed · concept stage',
         links: [
-            { label: 'Ecosystem / partnership context', href: 'https://aerospace.ev.engineer/space/partners/apexrocketsystems/ecosystem', kind: 'context' },
-            { label: 'Official website', href: 'https://www.apexrocketsystems.com/', kind: 'official' },
+            { label: 'Partnership', href: 'https://aerospace.ev.engineer/space/partners/apexrocketsystems', kind: 'context' },
+            { label: 'Official Website', href: 'https://www.apexrocketsystems.com/', kind: 'official' },
         ],
     },
     {
         name: 'iFab Innovations',
-        summary: 'Bengaluru-based intelligent engineering solutions for the electronics, healthcare, defence and aerospace industries.',
-        relationshipLabel: 'Engineering & Innovation Ecosystem',
-        relationship: 'Listed as part of the wider engineering and innovation ecosystem. No formal partnership or collaboration is claimed.',
-        links: [{ label: 'iFab.Tech', href: 'https://ifab.tech/', kind: 'official' }],
+        line: 'Bengaluru engineering solutions. No formal partnership claimed.',
+        status: 'Engineering & Innovation Ecosystem',
+        links: [{ label: 'Visit', href: 'https://ifab.tech/', kind: 'official' }],
     },
     {
         name: 'EV Society™',
-        summary: 'A non-profit educational and technical community advancing research, safety, standards and skills.',
-        relationshipLabel: 'Ecosystem partner',
-        relationship: 'EV Society™ lists iTelematics and EV.ENGINEER™ among its ecosystem partners.',
-        links: [{ label: 'Official website', href: 'https://www.evsociety.org/', kind: 'official' }],
+        line: 'Technical and engineering community.',
+        status: 'Ecosystem partner',
+        links: [{ label: 'Visit', href: 'https://www.evsociety.org/', kind: 'official' }],
     },
     {
         name: 'EV.ENGINEER™',
-        summary: 'The iTelematics engineering-learning platform. It hosts the Satellite Engineering course and the Interactive 3D Satellite explorer used across this site.',
-        relationshipLabel: 'Engineering-learning platform',
-        relationship: 'Operated by iTelematics as an ecosystem resource for engineering learning and research.',
-        links: [
-            { label: 'EV.ENGINEER™ at iTelematics', href: '/ev-engineer', kind: 'internal' },
-            { label: 'autonomous.ev.engineer', href: 'https://autonomous.ev.engineer/', kind: 'official' },
-        ],
+        line: 'Engineering platform hosting Satellite Engineering resources.',
+        status: 'Operated by iTelematics®',
+        links: [{ label: 'Visit', href: '/ev-engineer', kind: 'internal' }],
     },
 ];
 

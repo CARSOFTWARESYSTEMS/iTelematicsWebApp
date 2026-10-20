@@ -1,0 +1,94 @@
+.network {
+    position: relative;
+    width: 100%;
+    max-width: 620px;
+    aspect-ratio: 1.45;
+    margin: 0 auto;
+}
+
+.lines {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.line {
+    stroke: rgba(148, 163, 184, 0.28);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+    stroke-dasharray: 3 5;
+    animation: link 6s linear infinite;
+}
+
+.node {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    padding: 0.45rem 0.8rem;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--text-2);
+    white-space: nowrap;
+}
+
+.center {
+    padding: 0.7rem 1.1rem;
+    border-color: rgba(34, 211, 238, 0.55);
+    background: var(--surface);
+    font-size: 1rem;
+    font-weight: 650;
+    color: var(--text);
+    box-shadow: 0 0 0 6px rgba(34, 211, 238, 0.06);
+}
+
+/* Phones: a compact relationship stack instead of a squeezed map */
+@media (max-width: 640px) {
+    .network {
+        aspect-ratio: auto;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.5rem;
+        padding-top: 4.25rem;
+    }
+
+    .lines {
+        display: none;
+    }
+
+    .node {
+        position: static;
+        transform: none;
+        font-size: 0.85rem;
+    }
+
+    .center {
+        position: absolute;
+        left: 50% !important;
+        top: 0 !important;
+        transform: translateX(-50%);
+    }
+
+    .network::before {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 2.9rem;
+        width: 1px;
+        height: 1.1rem;
+        background: rgba(148, 163, 184, 0.35);
+    }
+}
+
+@keyframes link {
+    to { stroke-dashoffset: -32; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .line {
+        animation: none;
+    }
+}

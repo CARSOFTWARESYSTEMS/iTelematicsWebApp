@@ -10,7 +10,7 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('@/lib/analytics/client', () => ({ track: vi.fn() }));
 
-const PRIMARY = ['Satellite Engineering', 'Research Platform', 'Internships', 'Partners & Ecosystem', 'About', 'Contact'];
+const PRIMARY = ['Satellite Engineering', 'Research', 'Internships', 'Ecosystem', 'About'];
 
 describe('Navbar', () => {
     beforeEach(() => {
@@ -18,36 +18,45 @@ describe('Navbar', () => {
         vi.mocked(track).mockClear();
     });
 
-    it('renders the Satellite Engineering navigation and the Join R&D CTA', () => {
+    it('shows the six destinations, Contact and the Join R&D CTA', () => {
         render(<Navbar />);
         const nav = screen.getByRole('navigation', { name: 'Main' });
         for (const name of PRIMARY) {
-            expect(within(nav).getAllByRole('link', { name }).length).toBeGreaterThan(0);
+            expect(within(nav).getAllByRole('link', { name: new RegExp(`^${name}$`) }).length).toBeGreaterThan(0);
         }
-        expect(within(nav).getAllByRole('button', { name: /Consultancy & Services/ }).length).toBeGreaterThan(0);
-        const cta = within(nav).getAllByRole('link', { name: 'Join Satellite R&D' })[0];
+        expect(within(nav).getByRole('button', { name: /^Consultancy/ })).toBeInTheDocument();
+        expect(within(nav).getByRole('link', { name: 'Contact' })).toHaveAttribute('href', '/contact');
+        const cta = within(nav).getByRole('link', { name: 'Join R&D' });
         expect(cta).toHaveAttribute('data-track', 'join_rnd_click');
+        expect(cta).toHaveAttribute('href', '/contact?enquiry=research');
+    });
+
+    it('labels the logo "Satellite Engineering"', () => {
+        render(<Navbar />);
+        const logo = screen.getByRole('link', { name: 'iTelematics® home' });
+        expect(logo).toHaveTextContent('iTelematics®Satellite Engineering');
+        expect(logo.textContent).not.toMatch(/R&D/);
     });
 
     it('no longer links to Events & Registration or EV Academy', () => {
         const { container } = render(<Navbar />);
         expect(screen.queryByText(/Events & Registration/)).not.toBeInTheDocument();
-        expect(screen.queryByText(/EV Academy/)).not.toBeInTheDocument();
         expect(container.querySelector('a[href^="/events"], a[href="/academy"]')).toBeNull();
     });
 
     it('keeps the Consultancy & Services groups behind an accessible disclosure', () => {
         render(<Navbar />);
-        const toggle = screen.getAllByRole('button', { name: /Consultancy & Services/ })[0];
+        const toggle = screen.getByRole('button', { name: /^Consultancy/ });
         expect(toggle).toHaveAttribute('aria-expanded', 'false');
 
         fireEvent.click(toggle);
         expect(toggle).toHaveAttribute('aria-expanded', 'true');
-        for (const group of ['Space Research & Workshops', 'EV Battery Workshops', 'Papers & Presentations', 'Battery Pack Aadhaar Systems', 'EV & AI Toolkits']) {
+        for (const group of ['Space & Research', 'Energy & Engineering', 'Tools & Resources']) {
             expect(screen.getByText(group)).toBeInTheDocument();
         }
+        expect(screen.getByRole('link', { name: 'View all Consultancy & Services →' })).toHaveAttribute('href', '/consultancy');
         expect(screen.getByRole('link', { name: /CubeTwin Simulator/ })).toHaveAttribute('href', 'https://aerospace.ev.engineer/space/cubesat');
-        expect(screen.queryByText(/Battery Diagnostics \(POC\/UX\) - 3/)).not.toBeInTheDocument();
+        expect(screen.getByRole('link', { name: /EV Engineering Labs/ })).toHaveAttribute('href', 'https://labs.ev.engineer/');
 
         fireEvent.keyDown(document, { key: 'Escape' });
         expect(toggle).toHaveAttribute('aria-expanded', 'false');
@@ -56,15 +65,30 @@ describe('Navbar', () => {
     it('marks the current page', () => {
         mockPathname = '/research-platform';
         render(<Navbar />);
-        const current = screen.getAllByRole('link', { name: 'Research Platform' }).filter((l) => l.getAttribute('aria-current') === 'page');
+        const current = screen.getAllByRole('link', { name: /^Research$/ }).filter((l) => l.getAttribute('aria-current') === 'page');
         expect(current.length).toBeGreaterThan(0);
+    });
+
+    it('opens a full-screen menu with Contact, the Consultancy accordion and the Join CTA', () => {
+        render(<Navbar />);
+        const toggle = screen.getByRole('button', { name: 'Toggle Menu' });
+        fireEvent.click(toggle);
+        const menu = document.getElementById('mobile-menu') as HTMLElement;
+        expect(menu).not.toHaveAttribute('hidden');
+        expect(within(menu).getByRole('link', { name: 'Contact' })).toBeInTheDocument();
+        expect(within(menu).getByRole('link', { name: 'Join Satellite R&D' })).toHaveAttribute('data-track', 'join_rnd_click');
+
+        const accordion = within(menu).getByRole('button', { name: /^Consultancy/ });
+        fireEvent.click(accordion);
+        expect(accordion).toHaveAttribute('aria-expanded', 'true');
+        expect(within(menu).getByText('Space & Research')).toBeInTheDocument();
+        expect(within(menu).getByRole('link', { name: 'View all Consultancy & Services →' })).toBeInTheDocument();
     });
 
     it('reports mobile_navigation_use when the mobile menu opens, not when it closes', () => {
         render(<Navbar />);
         const toggle = screen.getByRole('button', { name: 'Toggle Menu' });
         fireEvent.click(toggle);
-        expect(toggle).toHaveAttribute('aria-expanded', 'true');
         fireEvent.click(toggle);
         expect(track).toHaveBeenCalledTimes(1);
         expect(track).toHaveBeenCalledWith('mobile_navigation_use', { cta_name: 'Open menu', cta_location: 'header-mobile' });
@@ -80,7 +104,7 @@ describe('Navbar', () => {
 
     it('labels external submenu links for screen readers without changing the analytics CTA name', () => {
         render(<Navbar />);
-        fireEvent.click(screen.getAllByRole('button', { name: /Consultancy & Services/ })[0]);
+        fireEvent.click(screen.getByRole('button', { name: /^Consultancy/ }));
         const link = screen.getByRole('link', { name: /^CubeTwin Simulator\s*\(opens in a new tab\)$/ });
         expect(link).toHaveAttribute('data-track-name', 'CubeTwin Simulator');
         expect(link).toHaveAttribute('target', '_blank');

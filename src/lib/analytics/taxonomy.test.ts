@@ -58,7 +58,7 @@ describe('describeClick destination rules', () => {
         for (const href of [
             'https://aerosystems.gamyaa.in/',
             'https://www.apexrocketsystems.com/',
-            'https://aerospace.ev.engineer/space/partners/apexrocketsystems/ecosystem',
+            'https://aerospace.ev.engineer/space/partners/apexrocketsystems',
             'https://ifab.tech/',
             'https://evsociety.org/',
             'https://autonomous.ev.engineer/',

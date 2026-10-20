@@ -5,10 +5,7 @@ import { usePathname } from 'next/navigation';
 import styles from './Navbar.module.css';
 import ExternalLink from './site/ExternalLink';
 import { track } from '@/lib/analytics/client';
-import { PRIMARY_NAV, type NavGroup, type NavItem, type PrimaryNavItem } from '@/lib/site';
-
-// Join R&D opens the enquiry form with Research Collaboration preselected; visitors can change it.
-const JOIN_HREF = '/contact?enquiry=research';
+import { CONTACT_NAV, JOIN_HREF, PRIMARY_NAV, type NavGroup, type NavItem, type PrimaryNavItem } from '@/lib/site';
 
 const isActive = (pathname: string, href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
@@ -27,49 +24,34 @@ function MenuLink({ link, className, onNavigate }: { link: NavItem; className?: 
     );
 }
 
-function SubmenuGroups({ groups, onNavigate }: { groups: NavGroup[]; onNavigate?: () => void }) {
+function Groups({ item, onNavigate }: { item: PrimaryNavItem; onNavigate: () => void }) {
     return (
         <>
-            {groups.map((group) => (
+            {(item.groups ?? []).map((group: NavGroup) => (
                 <div key={group.name} className={styles.group} data-analytics-section={group.name}>
                     <p className={styles.groupTitle}>{group.name}</p>
                     <ul>
                         {group.links.map((link) => (
                             <li key={link.name}>
-                                <MenuLink link={link} className={styles.submenuLink} onNavigate={onNavigate} />
+                                <MenuLink link={link} className={styles.groupLink} onNavigate={onNavigate} />
                             </li>
                         ))}
                     </ul>
                 </div>
             ))}
-        </>
-    );
-}
-
-function Submenu({ item, id, onNavigate }: { item: PrimaryNavItem; id: string; onNavigate: () => void }) {
-    return (
-        <div id={id} className={styles.submenu}>
-            <div className={styles.submenuHead}>
-                <p className={styles.submenuNote}>
-                    Engineering consultancy, workshops and resources, offered alongside our Satellite Engineering R&D.
-                </p>
-                <Link href={item.href} className="text-link" onClick={onNavigate}>
-                    Overview →
-                </Link>
-            </div>
-            <div className={styles.groups}>
-                <SubmenuGroups groups={item.groups ?? []} onNavigate={onNavigate} />
-            </div>
             {item.extraLinks && (
-                <ul className={styles.extraLinks}>
-                    {item.extraLinks.map((link) => (
-                        <li key={link.name}>
-                            <MenuLink link={link} className={styles.submenuLink} onNavigate={onNavigate} />
-                        </li>
-                    ))}
-                </ul>
+                <div className={styles.group}>
+                    <p className={styles.groupTitle}>Reference</p>
+                    <ul>
+                        {item.extraLinks.map((link) => (
+                            <li key={link.name}>
+                                <MenuLink link={link} className={styles.groupLink} onNavigate={onNavigate} />
+                            </li>
+                        ))}
+                    </ul>
+                </div>
             )}
-        </div>
+        </>
     );
 }
 
@@ -126,12 +108,12 @@ export default function Navbar() {
 
     return (
         <header className={styles.header}>
-            <nav className={`container ${styles.bar}`} aria-label="Main">
-                <Link href="/" className={styles.logo} aria-label="iTelematics home" aria-current={pathname === '/' ? 'page' : undefined}>
+            <nav className={styles.bar} aria-label="Main">
+                <Link href="/" className={styles.logo} aria-label="iTelematics® home" aria-current={pathname === '/' ? 'page' : undefined}>
                     <span className={styles.logoMark} aria-hidden="true" />
                     <span className={styles.logoText}>
-                        <span className={styles.logoName}>iTelematics</span>
-                        <span className={styles.logoTag}>Satellite Engineering R&amp;D</span>
+                        <span className={styles.logoName}>iTelematics<sup className={styles.reg}>®</sup></span>
+                        <span className={styles.logoTag}>Satellite Engineering</span>
                     </span>
                 </Link>
 
@@ -141,7 +123,6 @@ export default function Navbar() {
                         {PRIMARY_NAV.map((item) => (
                             <li
                                 key={item.name}
-                                className={styles.item}
                                 data-analytics-section={item.groups ? item.name : undefined}
                                 data-track-fallback={item.track}
                             >
@@ -149,7 +130,7 @@ export default function Navbar() {
                                     <>
                                         <button
                                             type="button"
-                                            className={`${styles.link} ${styles.secondaryLink} ${isActive(pathname, item.href) ? styles.active : ''}`}
+                                            className={`${styles.link} ${isActive(pathname, item.href) ? styles.active : ''}`}
                                             aria-expanded={openSubmenu === item.name}
                                             aria-controls="desktop-consultancy"
                                             onClick={() => setOpenSubmenu(openSubmenu === item.name ? null : item.name)}
@@ -158,7 +139,14 @@ export default function Navbar() {
                                             <span className={styles.chevron} aria-hidden="true" />
                                         </button>
                                         {!isOpen && openSubmenu === item.name && (
-                                            <Submenu item={item} id="desktop-consultancy" onNavigate={closeAll} />
+                                            <div id="desktop-consultancy" className={styles.panel}>
+                                                <div className={styles.panelGroups}>
+                                                    <Groups item={item} onNavigate={closeAll} />
+                                                </div>
+                                                <Link href={item.href} className={`text-link ${styles.viewAll}`} onClick={closeAll}>
+                                                    View all Consultancy &amp; Services →
+                                                </Link>
+                                            </div>
                                         )}
                                     </>
                                 ) : (
@@ -173,12 +161,21 @@ export default function Navbar() {
                             </li>
                         ))}
                     </ul>
-                    <Link href={JOIN_HREF} className={`btn btn-primary ${styles.cta}`} data-track="join_rnd_click">
-                        Join Satellite R&amp;D
-                    </Link>
+                    <div className={styles.right}>
+                        <Link
+                            href={CONTACT_NAV.href}
+                            className={`${styles.link} ${isActive(pathname, CONTACT_NAV.href) ? styles.active : ''}`}
+                            aria-current={isActive(pathname, CONTACT_NAV.href) ? 'page' : undefined}
+                        >
+                            {CONTACT_NAV.name}
+                        </Link>
+                        <Link href={JOIN_HREF} className={`btn ${styles.cta}`} data-track="join_rnd_click">
+                            Join R&amp;D
+                        </Link>
+                    </div>
                 </div>
 
-                {/* Mobile */}
+                {/* Mobile and tablet */}
                 <button
                     type="button"
                     className={styles.menuButton}
@@ -192,18 +189,13 @@ export default function Navbar() {
 
                 <div
                     id="mobile-menu"
-                    className={`${styles.mobile} ${isOpen ? styles.mobileOpen : ''}`}
+                    className={styles.mobile}
                     data-analytics-location="header-mobile"
                     data-track-fallback="mobile_navigation_use"
                     hidden={!isOpen}
                 >
                     <ul className={styles.mobileList}>
-                        <li>
-                            <Link href="/" className={styles.mobileLink} onClick={closeAll} aria-current={pathname === '/' ? 'page' : undefined}>
-                                Home
-                            </Link>
-                        </li>
-                        {PRIMARY_NAV.map((item) => (
+                        {[...PRIMARY_NAV, CONTACT_NAV].map((item: PrimaryNavItem) => (
                             <li
                                 key={item.name}
                                 data-analytics-section={item.groups ? item.name : undefined}
@@ -213,23 +205,20 @@ export default function Navbar() {
                                     <>
                                         <button
                                             type="button"
-                                            className={`${styles.mobileLink} ${styles.mobileToggle}`}
+                                            className={styles.mobileLink}
                                             aria-expanded={openSubmenu === item.name}
                                             aria-controls="mobile-consultancy"
                                             onClick={() => setOpenSubmenu(openSubmenu === item.name ? null : item.name)}
                                         >
                                             {item.name}
-                                            <span className={styles.chevron} aria-hidden="true" />
+                                            <span className={styles.plus} aria-hidden="true">{openSubmenu === item.name ? '−' : '+'}</span>
                                         </button>
                                         {isOpen && openSubmenu === item.name && (
-                                            <div id="mobile-consultancy" className={styles.mobileSubmenu}>
-                                                <Link href={item.href} className={styles.submenuLink} onClick={closeAll}>
-                                                    Consultancy &amp; Services overview
+                                            <div id="mobile-consultancy" className={styles.accordion}>
+                                                <Groups item={item} onNavigate={closeAll} />
+                                                <Link href={item.href} className={`text-link ${styles.viewAll}`} onClick={closeAll}>
+                                                    View all Consultancy &amp; Services →
                                                 </Link>
-                                                <SubmenuGroups groups={item.groups} onNavigate={closeAll} />
-                                                {item.extraLinks?.map((link) => (
-                                                    <MenuLink key={link.name} link={link} className={styles.submenuLink} onNavigate={closeAll} />
-                                                ))}
                                             </div>
                                         )}
                                     </>
@@ -246,9 +235,11 @@ export default function Navbar() {
                             </li>
                         ))}
                     </ul>
-                    <Link href={JOIN_HREF} className={`btn btn-primary ${styles.mobileCta}`} data-track="join_rnd_click" onClick={closeAll}>
-                        Join Satellite R&amp;D
-                    </Link>
+                    <div className={styles.mobileFoot}>
+                        <Link href={JOIN_HREF} className={`btn btn-primary ${styles.mobileCta}`} data-track="join_rnd_click" onClick={closeAll}>
+                            Join Satellite R&amp;D
+                        </Link>
+                    </div>
                 </div>
             </nav>
         </header>

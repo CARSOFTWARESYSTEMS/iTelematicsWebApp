@@ -1,0 +1,94 @@
+.line {
+    --track: rgba(148, 163, 184, 0.22);
+    position: relative;
+    list-style: none;
+    display: grid;
+    gap: 0;
+}
+
+/* Vertical (phones and tablets) */
+.line::before {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 10px;
+    bottom: 10px;
+    width: 1px;
+    background: linear-gradient(var(--solar), var(--track) 35%, var(--track) 65%, var(--telemetry));
+}
+
+.node {
+    position: relative;
+    display: grid;
+    grid-template-columns: 15px auto 1fr;
+    align-items: baseline;
+    gap: 1.25rem;
+    padding: 0.85rem 0;
+}
+
+.marker {
+    position: relative;
+    top: 2px;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    border: 1.5px solid currentColor;
+    background: var(--bg);
+    animation: glow 8s var(--ease) infinite;
+    animation-delay: calc(var(--i) * 0.5s);
+}
+
+.name {
+    font-size: clamp(1.15rem, 1.05rem + 0.4vw, 1.35rem);
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    color: var(--text);
+}
+
+.role {
+    font-size: 0.95rem;
+    color: var(--text-3);
+}
+
+/* The marker carries the semantic colour (currentColor); text stays in text tokens. */
+.solar { color: var(--solar); }
+.power { color: var(--text-2); }
+.telemetry { color: var(--telemetry); }
+.mission { color: var(--nominal); }
+
+.node .name { color: var(--text); }
+.node .role { color: var(--text-3); }
+
+/* Horizontal (desktop) */
+@media (min-width: 1024px) {
+    .line {
+        grid-template-columns: repeat(8, minmax(0, 1fr));
+    }
+
+    .line::before {
+        left: 0;
+        right: 0;
+        top: 7px;
+        bottom: auto;
+        width: auto;
+        height: 1px;
+        background: linear-gradient(90deg, var(--solar), var(--track) 30%, var(--track) 70%, var(--telemetry));
+    }
+
+    .node {
+        grid-template-columns: 1fr;
+        justify-items: start;
+        gap: 0.4rem;
+        padding: 0;
+    }
+
+    .marker {
+        top: 0;
+        margin-bottom: 1.25rem;
+    }
+}
+
+@keyframes glow {
+    0%, 70%, 100% { box-shadow: 0 0 0 0 transparent; background: var(--bg); }
+    8% { box-shadow: 0 0 0 6px color-mix(in srgb, currentColor 18%, transparent); background: currentColor; }
+}

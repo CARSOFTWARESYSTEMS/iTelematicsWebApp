@@ -1,0 +1,174 @@
+.flow {
+    --step: 0.9s;
+    --cycle: calc(var(--n) * var(--step) + 2s);
+    position: relative;
+    list-style: none;
+    color: var(--telemetry);
+}
+
+.marker {
+    position: relative;
+    z-index: 1;
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: 1.5px solid currentColor;
+    background: var(--bg);
+    animation: glow var(--cycle) var(--ease) infinite;
+    animation-delay: calc(var(--i) * var(--step));
+}
+
+.index {
+    font-size: 0.78rem;
+    color: var(--text-3);
+}
+
+.name {
+    font-weight: 560;
+    letter-spacing: -0.015em;
+    color: var(--text);
+}
+
+.orbit { color: var(--orbit); }
+.solar { color: var(--solar); }
+.telemetry { color: var(--telemetry); }
+.nominal { color: var(--nominal); }
+
+/* ---------- Path: vertical project journey ---------- */
+
+.path {
+    display: grid;
+    gap: clamp(1rem, 0.8rem + 0.8vw, 1.5rem);
+    max-width: 440px;
+    margin: 0 auto;
+    padding: 0.5rem 0;
+}
+
+.path::before {
+    content: '';
+    position: absolute;
+    left: 6.5px;
+    top: 14px;
+    bottom: 14px;
+    width: 1px;
+    background: linear-gradient(var(--telemetry), rgba(148, 163, 184, 0.2) 60%, var(--nominal));
+}
+
+/* light travelling down the path */
+.path::after {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 10px;
+    width: 6px;
+    height: 36px;
+    border-radius: 3px;
+    background: linear-gradient(transparent, var(--telemetry), transparent);
+    animation: travel var(--cycle) linear infinite;
+}
+
+.path .step {
+    display: grid;
+    grid-template-columns: 14px 2.25rem 1fr;
+    align-items: center;
+    gap: 1rem;
+}
+
+.path .name {
+    font-size: clamp(1.1rem, 1rem + 0.5vw, 1.35rem);
+}
+
+.path .step:last-child {
+    color: var(--nominal);
+}
+
+@media (min-width: 1024px) {
+    /* gentle diagonal: each step steps right */
+    .path .step {
+        margin-left: calc(var(--i) * 1.1rem);
+    }
+
+    .path::before,
+    .path::after {
+        display: none;
+    }
+}
+
+/* ---------- Ladder: ascending toward evidence ---------- */
+
+.ladder {
+    display: grid;
+    grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+    align-items: end;
+    gap: clamp(0.75rem, 0.5rem + 1vw, 1.5rem);
+    height: clamp(260px, 22vw, 360px);
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-strong);
+    max-width: 560px;
+    margin: 0 auto;
+}
+
+.ladder .step {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 0.5rem;
+    height: calc(30% + var(--i) * 22%);
+    padding-left: 0.85rem;
+    border-left: 1px solid currentColor;
+    border-left-color: color-mix(in srgb, currentColor 55%, transparent);
+}
+
+.ladder .marker {
+    position: absolute;
+    left: -7.5px;
+    top: -7px;
+}
+
+.ladder .index {
+    margin-top: 0.75rem;
+}
+
+.ladder .name {
+    font-size: clamp(1rem, 0.9rem + 0.5vw, 1.25rem);
+}
+
+/* Phones: four columns are narrow, so keep each label clear of the next stem */
+@media (max-width: 479px) {
+    .ladder {
+        gap: 0.5rem;
+    }
+
+    .ladder .step {
+        padding-left: 0.55rem;
+    }
+
+    .ladder .name {
+        font-size: 0.85rem;
+    }
+}
+
+@keyframes glow {
+    0%, 30%, 100% { background: var(--bg); box-shadow: 0 0 0 0 transparent; }
+    8% { background: currentColor; box-shadow: 0 0 0 6px color-mix(in srgb, currentColor 20%, transparent); }
+}
+
+@keyframes travel {
+    0% { transform: translateY(0); opacity: 0; }
+    5% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { transform: translateY(calc((var(--n) - 1) * 3rem)); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .marker,
+    .path::after {
+        animation: none;
+    }
+
+    .path::after {
+        display: none;
+    }
+}

@@ -1,20 +1,20 @@
-# iTelematics
+# iTelematics®
 
-> iTelematics Software Private Limited (Bangalore, India) provides intern-driven Satellite Engineering R&D focused on spacecraft solar energy, batteries, the electrical power system (EPS), sensors, telemetry and satellite health intelligence. Its flagship research platform is Satellite Energy & Telemetry Intelligence, built around one question: can the satellite generate, store and manage sufficient energy to safely accomplish its mission?
+> iTelematics Software Private Limited (Bangalore, India) works on applied Satellite Engineering: practical projects in spacecraft solar energy, batteries, the electrical power system (EPS), sensors, telemetry and satellite health, shaped by startup opportunities, industry requirements and real career pathways. Its flagship research platform is Satellite Energy & Telemetry Intelligence, built around one question: can the satellite generate, store and manage sufficient energy to safely accomplish its mission?
 
 Research results are labelled by maturity (Concept, Research, Simulation, Prototype, Experimental, Validated, Planned). Nothing on the site is flight-qualified, and reference values are simulated, not flight data.
 
 ## Main pages
 
-- [Satellite Engineering](https://itelematics.com/satellite-engineering): satellite engineering as a system of systems; how solar arrays, the EPS, batteries, sensors, telemetry and health monitoring work and interact
-- [Research Platform](https://itelematics.com/research-platform): Satellite Energy & Telemetry Intelligence, with architecture, telemetry parameters, assumptions, equations, engineering evidence, limitations, open research questions and roadmap
-- [Internships](https://itelematics.com/internships): research-based Satellite Engineering internships (Learn → Model → Simulate → Build → Measure → Analyse → Validate → Document)
-- [Partners & Ecosystem](https://itelematics.com/partners): Gamyaa AeroSystems, APEX Rocket Systems (proposed, concept stage), iFab Innovations (engineering & innovation ecosystem; no partnership claimed), EV Society™ and EV.ENGINEER™, each relationship described as it stands
+- [Satellite Engineering](https://itelematics.com/satellite-engineering): the spacecraft as one connected system: mission and orbit, power, avionics, ADCS, communications, payload, thermal and ground
+- [Research Platform](https://itelematics.com/research-platform): Satellite Energy & Telemetry Intelligence: orbit, energy, telemetry, fault scenarios, equations and engineering evidence with maturity labels
+- [Internships](https://itelematics.com/internships): Satellite Engineering internships built on practical projects: startup ideas, industry requirements, practical projects and career-focused projects
+- [Engineering Ecosystem](https://itelematics.com/partners): Gamyaa AeroSystems, APEX Rocket Systems (proposed, concept stage), iFab Innovations (engineering & innovation ecosystem; no partnership claimed), EV Society™ and EV.ENGINEER™, each relationship described as it stands
 - [Consultancy & Services](https://itelematics.com/consultancy): engineering consultancy, workshops and resources offered alongside the research
 - [About](https://itelematics.com/about): company, research direction and principles
-- [Contact](https://itelematics.com/contact): internship, research, academic, industry, consultancy and investment enquiries
+- [Contact](https://itelematics.com/contact): opens an email draft to info@iTelematics.com for internship, research, academic, industry, consultancy and investment enquiries
 
-## Engineering learning environment
+## Engineering resources
 
-- [Satellite Engineering course](https://aerospace.ev.engineer/space/satellite-engineering): architecture track on EV.ENGINEER™ with a 6U Earth-observation reference mission
+- [Satellite Engineering reference](https://aerospace.ev.engineer/space/satellite-engineering): spacecraft architecture on EV.ENGINEER™ around a 6U Earth-observation reference mission
 - [Interactive 3D Satellite](https://aerospace.ev.engineer/space/satellite-engineering/interactive-3d): interactive model of satellite subsystems

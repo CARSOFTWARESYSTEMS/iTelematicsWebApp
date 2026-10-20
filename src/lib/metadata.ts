@@ -5,7 +5,7 @@ const OG_IMAGE = {
     url: '/opengraph-image',
     width: 1200,
     height: 630,
-    alt: 'iTelematics: Satellite Engineering R&D and internships',
+    alt: 'iTelematics®: Satellite Engineering and internships',
 };
 
 /**

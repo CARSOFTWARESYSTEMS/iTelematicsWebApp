@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import JsonLd, { organizationSchema, websiteSchema } from '@/components/JsonLd';
 import Analytics from '@/components/analytics/Analytics';
+import Reveal from '@/components/site/Reveal';
 import { SITE } from '@/lib/site';
 
 const inter = Inter({
@@ -20,11 +21,11 @@ const mono = JetBrains_Mono({
     weight: ['400', '500'],
 });
 
-const DEFAULT_TITLE = 'iTelematics | Satellite Engineering R&D & Internships';
+const DEFAULT_TITLE = 'iTelematics® | Satellite Engineering & Internships';
 
 export const metadata: Metadata = {
     metadataBase: new URL(SITE.url),
-    title: { default: DEFAULT_TITLE, template: '%s | iTelematics' },
+    title: { default: DEFAULT_TITLE, template: `%s | ${SITE.name}` },
     description: SITE.description,
     applicationName: SITE.name,
     alternates: { canonical: '/' },
@@ -63,6 +64,7 @@ export default function RootLayout({
                 <main id="main" tabIndex={-1}>{children}</main>
                 <Footer />
                 <Analytics />
+                <Reveal />
             </body>
         </html>
     );
