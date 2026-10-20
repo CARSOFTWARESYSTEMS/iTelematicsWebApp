@@ -24,8 +24,8 @@ export default function Home() {
                             Practical projects for startups, industry requirements and career-focused engineering internships.
                         </p>
                         <div className="actions hero-actions">
-                            <Link href="/research-platform" className="btn btn-primary">Explore R&amp;D</Link>
-                            <Link href={JOIN_HREF} className="btn btn-secondary" data-track="join_rnd_click">Join Research</Link>
+                            <Link href="/research-platform" className="btn btn-primary">Explore Research</Link>
+                            <Link href={JOIN_HREF} className="btn btn-secondary" data-track="join_rnd_click">Discuss Research</Link>
                         </div>
                     </div>
                     <div className={styles.heroVisual}>

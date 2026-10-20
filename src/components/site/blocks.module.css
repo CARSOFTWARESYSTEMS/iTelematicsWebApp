@@ -70,8 +70,9 @@
 }
 
 @media (min-width: 900px) {
+    /* minmax(0, …) keeps the three columns identical in every row, whatever the links' width */
     .org {
-        grid-template-columns: 45fr 25fr 30fr;
+        grid-template-columns: minmax(0, 45fr) minmax(0, 25fr) minmax(0, 30fr);
         align-items: center;
         gap: 2rem;
         min-height: 104px;
@@ -103,10 +104,16 @@
     gap: 0 1.5rem;
 }
 
+@media (min-width: 900px) and (max-width: 1199px) {
+    .org {
+        grid-template-columns: minmax(0, 40fr) minmax(0, 25fr) minmax(0, 35fr);
+    }
+}
+
 @media (min-width: 900px) {
     .orgLinks {
-        flex-wrap: nowrap;
         justify-content: flex-end;
+        row-gap: 0.25rem;
     }
 }
 

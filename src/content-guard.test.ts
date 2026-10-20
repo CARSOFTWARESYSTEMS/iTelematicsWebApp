@@ -39,6 +39,10 @@ describe('site content rules', () => {
         expect(llms).not.toMatch(/Satellite Engineering R&D|\btraining\b|intern-driven/i);
     });
 
+    it('uses one name for each CTA', () => {
+        expect(offenders(/Join (Satellite )?R&amp;D|Join Research|Explore R&amp;D/)).toEqual([]);
+    });
+
     it('never links the retired APEX ecosystem URL', () => {
         expect(offenders(/apexrocketsystems\/ecosystem/)).toEqual([]);
     });

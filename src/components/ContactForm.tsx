@@ -8,7 +8,7 @@ import { ENQUIRY_OPTIONS, findEnquiry } from '@/lib/contact/enquiries';
 import { LIMITS, validateContact, type ContactEnquiry, type ContactField } from '@/lib/contact/validation';
 import { SITE } from '@/lib/site';
 
-/** Preselects the enquiry type from ?enquiry=… (e.g. links from "Join R&D" or "Apply for Internship"). */
+/** Preselects the enquiry type from ?enquiry=… (e.g. links from "Join Satellite Engineering" or "Apply / Discuss Internship"). */
 function EnquiryFromUrl({ onChange }: { onChange: (value: string) => void }) {
     const value = useSearchParams().get('enquiry');
     useEffect(() => {

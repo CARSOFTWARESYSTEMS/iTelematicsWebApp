@@ -159,7 +159,7 @@ export const PRIMARY_NAV: PrimaryNavItem[] = [
 
 export const CONTACT_NAV: NavItem = { name: 'Contact', href: '/contact' };
 
-/** Join R&D opens the enquiry form with Research Collaboration preselected; visitors can change it. */
+/** Join Satellite Engineering opens the enquiry form with Research Collaboration preselected; visitors can change it. */
 export const JOIN_HREF = '/contact?enquiry=research';
 
 export const RESOURCES = {

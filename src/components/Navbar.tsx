@@ -170,7 +170,7 @@ export default function Navbar() {
                             {CONTACT_NAV.name}
                         </Link>
                         <Link href={JOIN_HREF} className={`btn ${styles.cta}`} data-track="join_rnd_click">
-                            Join R&amp;D
+                            Join Satellite Engineering
                         </Link>
                     </div>
                 </div>
@@ -237,7 +237,7 @@ export default function Navbar() {
                     </ul>
                     <div className={styles.mobileFoot}>
                         <Link href={JOIN_HREF} className={`btn btn-primary ${styles.mobileCta}`} data-track="join_rnd_click" onClick={closeAll}>
-                            Join Satellite R&amp;D
+                            Join Satellite Engineering
                         </Link>
                     </div>
                 </div>

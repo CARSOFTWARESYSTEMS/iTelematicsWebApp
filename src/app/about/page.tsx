@@ -32,11 +32,10 @@ export default function AboutPage() {
                 visual={
                     <StepFlow
                         variant="ladder"
-                        label="Mission, energy, telemetry, evidence"
+                        label="Mission, method, evidence"
                         steps={[
                             { name: 'Mission', tone: 'orbit' },
-                            { name: 'Energy', tone: 'solar' },
-                            { name: 'Telemetry', tone: 'telemetry' },
+                            { name: 'Method', tone: 'telemetry' },
                             { name: 'Evidence', tone: 'nominal' },
                         ]}
                     />
@@ -54,11 +53,6 @@ export default function AboutPage() {
                             </li>
                         ))}
                     </ol>
-                    <p className={styles.principle}>
-                        We do not claim flight heritage, satellite deployments or partnerships we cannot document.
-                        Consultancy and workshops are offered alongside this work; see{' '}
-                        <Link href="/consultancy" className="inline-link">Consultancy &amp; Services</Link>.
-                    </p>
                 </div>
             </section>
 
@@ -73,6 +67,14 @@ export default function AboutPage() {
                         <div><dt className="label">MSME</dt><dd className="mono">{SITE.msme}</dd></div>
                         <div><dt className="label">Email</dt><dd><a href={`mailto:${SITE.email}`} className="inline-link">{SITE.email}</a></dd></div>
                     </dl>
+                    <aside className={styles.policy} aria-labelledby="evidence-policy">
+                        <h3 id="evidence-policy" className="label">Research &amp; Evidence Policy</h3>
+                        <p>
+                            We do not claim flight heritage, satellite deployments or partnerships we cannot document.
+                            Consultancy and workshops are offered alongside this work; see{' '}
+                            <Link href="/consultancy" className="inline-link">Consultancy &amp; Services</Link>.
+                        </p>
+                    </aside>
                 </div>
             </section>
         </>

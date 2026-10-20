@@ -43,7 +43,7 @@ history setting still on, showed a duplicate `page_view` for every in-app naviga
 | Explore Satellite Engineering → `satellite_engineering_click` | ☐ | ☐ | ☐ | ☐ |
 | Explore Interactive 3D → `interactive_3d_click` | ☐ | ☐ | ☐ | ☐ |
 | Apply for Internship → `internship_apply_click` | ☐ | ☐ | ☐ | ☐ |
-| Join R&D → `/contact?enquiry=research`, Research Collaboration preselected, `join_rnd_click` | ☐ | ☐ | ☐ | ☐ |
+| Join Satellite Engineering → `/contact?enquiry=research`, Research Collaboration preselected, `join_rnd_click` | ☐ | ☐ | ☐ | ☐ |
 | Partner outbound links → `partner_click` | ☐ | ☐ | ☐ | ☐ |
 | Contact form opens an email draft | ☐ | ☐ | ☐ | ☐ |
 
@@ -53,7 +53,7 @@ history setting still on, showed a duplicate `page_view` for every in-app naviga
   intercepted GA hits (consent, every CTA event including both APEX links, email-draft flow, only the selected
   Research workspace panel visible, no personal data in hits, withdrawal).
 - Safari engine (WebKit 26.6): 13/13: 3D satellite, workspace tabs and panel visibility, chart keyboard
-  crosshair, Join R&D preselect, no overflow, no page errors.
+  crosshair, Join Satellite Engineering preselect, no overflow, no page errors.
 - iOS 18 Safari (Simulator): home and Research Platform rendering (checked on the V3 build; not re-run for V4).
 - Responsive sweep: 10 pages × 11 widths (360–1920 px): no horizontal overflow, no touch targets under 40 px.
 - Full-page screenshots of every major page reviewed at 1440 px and 390 px, plus each Research tab.

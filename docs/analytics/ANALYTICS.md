@@ -40,11 +40,11 @@ Visitors can change their choice with **Analytics preferences** in the footer.
 | `research_platform_view` | Landing on `/research-platform…`, or a `data-track-view="research_platform_view"` section scrolling into view | Route map / IntersectionObserver |
 | `internship_view` | Landing on `/internships…`, or a `data-track-view="internship_view"` section | Route map / IntersectionObserver |
 | `internship_apply_click` | An Apply CTA | `data-track="internship_apply_click"` |
-| `research_collaboration_click` | A "Discuss R&D Collaboration" / "Join Research" style CTA | `data-track="research_collaboration_click"` |
+| `research_collaboration_click` | A "Discuss Research Collaboration" style CTA | `data-track="research_collaboration_click"` |
 | `consultancy_click` | Any link inside the Consultancy & Services menu, or to internal `/consultancy…` | `data-track-fallback` / destination rule |
 | `partner_click` | Link to Gamyaa AeroSystems, APEX (official site and ecosystem page), iFab, EV Society, `autonomous.ev.engineer`, or `/ev-engineer` | Destination rule |
 | `contact_submit` | A validated enquiry was handed to the visitor's email app: the form opened a `mailto:` draft to info@iTelematics.com. It measures intent, not delivery; the website cannot see whether the email was sent. Count actual enquiries in the mailbox. Invalid forms never fire it. | `ContactForm` |
-| `join_rnd_click` | The Join R&D / Join Research CTAs | `data-track="join_rnd_click"` |
+| `join_rnd_click` | The Join Satellite Engineering / Discuss Research CTAs (event name unchanged) | `data-track="join_rnd_click"` |
 | `mobile_navigation_use` | Mobile menu opened, or a mobile-menu link tapped that no other event claims | `Navbar` / `data-track-fallback` |
 
 Destination rules are matched by URL, so the same link fires the same event in the hero, nav, footer,
@@ -97,7 +97,7 @@ partners and consultancy. Explicit `data-track` is used only where the URL doesn
 
 | CTA | Event | Where |
 |---|---|---|
-| Join R&D (header) / Join Satellite R&D (mobile menu) / Join Research (home hero) → `/contact?enquiry=research` (Research Collaboration preselected, changeable) | `join_rnd_click` | Header desktop + mobile, home hero |
+| Join Satellite Engineering (header and mobile menu) / Discuss Research (home hero) → `/contact?enquiry=research` (Research Collaboration preselected, changeable) | `join_rnd_click` | Header desktop + mobile, home hero |
 | Apply for Internship | `internship_apply_click` | Home, Internships, Satellite Engineering, Research Platform |
 | Discuss R&D / Research Collaboration | `research_collaboration_click` | Home, Satellite Engineering, Research Platform |
 | Discuss Industry Collaboration | `research_collaboration_click` | Partners |

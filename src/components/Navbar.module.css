@@ -170,6 +170,7 @@
     min-height: 40px;
     padding: 0 1rem;
     font-size: 0.92rem;
+    white-space: nowrap;
     color: var(--text);
     background: rgba(34, 211, 238, 0.1);
     border-color: rgba(34, 211, 238, 0.45);
@@ -374,7 +375,7 @@
     font-size: 1.05rem;
 }
 
-@media (min-width: 1200px) {
+@media (min-width: 1280px) {
     .desktop {
         display: flex;
     }
@@ -382,5 +383,31 @@
     .menuButton,
     .mobile {
         display: none;
+    }
+}
+
+/* Desktop spacing sized so the full CTA label fits on one line inside the container,
+   with room left for a classic 17px scrollbar at 1280px */
+@media (min-width: 1280px) {
+    .bar {
+        gap: 1.25rem;
+    }
+
+    .desktop {
+        gap: 0.75rem;
+    }
+
+    .link {
+        padding: 0 0.55rem;
+        font-size: 0.92rem;
+    }
+
+    .active::after {
+        left: 0.55rem;
+        right: 0.55rem;
+    }
+
+    .cta {
+        padding: 0 0.85rem;
     }
 }

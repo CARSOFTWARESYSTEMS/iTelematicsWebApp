@@ -18,7 +18,7 @@ describe('Navbar', () => {
         vi.mocked(track).mockClear();
     });
 
-    it('shows the six destinations, Contact and the Join R&D CTA', () => {
+    it('shows the six destinations, Contact and the Join Satellite Engineering CTA', () => {
         render(<Navbar />);
         const nav = screen.getByRole('navigation', { name: 'Main' });
         for (const name of PRIMARY) {
@@ -26,7 +26,7 @@ describe('Navbar', () => {
         }
         expect(within(nav).getByRole('button', { name: /^Consultancy/ })).toBeInTheDocument();
         expect(within(nav).getByRole('link', { name: 'Contact' })).toHaveAttribute('href', '/contact');
-        const cta = within(nav).getByRole('link', { name: 'Join R&D' });
+        const cta = within(nav).getByRole('link', { name: 'Join Satellite Engineering' });
         expect(cta).toHaveAttribute('data-track', 'join_rnd_click');
         expect(cta).toHaveAttribute('href', '/contact?enquiry=research');
     });
@@ -76,7 +76,7 @@ describe('Navbar', () => {
         const menu = document.getElementById('mobile-menu') as HTMLElement;
         expect(menu).not.toHaveAttribute('hidden');
         expect(within(menu).getByRole('link', { name: 'Contact' })).toBeInTheDocument();
-        expect(within(menu).getByRole('link', { name: 'Join Satellite R&D' })).toHaveAttribute('data-track', 'join_rnd_click');
+        expect(within(menu).getByRole('link', { name: 'Join Satellite Engineering' })).toHaveAttribute('data-track', 'join_rnd_click');
 
         const accordion = within(menu).getByRole('button', { name: /^Consultancy/ });
         fireEvent.click(accordion);
