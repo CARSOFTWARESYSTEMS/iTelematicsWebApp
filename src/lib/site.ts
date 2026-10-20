@@ -181,8 +181,8 @@ export const ECOSYSTEM: EcosystemOrg[] = [
     {
         name: 'iFab Innovations',
         summary: 'Bengaluru-based intelligent engineering solutions for the electronics, healthcare, defence and aerospace industries.',
-        relationshipLabel: 'Engineering ecosystem',
-        relationship: 'Part of the Bengaluru engineering ecosystem iTelematics works within.',
+        relationshipLabel: 'Engineering & Innovation Ecosystem',
+        relationship: 'Listed as part of the wider engineering and innovation ecosystem. No formal partnership or collaboration is claimed.',
         links: [{ label: 'iFab.Tech', href: 'https://ifab.tech/', kind: 'official' }],
     },
     {

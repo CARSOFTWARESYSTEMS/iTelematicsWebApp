@@ -7,6 +7,9 @@ import ExternalLink from './site/ExternalLink';
 import { track } from '@/lib/analytics/client';
 import { PRIMARY_NAV, type NavGroup, type NavItem, type PrimaryNavItem } from '@/lib/site';
 
+// Join R&D opens the enquiry form with Research Collaboration preselected; visitors can change it.
+const JOIN_HREF = '/contact?enquiry=research';
+
 const isActive = (pathname: string, href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
 function MenuLink({ link, className, onNavigate }: { link: NavItem; className?: string; onNavigate?: () => void }) {
@@ -170,7 +173,7 @@ export default function Navbar() {
                             </li>
                         ))}
                     </ul>
-                    <Link href="/contact" className={`btn btn-primary ${styles.cta}`} data-track="join_rnd_click">
+                    <Link href={JOIN_HREF} className={`btn btn-primary ${styles.cta}`} data-track="join_rnd_click">
                         Join Satellite R&amp;D
                     </Link>
                 </div>
@@ -243,7 +246,7 @@ export default function Navbar() {
                             </li>
                         ))}
                     </ul>
-                    <Link href="/contact" className={`btn btn-primary ${styles.mobileCta}`} data-track="join_rnd_click" onClick={closeAll}>
+                    <Link href={JOIN_HREF} className={`btn btn-primary ${styles.mobileCta}`} data-track="join_rnd_click" onClick={closeAll}>
                         Join Satellite R&amp;D
                     </Link>
                 </div>

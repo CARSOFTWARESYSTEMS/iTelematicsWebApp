@@ -48,7 +48,7 @@ export default function Home() {
                         </p>
                         <div className="actions">
                             <Link href="/satellite-engineering" className="btn btn-primary">Explore Satellite Engineering</Link>
-                            <Link href="/contact" className="btn btn-secondary" data-track="join_rnd_click">Join R&amp;D</Link>
+                            <Link href="/contact?enquiry=research" className="btn btn-secondary" data-track="join_rnd_click">Join R&amp;D</Link>
                         </div>
                         <p className={`mono ${styles.descriptor}`}>{SITE.descriptor}</p>
                     </div>

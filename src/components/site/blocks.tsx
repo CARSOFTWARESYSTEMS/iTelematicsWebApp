@@ -51,7 +51,7 @@ export function PageHero({
 
 /* ---------- Maturity labels ---------- */
 
-export type Maturity = 'Concept' | 'Research' | 'Simulation' | 'Prototype' | 'Experimental' | 'Validation' | 'Planned';
+export type Maturity = 'Concept' | 'Research' | 'Simulation' | 'Prototype' | 'Experimental' | 'Validated' | 'Planned';
 
 const MATURITY_TONE: Record<Maturity, string> = {
     Concept: 'state-eclipse',
@@ -59,7 +59,7 @@ const MATURITY_TONE: Record<Maturity, string> = {
     Simulation: 'state-charging',
     Prototype: 'state-nominal',
     Experimental: 'state-warning',
-    Validation: 'state-nominal',
+    Validated: 'state-nominal',
     Planned: '',
 };
 

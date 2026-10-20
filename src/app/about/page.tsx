@@ -21,7 +21,7 @@ const DIRECTION = [
 ] as const;
 
 const PRINCIPLES = [
-    'Every result carries a maturity label: Concept, Research, Simulation, Prototype, Experimental, Validation or Planned.',
+    'Every result carries a maturity label: Concept, Research, Simulation, Prototype, Experimental, Validated or Planned.',
     'We do not claim flight heritage, satellite deployments or partnerships we cannot document.',
     'Assumptions and limitations are published alongside models and results.',
     'Students build the evidence; reviewers and experts are invited to challenge it.',
@@ -107,7 +107,7 @@ export default function AboutPage() {
             </section>
 
             <CtaBand title="Work with us" text="Internships, research collaboration, technical review or strategic discussion.">
-                <Link href="/contact" className="btn btn-primary" data-track="join_rnd_click">Join Satellite R&amp;D</Link>
+                <Link href="/contact?enquiry=research" className="btn btn-primary" data-track="join_rnd_click">Join Satellite R&amp;D</Link>
                 <Link href="/research-platform" className="btn btn-secondary">See the Research Platform</Link>
             </CtaBand>
         </>
