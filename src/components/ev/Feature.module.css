@@ -1,0 +1,212 @@
+.feature {
+    display: grid;
+    gap: clamp(1.75rem, 1.25rem + 2vw, 3rem);
+    align-items: center;
+    scroll-margin-top: calc(var(--header-h) + 68px);
+}
+
+.copy {
+    min-width: 0;
+}
+
+.visual {
+    min-width: 0;
+    transition: transform 0.4s var(--ease);
+}
+
+/* Hover: the instrument frame brightens; nothing depends on it */
+.feature:hover {
+    --frame-border: rgba(34, 211, 238, 0.32);
+}
+
+@media (hover: hover) {
+    .feature:hover .visual {
+        transform: translateY(-3px);
+    }
+}
+
+@media (min-width: 1024px) {
+    .split {
+        grid-template-columns: 5fr 7fr;
+        gap: 4rem;
+    }
+
+    .split.reverse .copy {
+        order: 2;
+    }
+
+    .split.reverse {
+        grid-template-columns: 7fr 5fr;
+    }
+
+    .wide .copy {
+        display: grid;
+        grid-template-columns: 5fr 7fr;
+        column-gap: 4rem;
+        align-items: start;
+    }
+
+    /* Label across the top, title on the left, everything else stacked on the right */
+    .wide .copy > * {
+        grid-column: 2;
+    }
+
+    .wide .labelRow {
+        grid-column: 1 / -1;
+        grid-row: 1;
+    }
+
+    .wide .title {
+        grid-column: 1;
+        grid-row: 2 / span 4;
+    }
+
+    .wide .description {
+        grid-row: 2;
+        margin-top: 0;
+    }
+}
+
+/* Card: visual above copy, for the battery subsections */
+.card {
+    align-items: start;
+    align-content: start;
+    gap: 1.5rem;
+    padding: clamp(1rem, 0.75rem + 1vw, 1.5rem);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    background: var(--bg);
+    transition: border-color 0.3s var(--ease);
+}
+
+.card:hover {
+    border-color: var(--border-strong);
+}
+
+.card .copy {
+    order: 2;
+}
+
+.card .visual {
+    order: 1;
+}
+
+/* ---------- Copy ---------- */
+
+.labelRow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem 1rem;
+    margin-bottom: 1rem;
+}
+
+.label {
+    font-family: var(--font-mono);
+    font-size: clamp(0.72rem, 0.68rem + 0.15vw, 0.8rem);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--telemetry);
+}
+
+.title {
+    font-size: clamp(1.9rem, 1.3rem + 2.2vw, 3rem);
+}
+
+.card .title {
+    font-size: clamp(1.35rem, 1.15rem + 0.8vw, 1.75rem);
+    letter-spacing: -0.02em;
+}
+
+.description {
+    margin-top: 1.1rem;
+    max-width: 38rem;
+}
+
+.description p {
+    font-size: clamp(1rem, 0.96rem + 0.2vw, 1.125rem);
+    line-height: 1.6;
+}
+
+.description p + p {
+    margin-top: 0.75rem;
+}
+
+.chips {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 1.4rem;
+}
+
+.chips li {
+    padding: 0.28rem 0.65rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    font-size: 0.8rem;
+    color: var(--text-2);
+}
+
+.actions {
+    align-items: center;
+    gap: 0.75rem 1.5rem;
+    margin-top: 1.75rem;
+}
+
+.related {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 1.25rem;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+}
+
+.relatedLink {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    font-size: 0.92rem;
+    color: var(--text-2);
+    text-decoration: underline;
+    text-decoration-color: rgba(34, 211, 238, 0.35);
+    text-underline-offset: 4px;
+    transition: color 0.2s var(--ease), text-decoration-color 0.2s var(--ease);
+}
+
+.relatedLink:hover {
+    color: var(--text);
+    text-decoration-color: var(--telemetry);
+}
+
+.meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.5rem;
+    margin-top: 1.25rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.meta div {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.meta dt {
+    color: var(--text-3);
+}
+
+.meta dd {
+    color: var(--text-2);
+}
+
+@media (max-width: 560px) {
+    .actions :global(.text-link) {
+        white-space: normal;
+    }
+}

@@ -60,12 +60,20 @@ describe('describeClick destination rules', () => {
             'https://www.apexrocketsystems.com/',
             'https://aerospace.ev.engineer/space/partners/apexrocketsystems',
             'https://ifab.tech/',
+            'https://uflight.in',
             'https://evsociety.org/',
             'https://autonomous.ev.engineer/',
         ]) {
             expect(describeClick(link(href), ORIGIN), href).toMatchObject({ event: 'partner_click', params: { destination_type: 'partner' } });
         }
         expect(describeClick(link('/ev-engineer'), ORIGIN)).toMatchObject({ event: 'partner_click', params: { destination_type: 'internal' } });
+    });
+
+    it('ignores same-page anchors unless they are tagged', () => {
+        expect(describeClick(link('#space'), ORIGIN)).toBeNull();
+        const el = link('#research-development', 'Explore Research & Development');
+        el.setAttribute('data-track', 'ev_engineer_research_click');
+        expect(describeClick(el, ORIGIN)?.event).toBe('ev_engineer_research_click');
     });
 
     it('ignores ordinary links that no rule claims', () => {

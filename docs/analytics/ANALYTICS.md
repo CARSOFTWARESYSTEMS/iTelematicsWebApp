@@ -42,7 +42,7 @@ Visitors can change their choice with **Analytics preferences** in the footer.
 | `internship_apply_click` | An Apply CTA | `data-track="internship_apply_click"` |
 | `research_collaboration_click` | A "Discuss Research Collaboration" style CTA | `data-track="research_collaboration_click"` |
 | `consultancy_click` | Any link inside the Consultancy & Services menu, or to internal `/consultancy…` | `data-track-fallback` / destination rule |
-| `partner_click` | Link to Gamyaa AeroSystems, APEX (official site and ecosystem page), iFab, EV Society, `autonomous.ev.engineer`, or `/ev-engineer` | Destination rule |
+| `partner_click` | Link to Gamyaa AeroSystems, APEX (official site and ecosystem page), UFlight™, iFab, EV Society, `autonomous.ev.engineer`, or `/ev-engineer` | Destination rule |
 | `contact_submit` | A validated enquiry was handed to the visitor's email app: the form opened a `mailto:` draft to info@iTelematics.com. It measures intent, not delivery; the website cannot see whether the email was sent. Count actual enquiries in the mailbox. Invalid forms never fire it. | `ContactForm` |
 | `join_rnd_click` | The Join Satellite Engineering / Discuss Research CTAs (event name unchanged) | `data-track="join_rnd_click"` |
 | `mobile_navigation_use` | Mobile menu opened, or a mobile-menu link tapped that no other event claims | `Navbar` / `data-track-fallback` |
@@ -103,13 +103,39 @@ partners and consultancy. Explicit `data-track` is used only where the URL doesn
 | Discuss Industry Collaboration | `research_collaboration_click` | Partners |
 | Discuss Consultancy | `consultancy_click` (section fallback) | Consultancy & Services page |
 | Explore Satellite Engineering (internal or course) | `satellite_engineering_click` | Hero, signposts, resource cards, CTA bands |
-| Explore Interactive 3D | `interactive_3d_click` | Signposts, resource cards, footer, EV.ENGINEER™ page |
-| Ecosystem links | `partner_click` | Home (compact), Partners, EV.ENGINEER™ page |
+| Explore Interactive 3D | `interactive_3d_click` | Signposts, resource cards, footer |
+| Ecosystem links | `partner_click` | Home (compact), Partners (list and ecosystem map) |
 
 The homepage flagship section carries `data-track-view="research_platform_view"`; `/research-platform`
 and `/internships` fire their view events on landing.
 
-Rules when adding CTAs:
+### EV.ENGINEER™ page (`/ev-engineer`)
+
+Every link on the page carries an explicit `data-track`, so these events take precedence over the
+destination rules above. Parameters are the standard ones: `section` (the research area, e.g.
+`satellite-engineering`), `cta_name` (the item, e.g. `Open Interactive 3D`), `cta_location` (the button
+location: `hero`, `primary-cta`, `secondary-cta`, `related-links`, `domain-cards`, `lab-card`,
+`pathway-card`, `partner-card`, `profile`, `research-index`, `final-cta`) and `destination`.
+No new parameters or GA4 custom definitions are needed.
+
+| Event | Fires for |
+|---|---|
+| `ev_engineer_research_click` | Explore Research & Development (hero, final CTA) and the four R&D domain cards (in-page anchors) |
+| `ev_engineer_space_click` | Space & Aerospace Technologies, Everyday Applications, Space Station, the index's Space group |
+| `ev_engineer_satellite_click` | Satellite Engineering, Open Interactive 3D, CubeSat and Everyday Applications links in that section |
+| `ev_engineer_rocket_click` | Rocket Engineering, Advanced Digital Twin, Model Rocketry |
+| `ev_engineer_aerospace_click` | Aerospace Systems, UFlight™ 3D, the index's Aerospace group |
+| `ev_engineer_aqip_click` | Aerospace Quality Intelligence |
+| `ev_engineer_battery_click` | EV battery, safety, health, pack engineering and electric-mobility links; Battery Engineering Portal and Repair pathways |
+| `ev_engineer_digital_twin_click` | CubeTwin section and the four Learn by Building lab cards |
+| `ev_engineer_profile_click` | View Profile |
+| `ev_engineer_partner_click` | Partnerships & Engineering Ecosystem cards and the index's Ecosystem group |
+| `ev_engineer_external_click` | Visit EV.ENGINEER™, ISHAVASYAM.ORG, the other Engineering Pathways and the index's Learning & Career group |
+
+Same-page anchors (`href="#…"`, e.g. the sticky section navigation) never match destination rules;
+they are counted only when tagged, as the R&D CTAs are.
+
+### Rules when adding CTAs
 
 - `data-track` must be on the clicked element (the `<a>`/`<button>`), not a wrapper.
 - Use `<ExternalLink>` for new-tab links. It adds the screen-reader "(opens in a new tab)" note and

@@ -1,0 +1,137 @@
+.nav {
+    position: sticky;
+    top: var(--header-h);
+    z-index: 50;
+    border-bottom: 1px solid var(--border);
+}
+
+/* Blur on a pseudo-element, as in the site header */
+.nav::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: rgba(5, 10, 16, 0.88);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+}
+
+.inner {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    height: 52px;
+}
+
+.list {
+    list-style: none;
+    display: flex;
+    gap: 0.25rem;
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
+    mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
+}
+
+.list::-webkit-scrollbar {
+    display: none;
+}
+
+@media (min-width: 1024px) {
+    .list {
+        -webkit-mask-image: none;
+        mask-image: none;
+    }
+}
+
+.list li {
+    flex-shrink: 0;
+    height: 100%;
+}
+
+.link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    height: 100%;
+    min-height: 44px;
+    padding: 0 0.8rem;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--text-3);
+    white-space: nowrap;
+    transition: color 0.2s var(--ease);
+}
+
+.link:hover {
+    color: var(--text);
+}
+
+.link::after {
+    content: '';
+    position: absolute;
+    left: 0.8rem;
+    right: 0.8rem;
+    bottom: -1px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--telemetry);
+    transform: scaleX(0);
+    transition: transform 0.3s var(--ease);
+}
+
+.link[aria-current='true'] {
+    color: var(--text);
+}
+
+.link[aria-current='true']::after {
+    transform: scaleX(1);
+}
+
+.link:focus-visible {
+    outline-offset: -4px;
+}
+
+.motion {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+    min-height: 36px;
+    min-width: 44px;
+    justify-content: center;
+    padding: 0 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: transparent;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    cursor: pointer;
+    transition: color 0.2s var(--ease), border-color 0.2s var(--ease);
+}
+
+.motion:hover {
+    color: var(--text);
+    border-color: var(--border-strong);
+}
+
+@media (max-width: 720px) {
+    .motionText {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+    }
+
+    .inner {
+        padding-right: calc(var(--gutter) - 0.25rem);
+    }
+}

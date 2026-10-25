@@ -34,6 +34,19 @@
     white-space: nowrap;
 }
 
+.link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    transition: border-color 0.2s var(--ease), color 0.2s var(--ease), background-color 0.2s var(--ease);
+}
+
+.link:hover {
+    border-color: rgba(34, 211, 238, 0.55);
+    background: var(--surface);
+    color: var(--text);
+}
+
 .center {
     padding: 0.7rem 1.1rem;
     border-color: rgba(34, 211, 238, 0.55);
@@ -63,6 +76,10 @@
         position: static;
         transform: none;
         font-size: 0.85rem;
+    }
+
+    .link {
+        min-height: 44px;
     }
 
     .center {

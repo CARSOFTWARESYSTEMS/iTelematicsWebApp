@@ -18,13 +18,19 @@ function sourceFiles(dir: string): string[] {
 
 const files = sourceFiles(SRC).map((file) => ({ file: path.relative(SRC, file), text: readFileSync(file, 'utf8') }));
 
-function offenders(pattern: RegExp) {
-    return files.filter(({ text }) => pattern.test(text)).map(({ file }) => file);
+function offenders(pattern: RegExp, except: string[] = []) {
+    return files.filter(({ file, text }) => !except.includes(file) && pattern.test(text)).map(({ file }) => file);
 }
 
+// The EV.ENGINEER™ page (/ev-engineer) introduces the person behind EV.ENGINEER™ and links the
+// "Training & Internship" programme (instruction, 2026-10-25). Both live in this one content file.
+const EV_ENGINEER_CONTENT = path.join('lib', 'ev-engineer.ts');
+const PERSONAL_NAME = /sudarshan|karkala/i;
+
 describe('site content rules', () => {
-    it('never shows an individual’s name', () => {
-        expect(offenders(/sudarshan|karkala/i)).toEqual([]);
+    it('names an individual only in the EV.ENGINEER™ page content', () => {
+        expect(offenders(PERSONAL_NAME, [EV_ENGINEER_CONTENT])).toEqual([]);
+        expect(offenders(PERSONAL_NAME)).toEqual([EV_ENGINEER_CONTENT]);
     });
 
     it('publishes no file whose name carries an individual’s name', () => {
@@ -34,7 +40,7 @@ describe('site content rules', () => {
 
     it('positions the company as Satellite Engineering, never as a training provider', () => {
         expect(offenders(/Satellite Engineering R&(amp;)?D/i)).toEqual([]);
-        expect(offenders(/\btraining\b|intern-driven|learn by doing|engineers in training/i)).toEqual([]);
+        expect(offenders(/\btraining\b|intern-driven|learn by doing|engineers in training/i, [EV_ENGINEER_CONTENT])).toEqual([]);
         const llms = readFileSync(path.resolve(SRC, '../public/llms.txt'), 'utf8');
         expect(llms).not.toMatch(/Satellite Engineering R&D|\btraining\b|intern-driven/i);
     });

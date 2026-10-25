@@ -8,7 +8,7 @@ import { CtaBand, EcosystemList, PageHero } from '@/components/site/blocks';
 const PATH = '/partners';
 const TITLE = 'Engineering Ecosystem';
 const DESCRIPTION =
-    'Organisations and platforms connected to iTelematics® Satellite Engineering: Gamyaa AeroSystems, APEX Rocket Systems, iFab Innovations, EV Society™ and EV.ENGINEER™, each described as it stands.';
+    'Organisations and platforms connected to iTelematics® Satellite Engineering: Gamyaa AeroSystems, APEX Rocket Systems, UFlight™, iFab Innovations, EV Society™ and EV.ENGINEER™, each described as it stands.';
 
 export const metadata: Metadata = pageMetadata({ path: PATH, title: TITLE, description: DESCRIPTION });
 

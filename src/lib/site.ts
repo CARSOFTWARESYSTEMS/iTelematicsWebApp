@@ -206,9 +206,15 @@ export const ECOSYSTEM: EcosystemOrg[] = [
         line: 'Rocket propulsion and launch systems.',
         status: 'Proposed · concept stage',
         links: [
-            { label: 'Partnership', href: 'https://aerospace.ev.engineer/space/partners/apexrocketsystems', kind: 'context' },
             { label: 'Official Website', href: 'https://www.apexrocketsystems.com/', kind: 'official' },
+            { label: 'Partnership', href: 'https://aerospace.ev.engineer/space/partners/apexrocketsystems', kind: 'context' },
         ],
+    },
+    {
+        name: 'UFlight™',
+        line: 'Health and usage monitoring (HUMS) for aerospace and autonomous platforms.',
+        status: 'Engineering ecosystem',
+        links: [{ label: 'Visit', href: 'https://uflight.in', kind: 'official' }],
     },
     {
         name: 'iFab Innovations',

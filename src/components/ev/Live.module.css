@@ -1,0 +1,20 @@
+.live {
+    position: relative;
+    min-width: 0;
+}
+
+/* Hold every animation on its first frame until the visual is on screen and motion is welcome. */
+.live[data-live='off'] *,
+.live[data-live='off'] *::before,
+.live[data-live='off'] *::after {
+    animation-play-state: paused !important;
+}
+
+/* Reduced motion: no animation at all; the base styles are the static composition. */
+@media (prefers-reduced-motion: reduce) {
+    .live *,
+    .live *::before,
+    .live *::after {
+        animation: none !important;
+    }
+}

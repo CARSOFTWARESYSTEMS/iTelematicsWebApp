@@ -17,6 +17,18 @@ export const CLICK_EVENTS = [
     'partner_click',
     'join_rnd_click',
     'mobile_navigation_use',
+    // EV.ENGINEER™ page (/ev-engineer): tagged explicitly with data-track on each CTA
+    'ev_engineer_research_click',
+    'ev_engineer_space_click',
+    'ev_engineer_satellite_click',
+    'ev_engineer_rocket_click',
+    'ev_engineer_aerospace_click',
+    'ev_engineer_aqip_click',
+    'ev_engineer_battery_click',
+    'ev_engineer_digital_twin_click',
+    'ev_engineer_profile_click',
+    'ev_engineer_partner_click',
+    'ev_engineer_external_click',
 ] as const;
 
 export const VIEW_EVENTS = ['research_platform_view', 'internship_view'] as const;
@@ -148,6 +160,7 @@ const PARTNER_HOSTS = new Set([
     'aerosystems.gamyaa.in',
     'apexrocketsystems.com',
     'ifab.tech',
+    'uflight.in',
     'evsociety.org',
     'autonomous.ev.engineer',
 ]);
@@ -211,8 +224,10 @@ export function describeClick(el: Element, origin: string): ClickPayload | null 
     const explicit = el.getAttribute('data-track');
     let event: ClickEvent | null = isClickEvent(explicit) ? explicit : null;
     let destinationType = dest?.destination_type;
+    // Same-page anchors (local section navigation) only count when tagged explicitly.
+    const inPage = href?.startsWith('#') ?? false;
 
-    if (!event && dest) {
+    if (!event && dest && !inPage) {
         const rule = LINK_RULES.find((r) => r.match(dest));
         if (rule) {
             event = rule.event;

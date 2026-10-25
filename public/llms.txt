@@ -9,7 +9,7 @@ Research results are labelled by maturity (Concept, Research, Simulation, Protot
 - [Satellite Engineering](https://itelematics.com/satellite-engineering): the spacecraft as one connected system: mission and orbit, power, avionics, ADCS, communications, payload, thermal and ground
 - [Research Platform](https://itelematics.com/research-platform): Satellite Energy & Telemetry Intelligence: orbit, energy, telemetry, fault scenarios, equations and engineering evidence with maturity labels
 - [Internships](https://itelematics.com/internships): Satellite Engineering internships built on practical projects: startup ideas, industry requirements, practical projects and career-focused projects
-- [Engineering Ecosystem](https://itelematics.com/partners): Gamyaa AeroSystems, APEX Rocket Systems (proposed, concept stage), iFab Innovations (engineering & innovation ecosystem; no partnership claimed), EV Society™ and EV.ENGINEER™, each relationship described as it stands
+- [Engineering Ecosystem](https://itelematics.com/partners): Gamyaa AeroSystems, APEX Rocket Systems (proposed, concept stage), UFlight™ (aerospace health and usage monitoring), iFab Innovations (engineering & innovation ecosystem; no partnership claimed), EV Society™ and EV.ENGINEER™, each relationship described as it stands
 - [Consultancy & Services](https://itelematics.com/consultancy): engineering consultancy, workshops and resources offered alongside the research
 - [About](https://itelematics.com/about): company, research direction and principles
 - [Contact](https://itelematics.com/contact): opens an email draft to info@iTelematics.com for internship, research, academic, industry, consultancy and investment enquiries
