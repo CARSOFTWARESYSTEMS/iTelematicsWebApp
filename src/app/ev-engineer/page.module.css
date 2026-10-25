@@ -610,86 +610,9 @@
     4%, 10% { border-color: rgba(34, 211, 238, 0.6); stroke: var(--telemetry); }
 }
 
-/* ---------- EV.ENGINEER™ identity ---------- */
-
-.identity {
-    border-top: 1px solid var(--border);
-    background:
-        radial-gradient(ellipse 50% 60% at 50% 40%, rgba(34, 211, 238, 0.05), transparent 70%),
-        #03070C;
-}
-
-.identityStack {
-    display: grid;
-    justify-items: center;
-    text-align: center;
-    padding: clamp(1rem, 0.5rem + 3vw, 3rem) 0;
-}
-
-.wordmark {
-    font-size: clamp(2.6rem, 0.8rem + 8vw, 7.5rem);
-    font-weight: 680;
-    letter-spacing: -0.045em;
-    line-height: 1;
-}
-
-.connector {
-    position: relative;
-    display: block;
-    width: 1px;
-    height: clamp(56px, 40px + 4vw, 88px);
-    margin: clamp(1.25rem, 1rem + 1vw, 2rem) 0;
-    overflow: hidden;
-    background: rgba(148, 163, 184, 0.35);
-}
-
-.connector::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: -40%;
-    width: 1px;
-    height: 40%;
-    background: linear-gradient(transparent, var(--telemetry), transparent);
-    animation: travel 3.6s var(--ease) infinite;
-}
-
-.connector + .identityName + .connector::after {
-    animation-delay: 1.2s;
-}
-
-.identityName {
-    font-size: clamp(1.6rem, 1.1rem + 2vw, 2.75rem);
-    font-weight: 600;
-    letter-spacing: -0.025em;
-    line-height: 1.15;
-    color: var(--text);
-}
-
-.identityDomains {
-    max-width: 52rem;
-    text-wrap: balance;
-    font-family: var(--font-mono);
-    font-size: clamp(0.74rem, 0.68rem + 0.3vw, 0.95rem);
-    letter-spacing: 0.16em;
-    line-height: 1.9;
-    text-transform: uppercase;
-    color: var(--text-2);
-}
-
-@keyframes travel {
-    0% { top: -40%; }
-    70%, 100% { top: 100%; }
-}
-
 @media (prefers-reduced-motion: reduce) {
-    .connector::after,
     .stepIcon {
         animation: none;
-    }
-
-    .connector::after {
-        top: 30%;
     }
 }
 
@@ -713,15 +636,15 @@
 }
 
 .profileName {
-    font-size: clamp(2.4rem, 1.4rem + 4vw, 5rem);
-    font-weight: 650;
-    letter-spacing: -0.04em;
-    line-height: 1.02;
+    font-size: clamp(1.9rem, 1.4rem + 1.8vw, 3rem);
+    font-weight: 640;
+    letter-spacing: -0.03em;
+    line-height: 1.08;
 }
 
 .profileIdentity {
-    margin-top: 0.9rem;
-    font-size: clamp(1.25rem, 1.05rem + 0.8vw, 1.75rem);
+    margin-top: 0.6rem;
+    font-size: clamp(1.15rem, 1.05rem + 0.5vw, 1.5rem);
     font-weight: 600;
     letter-spacing: -0.015em;
     color: var(--telemetry);

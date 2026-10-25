@@ -92,6 +92,19 @@
     color: var(--text-3);
 }
 
+/* Host variant: data-site="ev" is set on <html> by the layout script on ev.engineer */
+.evSite {
+    display: none;
+}
+
+:global(html[data-site='ev']) .evSite {
+    display: flex;
+}
+
+:global(html[data-site='ev']) .itSite {
+    display: none;
+}
+
 /* ---------- Desktop ---------- */
 
 .desktop {

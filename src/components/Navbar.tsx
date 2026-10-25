@@ -1,13 +1,21 @@
 "use client";
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import styles from './Navbar.module.css';
 import ExternalLink from './site/ExternalLink';
 import { track } from '@/lib/analytics/client';
-import { CONTACT_NAV, JOIN_HREF, PRIMARY_NAV, type NavGroup, type NavItem, type PrimaryNavItem } from '@/lib/site';
+import { CONTACT_NAV, EV_SITE, JOIN_HREF, PRIMARY_NAV, type NavGroup, type NavItem, type PrimaryNavItem } from '@/lib/site';
 
 const isActive = (pathname: string, href: string) => pathname === href || pathname.startsWith(`${href}/`);
+
+/** True on ev.engineer hosts (flagged on <html> by the layout's variant script); the host never changes. */
+const useEvSite = () =>
+    useSyncExternalStore(
+        () => () => {},
+        () => document.documentElement.getAttribute('data-site') === 'ev',
+        () => false,
+    );
 
 function MenuLink({ link, className, onNavigate }: { link: NavItem; className?: string; onNavigate?: () => void }) {
     if (link.external) {
@@ -57,6 +65,7 @@ function Groups({ item, onNavigate }: { item: PrimaryNavItem; onNavigate: () => 
 
 export default function Navbar() {
     const pathname = usePathname();
+    const evSite = useEvSite();
     const [isOpen, setIsOpen] = useState(false);
     const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
     const desktopRef = useRef<HTMLDivElement>(null);
@@ -109,11 +118,21 @@ export default function Navbar() {
     return (
         <header className={styles.header}>
             <nav className={styles.bar} aria-label="Main">
-                <Link href="/" className={styles.logo} aria-label="iTelematics® home" aria-current={pathname === '/' ? 'page' : undefined}>
+                {/* Both wordmarks are rendered; CSS shows the one for this host from the first paint. */}
+                <Link
+                    href="/"
+                    className={styles.logo}
+                    aria-label={evSite ? `${EV_SITE.name} home` : 'iTelematics® home'}
+                    aria-current={pathname === '/' || (evSite && pathname === '/ev-engineer') ? 'page' : undefined}
+                >
                     <span className={styles.logoMark} aria-hidden="true" />
-                    <span className={styles.logoText}>
+                    <span className={`${styles.logoText} ${styles.itSite}`}>
                         <span className={styles.logoName}>iTelematics<sup className={styles.reg}>®</sup></span>
                         <span className={styles.logoTag}>Satellite Engineering</span>
+                    </span>
+                    <span className={`${styles.logoText} ${styles.evSite}`}>
+                        <span className={styles.logoName}>EV.ENGINEER<sup className={styles.reg}>™</sup></span>
+                        <span className={styles.logoTag}>{EV_SITE.tagline}</span>
                     </span>
                 </Link>
 

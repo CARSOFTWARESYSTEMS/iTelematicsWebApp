@@ -236,6 +236,16 @@ export const ECOSYSTEM: EcosystemOrg[] = [
     },
 ];
 
+/**
+ * ev.engineer serves this site with /ev-engineer at its root. On those hosts the header logo reads
+ * EV.ENGINEER™ / Energy & Battery; everywhere else it stays iTelematics® / Satellite Engineering.
+ */
+export const EV_SITE = {
+    hosts: ['ev.engineer', 'www.ev.engineer'],
+    name: 'EV.ENGINEER™',
+    tagline: 'Energy & Battery',
+} as const;
+
 /** Routes in the active site, used by the sitemap. */
 export const SITE_ROUTES = [
     { path: '/', priority: 1 },

@@ -6,7 +6,7 @@ import Footer from '@/components/Footer';
 import JsonLd, { organizationSchema, websiteSchema } from '@/components/JsonLd';
 import Analytics from '@/components/analytics/Analytics';
 import Reveal from '@/components/site/Reveal';
-import { SITE } from '@/lib/site';
+import { EV_SITE, SITE } from '@/lib/site';
 
 const inter = Inter({
     subsets: ['latin'],
@@ -45,6 +45,10 @@ export const metadata: Metadata = {
     robots: { index: true, follow: true },
 };
 
+// Marks EV.ENGINEER™ hosts on <html> before first paint, so the header shows the right logo with no
+// flash while every page stays statically rendered. "<host>.localhost" matches too, for local testing.
+const SITE_VARIANT_SCRIPT = `(function(){var h=location.hostname.replace(/\\.localhost$/,'');if(${JSON.stringify(EV_SITE.hosts)}.indexOf(h)>-1)document.documentElement.setAttribute('data-site','ev')})()`;
+
 export const viewport: Viewport = {
     themeColor: '#050B12',
     colorScheme: 'dark',
@@ -56,8 +60,10 @@ export default function RootLayout({
     children: React.ReactNode;
 }) {
     return (
-        <html lang="en" className={`${inter.variable} ${mono.variable}`}>
+        // suppressHydrationWarning: the variant script sets data-site on <html> before React hydrates
+        <html lang="en" className={`${inter.variable} ${mono.variable}`} suppressHydrationWarning>
             <body>
+                <script dangerouslySetInnerHTML={{ __html: SITE_VARIANT_SCRIPT }} />
                 <a href="#main" className="skip-link">Skip to content</a>
                 <JsonLd data={[organizationSchema(), websiteSchema()]} />
                 <Navbar />

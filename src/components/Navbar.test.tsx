@@ -38,6 +38,19 @@ describe('Navbar', () => {
         expect(logo.textContent).not.toMatch(/R&D/);
     });
 
+    it('presents the logo as EV.ENGINEER™ on ev.engineer hosts', () => {
+        document.documentElement.setAttribute('data-site', 'ev');
+        mockPathname = '/ev-engineer';
+        try {
+            render(<Navbar />);
+            const logo = screen.getByRole('link', { name: 'EV.ENGINEER™ home' });
+            expect(logo).toHaveTextContent('EV.ENGINEER™Energy & Battery');
+            expect(logo).toHaveAttribute('aria-current', 'page');
+        } finally {
+            document.documentElement.removeAttribute('data-site');
+        }
+    });
+
     it('no longer links to Events & Registration or EV Academy', () => {
         const { container } = render(<Navbar />);
         expect(screen.queryByText(/Events & Registration/)).not.toBeInTheDocument();

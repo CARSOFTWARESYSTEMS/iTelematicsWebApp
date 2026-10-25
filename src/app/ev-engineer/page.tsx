@@ -552,22 +552,8 @@ export default function EVEngineerPage() {
                 </section>
             </div>
 
-            {/* 19–22 — Identity, profile, ecosystem, index */}
+            {/* 20–22 — Profile, ecosystem, index */}
             <div id="ecosystem" className={styles.group} tabIndex={-1}>
-                <section className={`section ${styles.identity}`} data-analytics-section="identity" aria-labelledby="ev-identity">
-                    <div className="container">
-                        <div className={styles.identityStack}>
-                            <h2 id="ev-identity" className={styles.wordmark}>EV.ENGINEER™</h2>
-                            <span className={styles.connector} aria-hidden="true" />
-                            <p className={styles.identityName}>{EV_PERSON.name}</p>
-                            <span className={styles.connector} aria-hidden="true" />
-                            <p className={styles.identityDomains}>
-                                <Dotted items={EV_DOMAINS} />
-                            </p>
-                        </div>
-                    </div>
-                </section>
-
                 <section className={`section ${styles.profile}`} data-analytics-section="profile">
                     <div className={`container ${styles.profileGrid}`}>
                         <div data-reveal>
