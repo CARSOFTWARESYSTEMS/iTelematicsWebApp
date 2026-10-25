@@ -3,10 +3,10 @@ import { Fragment } from 'react';
 import styles from './page.module.css';
 import { pageMetadata } from '@/lib/metadata';
 import JsonLd, { pageSchema } from '@/components/JsonLd';
-import ExternalLink from '@/components/site/ExternalLink';
 import Feature, { EvLink, type Cta } from '@/components/ev/Feature';
-import HeroSystems from '@/components/ev/HeroSystems';
+import EnergyHero from '@/components/ev/EnergyHero';
 import LocalNav from '@/components/ev/LocalNav';
+import ResearchIndex from '@/components/ev/ResearchIndex';
 import {
     AerospaceVisual,
     AqipVisual,
@@ -17,7 +17,8 @@ import {
     StationVisual,
 } from '@/components/ev/space-visuals';
 import {
-    BatteryVisual,
+    BatteryFlagshipVisual,
+    CanNetworkVisual,
     HealthVisual,
     Lab3dGlyph,
     LabCellsGlyph,
@@ -27,13 +28,25 @@ import {
     PackBuildVisual,
     SafetyVisual,
 } from '@/components/ev/battery-visuals';
-import { EV_DOMAINS, EV_HOME, EV_PERSON, EV_URL, PARTNERS, PATHWAYS, PATHWAYS_INTRO, RESEARCH_INDEX } from '@/lib/ev-engineer';
+import {
+    EV_BRAND_LINE,
+    EV_DOMAINS,
+    EV_HOME,
+    EV_PERSON,
+    EV_PILLARS,
+    EV_PLATFORM,
+    EV_URL,
+    PARTNERS,
+    PATHWAYS,
+    PATHWAYS_INTRO,
+    RESEARCH_INDEX,
+} from '@/lib/ev-engineer';
 import { SITE } from '@/lib/site';
 
 const PATH = '/ev-engineer';
 const TITLE = 'EV.ENGINEER™ | Energy, Battery, Space, Aerospace & Digital Twins';
 const DESCRIPTION =
-    'Explore EV.ENGINEER™ research and engineering across EV Battery Intelligence, Energy Systems, Space, Aerospace, Digital Twins, Cybersecurity and engineering education.';
+    'Explore EV.ENGINEER™ engineering and research across EV Battery Intelligence, Energy Systems, Space, Aerospace, Digital Twins, Cybersecurity and engineering education.';
 
 export const metadata: Metadata = pageMetadata({
     path: PATH,
@@ -43,9 +56,11 @@ export const metadata: Metadata = pageMetadata({
     image: { url: `${PATH}/opengraph-image`, width: 1200, height: 630, alt: 'EV.ENGINEER™: Energy, Battery, Space, Aerospace and Digital Twins' },
 });
 
-const visitEv: Cta = { label: 'Visit EV.ENGINEER™ ↗', href: EV_HOME, event: 'ev_engineer_external_click' };
+// ev.engineer serves this page, so "Explore / Visit EV.ENGINEER™" lead to the platform that hosts the research.
+const exploreEv: Cta = { label: 'Explore EV.ENGINEER™ ↗', href: EV_PLATFORM, event: 'ev_engineer_external_click' };
+const visitEv: Cta = { label: 'Visit EV.ENGINEER™ ↗', href: EV_PLATFORM, event: 'ev_engineer_external_click' };
 
-/* ---------- Structured data: the page, the person behind EV.ENGINEER™, and the research topics ---------- */
+/* ---------- Structured data: the page, the research topics, and the profile linked from it ---------- */
 
 const PAGE_URL = `${SITE.url}${PATH}`;
 
@@ -54,20 +69,20 @@ function structuredData() {
     return [
         ...pageSchema({ path: PATH, name: TITLE, description: DESCRIPTION, breadcrumbs: [{ name: 'Ecosystem', path: '/partners' }, { name: 'EV.ENGINEER™', path: PATH }] }),
         {
+            '@type': 'ItemList',
+            '@id': `${PAGE_URL}#research`,
+            name: 'EV.ENGINEER™ research topics',
+            itemListElement: topics.map((t, i) => ({ '@type': 'ListItem', position: i + 1, name: t.label, url: t.href })),
+        },
+        {
             '@type': 'Person',
             '@id': `${PAGE_URL}#person`,
             name: EV_PERSON.name,
             url: EV_PERSON.profile,
             brand: { '@type': 'Brand', name: EV_PERSON.identity, url: EV_HOME },
             homeLocation: { '@type': 'Place', name: EV_PERSON.location },
-            knowsAbout: ['EV battery engineering', 'Battery intelligence and diagnostics', 'Battery cybersecurity', 'Space systems', 'Satellite engineering', 'Aerospace cybersecurity', 'Digital twins', 'Rocket engine digital twins'],
+            knowsAbout: ['EV battery engineering', 'Battery intelligence and diagnostics', 'Battery cybersecurity', 'Space systems', 'Satellite engineering', 'Aerospace cybersecurity', 'Digital twins'],
             subjectOf: { '@id': `${PAGE_URL}#webpage` },
-        },
-        {
-            '@type': 'ItemList',
-            '@id': `${PAGE_URL}#research`,
-            name: 'EV.ENGINEER™ research topics',
-            itemListElement: topics.map((t, i) => ({ '@type': 'ListItem', position: i + 1, name: t.label, url: t.href })),
         },
     ];
 }
@@ -89,14 +104,57 @@ function Dotted({ items }: { items: readonly string[] }) {
     );
 }
 
-/* ---------- Small decorative glyphs ---------- */
+/* ---------- Research overview: four primary domains, then compact links ---------- */
 
 const DOMAIN_ICONS: Record<string, React.ReactNode> = {
+    battery: <><rect x="4" y="9" width="22" height="14" rx="2" /><path d="M28 13 V19 M9 13 V19 M14 13 V19 M19 13 V19" /></>,
     space: <><circle cx="16" cy="16" r="5" /><ellipse cx="16" cy="16" rx="13" ry="5.5" transform="rotate(-20 16 16)" /></>,
     aero: <><path d="M4 18 L28 12 M14 16 L10 6 M14 16 L12 26 M24 13 L26 8" /></>,
-    battery: <><rect x="4" y="9" width="22" height="14" rx="2" /><path d="M28 13 V19 M9 13 V19 M14 13 V19 M19 13 V19" /></>,
     twin: <><path d="M16 4 L27 10 V22 L16 28 L5 22 V10 Z M16 4 V16 M5 10 L16 16 L27 10" /></>,
 };
+
+const DOMAINS = [
+    {
+        id: 'battery',
+        icon: 'battery',
+        label: 'Battery Intelligence',
+        title: 'EV Battery & Energy',
+        text: 'Battery health, safety, BMS intelligence, pack engineering, mobility and second life.',
+        items: ['Battery Energy & Health Intelligence', 'Safety & Fire Prevention', 'Health & Diagnostics', 'Pack Engineering', 'Electric Mobility'],
+    },
+    {
+        id: 'space',
+        icon: 'space',
+        label: 'Space Systems',
+        title: 'Space & Satellites',
+        text: 'Spacecraft, satellite power, CubeSat energy, propulsion and long-duration stations.',
+        items: ['Space & Aerospace Technologies', 'Satellite Engineering', 'CubeTwin', 'Rocket Engineering', 'Space Station'],
+    },
+    {
+        id: 'aerospace',
+        icon: 'aero',
+        label: 'Aerospace Systems',
+        title: 'Aerospace',
+        text: 'Connected aircraft, eVTOL health monitoring, cyber-resilience and quality assurance.',
+        items: ['Aerospace Cybersecurity & Digital Twins', 'UFlight™ 3D', 'Aerospace Quality Intelligence'],
+    },
+    {
+        id: 'digital-twins',
+        icon: 'twin',
+        label: 'Interactive Lab',
+        title: 'Digital Twins',
+        text: 'Systems to run and observe: satellite, CubeSat energy, rocket propulsion and battery health.',
+        items: ['Interactive 3D Satellite', 'CubeTwin', 'Rocket Propulsion Digital Twin', 'Battery Diagnostics Toolkit'],
+    },
+];
+
+const TOPICS = [
+    ['satellite-engineering', 'Satellite Engineering'],
+    ['rocket-engineering', 'Rocket Engineering'],
+    ['aqip', 'Aerospace Quality Intelligence'],
+    ['cybersecurity', 'Cybersecurity'],
+    ['pathways', 'Engineering Pathways'],
+] as const;
 
 const STEPS: [string, string, React.ReactNode][] = [
     ['Learn', 'Fundamentals', <path key="l" d="M5 7 H14 V25 H5 Z M14 7 H23 V25 H14" />],
@@ -106,41 +164,6 @@ const STEPS: [string, string, React.ReactNode][] = [
     ['Verify', 'Evidence', <path key="v" d="M6 16 L13 23 L26 9" />],
     ['Research', 'Open problems', <><circle key="c" cx="14" cy="14" r="8" /><path key="r" d="M20 20 L27 27" /></>],
     ['Lead', 'Direction', <path key="d" d="M16 27 V6 M9 13 L16 6 L23 13" />],
-];
-
-const DOMAINS = [
-    {
-        id: 'space',
-        icon: 'space',
-        label: 'Space Systems',
-        title: 'Space & Satellites',
-        text: 'Spacecraft, satellite engineering, CubeSat energy, propulsion and long-duration stations.',
-        items: ['Space & Aerospace Technologies', 'Satellite Engineering', 'CubeTwin', 'Rocket Engineering', 'Space Station'],
-    },
-    {
-        id: 'aerospace',
-        icon: 'aero',
-        label: 'Aerospace Systems',
-        title: 'Aerospace',
-        text: 'Connected aircraft, eVTOL health monitoring, cyber-resilience and quality intelligence.',
-        items: ['Aerospace Cybersecurity & Digital Twins', 'UFlight™ 3D', 'Aerospace Quality Intelligence'],
-    },
-    {
-        id: 'battery',
-        icon: 'battery',
-        label: 'EV · Battery · Energy',
-        title: 'EV Battery & Energy',
-        text: 'Battery safety, diagnostics, BMS intelligence, pack engineering, mobility and second life.',
-        items: ['Battery Safety & Cybersecurity', 'Health & Diagnostics', 'Pack Engineering', 'Electric Mobility'],
-    },
-    {
-        id: 'digital-twins',
-        icon: 'twin',
-        label: 'Interactive Labs',
-        title: 'Digital Twins',
-        text: 'Models to run and observe: satellite, CubeSat energy, rocket propulsion and battery health.',
-        items: ['Interactive 3D Satellite', 'CubeTwin', 'Rocket Propulsion Digital Twin', 'Battery Diagnostics Toolkit'],
-    },
 ];
 
 const LABS = [
@@ -179,7 +202,7 @@ export default function EVEngineerPage() {
         <div className={styles.page}>
             <JsonLd data={structuredData()} />
 
-            {/* 1 — Hero */}
+            {/* Hero: 45 % content / 55 % live engineering system */}
             <section className={styles.hero} data-analytics-section="ev-hero">
                 <div className={`container ${styles.heroGrid}`}>
                     <div className={styles.heroCopy}>
@@ -188,70 +211,103 @@ export default function EVEngineerPage() {
                             Building <em>World‑Class Engineers</em> to Solve <em>Energy</em> &amp; <em>Battery</em> Challenges
                         </h1>
                         <p className={`lead ${styles.heroLead}`}>
-                            An engineering, research and learning ecosystem exploring Energy, EV Batteries, Space, Aerospace,
-                            Digital Twins, Cybersecurity and Engineering Intelligence.
+                            Engineering, research and learning across Energy, EV Batteries, Space, Aerospace, Digital Twins,
+                            Cybersecurity and Engineering Intelligence.
                         </p>
                         <div className="actions hero-actions">
                             <a href="#research-development" className="btn btn-primary" data-track="ev_engineer_research_click" data-track-name="Explore Research & Development" data-analytics-location="hero">
                                 Explore Research &amp; Development
                             </a>
-                            <EvLink cta={visitEv} className="btn btn-secondary" location="hero" />
+                            <EvLink cta={exploreEv} className="btn btn-secondary" location="hero" />
                         </div>
                     </div>
                     <div className={styles.heroVisual}>
-                        <HeroSystems />
+                        <EnergyHero />
                     </div>
                     <div className={styles.heroMeta}>
                         <p>
                             <Dotted items={['Energy', 'Battery', 'Space', 'Aerospace', 'Digital Twins', 'Cybersecurity']} />
                         </p>
-                        <p>Bengaluru · India</p>
-                    </div>
-                </div>
-            </section>
-
-            {/* 2 — Local navigation */}
-            <LocalNav />
-
-            {/* 3 — Research & Development: discovery by domain */}
-            <section id="research-development" className={`section ${styles.rnd}`} data-analytics-section="research-development" tabIndex={-1}>
-                <div className="container">
-                    <div className="section-head" data-reveal>
-                        <p className="eyebrow">EV.ENGINEER™ R&amp;D</p>
-                        <h2>Research &amp; Development</h2>
-                        <p className="lead">
-                            Explore engineering problems, interactive laboratories, Digital Twins, research programs and student
-                            engineering projects across Energy, Space, Aerospace, Battery Systems, Cybersecurity and Engineering
-                            Intelligence.
+                        <p>
+                            <Dotted items={EV_PILLARS} />
                         </p>
                     </div>
-                    <ul className={styles.domains}>
-                        {DOMAINS.map((d, i) => (
-                            <li key={d.id} data-reveal>
-                                <a href={`#${d.id}`} className={`${styles.domain} ${d.id === 'battery' ? styles.domainBattery : ''}`} data-track="ev_engineer_research_click" data-track-name={d.title} data-analytics-location="domain-cards">
-                                    <span className={styles.domainTop}>
-                                        <svg viewBox="0 0 32 32" className={styles.domainIcon} aria-hidden="true">{DOMAIN_ICONS[d.icon]}</svg>
-                                        <span className="mono">{String(i + 1).padStart(2, '0')}</span>
-                                    </span>
-                                    <span className={styles.domainLabel}>{d.label}</span>
-                                    <span className={styles.domainTitle}>{d.title}</span>
-                                    <span className={styles.domainText}>{d.text}</span>
-                                    <span className={styles.domainItems}>
-                                        {d.items.map((item) => (
-                                            <span key={item}>{item}</span>
-                                        ))}
-                                    </span>
-                                    <span className={styles.domainMore}>
-                                        {d.items.length} areas <span aria-hidden="true">↓</span>
-                                    </span>
-                                </a>
-                            </li>
-                        ))}
-                    </ul>
                 </div>
             </section>
 
-            {/* 4–8 — Space */}
+            <LocalNav />
+
+            <div id="overview" className={styles.group} tabIndex={-1}>
+                {/* Research overview */}
+                <section id="research-development" className={`section ${styles.rnd}`} data-analytics-section="research-development" tabIndex={-1}>
+                    <div className="container">
+                        <div className={styles.rndHead} data-reveal>
+                            <div>
+                                <p className={styles.kicker}>R&amp;D</p>
+                                <h2>Research &amp; Development</h2>
+                            </div>
+                            <p className="lead">
+                                Explore engineering problems, interactive laboratories, Digital Twins, research programs and
+                                system-level projects across multiple domains.
+                            </p>
+                        </div>
+                        <ul className={styles.domains}>
+                            {DOMAINS.map((d, i) => (
+                                <li key={d.id} data-reveal>
+                                    <a href={`#${d.id}`} className={`${styles.domain} ${i === 0 ? styles.domainPrimary : ''}`} data-track="ev_engineer_research_click" data-track-name={d.title} data-analytics-location="domain-cards">
+                                        <span className={styles.domainTop}>
+                                            <svg viewBox="0 0 32 32" className={styles.domainIcon} aria-hidden="true">{DOMAIN_ICONS[d.icon]}</svg>
+                                            <span className="mono">{String(i + 1).padStart(2, '0')}</span>
+                                        </span>
+                                        <span className={styles.domainLabel}>{d.label}</span>
+                                        <span className={styles.domainTitle}>{d.title}</span>
+                                        <span className={styles.domainText}>{d.text}</span>
+                                        <span className={styles.domainItems}>
+                                            {d.items.map((item) => (
+                                                <span key={item}>{item}</span>
+                                            ))}
+                                        </span>
+                                        <span className={styles.domainMore}>
+                                            {d.items.length} areas <span aria-hidden="true">↓</span>
+                                        </span>
+                                    </a>
+                                </li>
+                            ))}
+                        </ul>
+                        <nav className={styles.topics} aria-label="More research areas" data-reveal>
+                            <span className={styles.topicsLabel}>Also in R&amp;D</span>
+                            <ul>
+                                {TOPICS.map(([id, name]) => (
+                                    <li key={id}>
+                                        <a href={`#${id}`} data-track="ev_engineer_research_click" data-track-name={name} data-analytics-location="topic-links">
+                                            {name} <span aria-hidden="true">↓</span>
+                                        </a>
+                                    </li>
+                                ))}
+                            </ul>
+                        </nav>
+                    </div>
+                </section>
+
+                {/* Flagship engineering visual */}
+                <section className={`section ${styles.flagship}`} data-analytics-section="battery-flagship">
+                    <div className="container">
+                        <div className={styles.flagshipHead} data-reveal>
+                            <div>
+                                <p className={styles.kicker}>Battery Intelligence · Flagship</p>
+                                <h2>Battery Energy &amp; Health Intelligence</h2>
+                            </div>
+                            <div>
+                                <p className="lead">How an EV battery stores, delivers, protects and reports energy throughout its operating life.</p>
+                                <EvLink cta={{ label: 'Explore Battery Research ↗', href: EV_URL.batteryPortal, event: 'ev_engineer_battery_click' }} className={`text-link ${styles.flagshipLink}`} location="flagship" />
+                            </div>
+                        </div>
+                        <BatteryFlagshipVisual />
+                    </div>
+                </section>
+            </div>
+
+            {/* Space */}
             <div id="space" className={styles.group} tabIndex={-1}>
                 <section className={`section ${styles.band}`}>
                     <div className={`container ${styles.stack}`}>
@@ -269,13 +325,14 @@ export default function EVEngineerPage() {
                         />
 
                         <Feature
+                            id="satellite-engineering"
                             section="satellite-engineering"
                             label="Satellite Systems"
                             maturity="Research"
                             title="Satellite Engineering"
                             description={<p>Explore spacecraft architecture, subsystem engineering, electrical power, telemetry, mission operations, verification and digital-twin-driven spacecraft understanding.</p>}
                             visual={<SatelliteSchematicVisual />}
-                            chips={['Spacecraft architecture', 'Electrical power (EPS)', 'Telemetry', 'Mission operations', 'Verification']}
+                            chips={['EPS', 'Telemetry', 'Digital twin', 'Mission', 'Verification']}
                             primary={{ label: 'Explore Satellite Engineering →', href: EV_URL.satellite, event: 'ev_engineer_satellite_click' }}
                             secondary={{ label: 'Open Interactive 3D ↗', href: EV_URL.interactive3d, event: 'ev_engineer_satellite_click' }}
                             related={[
@@ -302,7 +359,7 @@ export default function EVEngineerPage() {
                                 </>
                             }
                             visual={<CubeTwinVisual />}
-                            chips={['Orbit', 'Sunlight / eclipse', 'Solar generation', 'Battery SOC', 'Loads', 'Faults', 'Safe mode']}
+                            chips={['Orbit & eclipse', 'Solar generation', 'Battery SOC', 'Faults', 'Safe mode']}
                             primary={{ label: 'Explore CubeTwin →', href: EV_URL.cubesat, event: 'ev_engineer_digital_twin_click' }}
                             meta={[['Type', 'Interactive simulation'], ['Domain', 'CubeSat EPS']]}
                             layout="wide"
@@ -313,8 +370,9 @@ export default function EVEngineerPage() {
                 <section className={`section ${styles.band}`}>
                     <div className={`container ${styles.stack}`}>
                         <Feature
+                            id="rocket-engineering"
                             section="rocket-engineering"
-                            label="Propulsion Systems"
+                            label="Propulsion"
                             maturity="Simulation"
                             title="Rocket Engineering & Digital Twins"
                             description={<p>Explore propulsion architecture, engineering instrumentation, telemetry, physics-based modelling, state estimation, fault diagnosis and digital-twin methods.</p>}
@@ -343,7 +401,7 @@ export default function EVEngineerPage() {
                 </section>
             </div>
 
-            {/* 9–10 — Aerospace */}
+            {/* Aerospace */}
             <div id="aerospace" className={styles.group} tabIndex={-1}>
                 <section className={`section ${styles.bandAlt}`}>
                     <div className="container">
@@ -362,11 +420,11 @@ export default function EVEngineerPage() {
                     </div>
                 </section>
 
-                <section className={`section ${styles.aqip}`} data-analytics-section="aqip">
+                <section id="aqip" className={`section ${styles.aqip}`} data-analytics-section="aqip">
                     <div className="container">
-                        <div className={styles.aqipHead} data-reveal>
+                        <div className={styles.splitHead} data-reveal>
                             <div>
-                                <p className={styles.kicker}>Aerospace &amp; Defence · Quality Intelligence</p>
+                                <p className={styles.kicker}>Engineering Evidence · Aerospace &amp; Defence</p>
                                 <h2>Aerospace Quality Intelligence Platform</h2>
                             </div>
                             <div>
@@ -392,24 +450,27 @@ export default function EVEngineerPage() {
                 </section>
             </div>
 
-            {/* 11–15 — EV Battery & Energy */}
+            {/* EV Battery & Energy */}
             <div id="battery" className={`${styles.group} ${styles.battery}`} tabIndex={-1}>
                 <section className="section" data-analytics-section="battery-intelligence">
                     <div className="container">
-                        <div className={styles.batteryHead} data-reveal>
-                            <p className={styles.kicker}>EV · Battery · Energy</p>
-                            <h2 className={styles.batteryTitle}>EV Battery &amp; Energy Intelligence</h2>
-                            <p className="lead">
-                                Explore battery safety, diagnostics, BMS intelligence, cybersecurity, pack engineering, EV mobility,
-                                health monitoring and circular-economy challenges.
-                            </p>
-                            <ul className={styles.batteryChips} aria-label="Key topics">
-                                {['Cells', 'Modules', 'Packs', 'BMS', 'SOC · SOH', 'Thermal zones', 'Diagnostics', 'Anomaly detection'].map((c) => (
-                                    <li key={c}>{c}</li>
-                                ))}
-                            </ul>
+                        <div className={styles.splitHead} data-reveal>
+                            <div>
+                                <p className={`${styles.kicker} ${styles.kickerSolar}`}>EV · Battery · Energy</p>
+                                <h2>EV Battery &amp; Energy Intelligence</h2>
+                            </div>
+                            <div>
+                                <p className="lead">
+                                    Explore battery safety, diagnostics, BMS intelligence, cybersecurity, pack engineering, EV
+                                    mobility, health monitoring and circular-economy challenges.
+                                </p>
+                                <ul className={styles.headChips} aria-label="Key topics">
+                                    {['BMS intelligence', 'Battery safety', 'Diagnostics', 'Pack engineering', 'Circular economy'].map((c) => (
+                                        <li key={c}>{c}</li>
+                                    ))}
+                                </ul>
+                            </div>
                         </div>
-                        <BatteryVisual />
 
                         <div className={styles.batteryGrid}>
                             <Feature
@@ -417,15 +478,11 @@ export default function EVEngineerPage() {
                                 layout="card"
                                 heading="h3"
                                 label="Battery Safety"
-                                title="Safety, Fire Prevention & Cybersecurity"
-                                description={<p>Thermal safety and second-life battery diagnostics, battery cybersecurity, and CAN-bus security for EV, BMS and BESS.</p>}
+                                title="Battery Safety & Fire Prevention"
+                                description={<p>Thermal safety, second-life battery diagnostics and grading, and how a pack, its BMS and the vehicle network respond to a warming module.</p>}
                                 visual={<SafetyVisual />}
+                                chips={['Thermal safety', 'Second-life packs', 'Grading & traceability']}
                                 primary={{ label: 'Explore Battery Safety →', href: EV_URL.batteryFire, event: 'ev_engineer_battery_click' }}
-                                related={[
-                                    { label: 'Battery Fire Prevention', href: EV_URL.batteryFire, event: 'ev_engineer_battery_click' },
-                                    { label: 'Battery Cybersecurity', href: EV_URL.batteryCyber, event: 'ev_engineer_battery_click' },
-                                    { label: 'AegisCAN™', href: EV_URL.aegisCan, event: 'ev_engineer_battery_click' },
-                                ]}
                             />
                             <Feature
                                 section="battery-health"
@@ -435,9 +492,9 @@ export default function EVEngineerPage() {
                                 title="Battery Health & Diagnostics"
                                 description={<p>SOC, SOH, cell imbalance, cycle history and guided diagnostics, with battery identity and AI-assisted support workflows.</p>}
                                 visual={<HealthVisual />}
+                                chips={['SOC · SOH', 'Cell imbalance', 'Battery identity']}
                                 primary={{ label: 'Explore Battery Intelligence →', href: EV_URL.batteryHealth, event: 'ev_engineer_battery_click' }}
                                 related={[
-                                    { label: 'Health & Diagnostics Toolkit', href: EV_URL.batteryHealth, event: 'ev_engineer_battery_click' },
                                     { label: 'Battery Aadhaar', href: EV_URL.batteryAadhaar, event: 'ev_engineer_battery_click' },
                                     { label: 'EV Help Agent Use Cases', href: EV_URL.evHelpAgent, event: 'ev_engineer_battery_click' },
                                 ]}
@@ -450,12 +507,9 @@ export default function EVEngineerPage() {
                                 title="Battery Pack Engineering"
                                 description={<p>From energy requirements and cell selection to module and pack architecture, BMS, thermal design, validation and diagnostics.</p>}
                                 visual={<PackBuildVisual />}
-                                chips={['Cell selection', 'Module architecture', 'Pack architecture', 'BMS', 'Thermal design', 'Energy requirements', 'Validation', 'Diagnostics']}
+                                chips={['Cell selection', 'Pack architecture', 'BMS', 'Thermal design', 'Validation']}
                                 primary={{ label: 'Explore Battery Engineering →', href: EV_URL.packDesign, event: 'ev_engineer_battery_click' }}
-                                related={[
-                                    { label: 'Battery Pack Design', href: EV_URL.packDesign, event: 'ev_engineer_battery_click' },
-                                    { label: 'Battery Engineering Portal', href: EV_URL.batteryPortal, event: 'ev_engineer_battery_click' },
-                                ]}
+                                related={[{ label: 'Battery Engineering Portal', href: EV_URL.batteryPortal, event: 'ev_engineer_battery_click' }]}
                             />
                             <Feature
                                 section="electric-mobility"
@@ -465,9 +519,9 @@ export default function EVEngineerPage() {
                                 title="Vehicle Engineering & Energy Simulation"
                                 description={<p>Configure an electric auto-rickshaw, study passenger air-taxi (eVTOL) component architecture and model the battery circular economy.</p>}
                                 visual={<MobilityVisual />}
+                                chips={['Range', 'Energy use', 'Circular economy']}
                                 primary={{ label: 'Explore Electric Mobility →', href: EV_URL.autoRickshaw, event: 'ev_engineer_battery_click' }}
                                 related={[
-                                    { label: 'EV Auto Rickshaw', href: EV_URL.autoRickshaw, event: 'ev_engineer_battery_click' },
                                     { label: 'Passenger Taxi', href: EV_URL.passengerTaxi, event: 'ev_engineer_battery_click' },
                                     { label: 'Battery Circular Economy', href: EV_URL.circular, event: 'ev_engineer_battery_click' },
                                 ]}
@@ -475,15 +529,35 @@ export default function EVEngineerPage() {
                         </div>
                     </div>
                 </section>
+
+                <section className={`section ${styles.cyber}`}>
+                    <div className="container">
+                        <Feature
+                            id="cybersecurity"
+                            section="cybersecurity"
+                            label="Cybersecurity"
+                            maturity="Research"
+                            title="Vehicle & Battery Cybersecurity"
+                            description={<p>CAN-bus security for EV, BMS and BESS: model normal traffic between an ECU, the gateway, the BMS and the motor controller, detect an anomalous frame and isolate its source.</p>}
+                            visual={<CanNetworkVisual />}
+                            chips={['CAN bus', 'Intrusion detection', 'BMS threat models', 'Fault injection', 'Secure telemetry']}
+                            primary={{ label: 'Explore AegisCAN™ →', href: EV_URL.aegisCan, event: 'ev_engineer_cybersecurity_click' }}
+                            secondary={{ label: 'Battery Cybersecurity ↗', href: EV_URL.batteryCyber, event: 'ev_engineer_cybersecurity_click' }}
+                            meta={[['Project', 'AegisCAN™ · 12 weeks'], ['Scope', 'EV · BMS · BESS']]}
+                        />
+                    </div>
+                </section>
             </div>
 
-            {/* 16 — Interactive Engineering Labs */}
+            {/* Digital Twins: interactive labs */}
             <div id="digital-twins" className={styles.group} tabIndex={-1}>
                 <section className={`section ${styles.bandAlt}`} data-analytics-section="interactive-labs">
                     <div className="container">
-                        <div className="section-head" data-reveal>
-                            <p className="eyebrow">Interactive engineering labs</p>
-                            <h2>Learn by Building</h2>
+                        <div className={styles.splitHead} data-reveal>
+                            <div>
+                                <p className={styles.kicker}>Interactive Lab · Digital Twin</p>
+                                <h2>Learn by Building</h2>
+                            </div>
                             <p className="lead">
                                 Interactive engineering experiences where systems can be modelled, simulated, observed and
                                 understood—not just read about.
@@ -493,10 +567,12 @@ export default function EVEngineerPage() {
                             {LABS.map((lab) => (
                                 <li key={lab.title} className={styles.labCard} data-reveal>
                                     <div className={styles.labGlyph}>{lab.glyph}</div>
-                                    <p className={styles.kicker}>{lab.label}</p>
-                                    <h3>{lab.title}</h3>
-                                    <p>{lab.text}</p>
-                                    <EvLink cta={lab.cta} className={`text-link ${styles.labLink}`} location="lab-card" />
+                                    <div className={styles.labBody}>
+                                        <p className={styles.kicker}>{lab.label}</p>
+                                        <h3>{lab.title}</h3>
+                                        <p>{lab.text}</p>
+                                        <EvLink cta={lab.cta} className={`text-link ${styles.cardLink}`} location="lab-card" />
+                                    </div>
                                 </li>
                             ))}
                         </ul>
@@ -504,22 +580,27 @@ export default function EVEngineerPage() {
                 </section>
             </div>
 
-            {/* 17–18 — Engineering Pathways and progression */}
+            {/* Learning: pathways and progression */}
             <div id="learning" className={styles.group} tabIndex={-1}>
-                <section className="section" data-analytics-section="engineering-pathways">
+                <section id="pathways" className="section" data-analytics-section="engineering-pathways">
                     <div className="container">
-                        <div className="section-head" data-reveal>
-                            <p className="eyebrow">Careers · workshops · field engineering</p>
-                            <h2>Engineering Pathways</h2>
+                        <div className={styles.splitHead} data-reveal>
+                            <div>
+                                <p className={styles.kicker}>Careers · Workshops · Field Engineering</p>
+                                <h2>Engineering Pathways</h2>
+                            </div>
                             <p className="lead">{PATHWAYS_INTRO}</p>
                         </div>
                         <ul className={styles.pathways}>
-                            {PATHWAYS.map((p) => (
+                            {PATHWAYS.map((p, i) => (
                                 <li key={p.title} className={styles.pathway} data-reveal>
-                                    <p className={styles.kicker}>{p.label}</p>
-                                    <h3>{p.title}</h3>
-                                    <p>{p.text}</p>
-                                    <EvLink cta={{ label: p.cta, href: p.href, event: p.event }} className={`text-link ${styles.pathLink}`} location="pathway-card" />
+                                    <span className={`mono ${styles.pathIndex}`}>{String(i + 1).padStart(2, '0')}</span>
+                                    <div>
+                                        <p className={styles.pathLabel}>{p.label}</p>
+                                        <h3>{p.title}</h3>
+                                        <p>{p.text}</p>
+                                        <EvLink cta={{ label: p.cta, href: p.href, event: p.event }} className={`text-link ${styles.cardLink}`} location="pathway" />
+                                    </div>
                                 </li>
                             ))}
                         </ul>
@@ -552,48 +633,32 @@ export default function EVEngineerPage() {
                 </section>
             </div>
 
-            {/* 20–22 — Profile, ecosystem, index */}
+            {/* Identity, ecosystem and research index */}
             <div id="ecosystem" className={styles.group} tabIndex={-1}>
-                <section className={`section ${styles.profile}`} data-analytics-section="profile">
-                    <div className={`container ${styles.profileGrid}`}>
-                        <div data-reveal>
-                            <h2 className={styles.profileName}>{EV_PERSON.name}</h2>
-                            <p className={styles.profileIdentity}>{EV_PERSON.identity}</p>
-                            <p className={styles.profileFocus}>{EV_PERSON.focus}</p>
-                            <p className={`lead ${styles.profileLine}`}>{EV_PERSON.line}</p>
-                            <div className="actions hero-actions">
-                                <EvLink cta={{ label: 'View Profile →', href: EV_PERSON.profile, event: 'ev_engineer_profile_click' }} className="btn btn-primary" location="profile" />
-                                <EvLink cta={visitEv} className="btn btn-secondary" location="profile" />
-                            </div>
+                <section className={`section ${styles.identity}`} data-analytics-section="identity" aria-labelledby="ev-identity">
+                    <div className="container">
+                        <div className={styles.identityStack}>
+                            <h2 id="ev-identity" className={styles.wordmark}>EV.ENGINEER™</h2>
+                            <span className={styles.connector} aria-hidden="true" />
+                            <p className={styles.identityDomains}>
+                                <Dotted items={EV_DOMAINS} />
+                            </p>
+                            <span className={styles.connector} aria-hidden="true" />
+                            <p className={styles.identityPillars}>
+                                <Dotted items={EV_PILLARS} />
+                            </p>
+                            <p className={styles.identityLine}>{EV_BRAND_LINE}</p>
                         </div>
-                        <dl className={styles.profileCard} data-reveal>
-                            <div>
-                                <dt>Identity</dt>
-                                <dd>{EV_PERSON.identity}</dd>
-                            </div>
-                            <div>
-                                <dt>Focus</dt>
-                                <dd>{EV_PERSON.focus}</dd>
-                            </div>
-                            <div>
-                                <dt>Domains</dt>
-                                <dd>
-                                    <Dotted items={EV_DOMAINS} />
-                                </dd>
-                            </div>
-                            <div>
-                                <dt>Location</dt>
-                                <dd>{EV_PERSON.location}</dd>
-                            </div>
-                        </dl>
                     </div>
                 </section>
 
-                <section className={`section ${styles.bandAlt}`} data-analytics-section="ecosystem">
+                <section className={`section ${styles.ecosystem}`} data-analytics-section="ecosystem">
                     <div className="container">
-                        <div className="section-head" data-reveal>
-                            <p className="eyebrow">Ecosystem</p>
-                            <h2>Partnerships &amp; Engineering Ecosystem</h2>
+                        <div className={styles.splitHead} data-reveal>
+                            <div>
+                                <p className={styles.kicker}>Ecosystem</p>
+                                <h2>Partnerships &amp; Engineering Ecosystem</h2>
+                            </div>
                             <p className="lead">
                                 Engineering organisations, research initiatives, technology teams and communities connected across
                                 Space, Aerospace, Software, Embedded Systems and EV Engineering.
@@ -601,11 +666,14 @@ export default function EVEngineerPage() {
                         </div>
                         <ul className={styles.partners}>
                             {PARTNERS.map((p) => (
-                                <li key={p.label} className={styles.partner} data-reveal>
-                                    <p className={styles.kicker}>{p.status}</p>
-                                    <h3>{p.label}</h3>
-                                    <p>{p.line}</p>
-                                    <EvLink cta={{ label: p.cta, href: p.href, event: p.event }} className={`text-link ${styles.partnerLink}`} location="partner-card" />
+                                <li key={p.label} className={styles.partner}>
+                                    <span className={styles.mark} aria-hidden="true">{p.mark}</span>
+                                    <div className={styles.partnerBody}>
+                                        <h3>{p.label}</h3>
+                                        <p className={styles.role}>{p.role}</p>
+                                        <p className={styles.partnerLine}>{p.line}</p>
+                                    </div>
+                                    <EvLink cta={{ label: p.cta, href: p.href, event: p.event }} className={styles.partnerLink} location="partner" />
                                 </li>
                             ))}
                         </ul>
@@ -613,40 +681,32 @@ export default function EVEngineerPage() {
                             Organisations are described from their own published material; a listing here is not a claim of a
                             formal partnership.
                         </p>
+
+                        <div className={styles.profileStrip} data-analytics-section="profile">
+                            <div>
+                                <p className={styles.profileLabel}>Profile</p>
+                                <p className={styles.profileName}>{EV_PERSON.name}</p>
+                                <p className={styles.profileMeta}>
+                                    <Dotted items={[EV_PERSON.identity, ...EV_PERSON.focus.split(' · '), EV_PERSON.location]} />
+                                </p>
+                            </div>
+                            <EvLink cta={{ label: 'View Profile →', href: EV_PERSON.profile, event: 'ev_engineer_profile_click' }} className="btn btn-secondary" location="profile" />
+                        </div>
                     </div>
                 </section>
 
                 <section className="section" data-analytics-section="research-index">
                     <div className="container">
                         <div className="section-head" data-reveal>
-                            <p className="eyebrow">Research index</p>
+                            <p className={styles.kicker}>Research Index</p>
                             <h2>Explore All Research Topics</h2>
                         </div>
-                        <div className={styles.index}>
-                            {RESEARCH_INDEX.map((group) => (
-                                <div key={group.name} className={styles.indexGroup}>
-                                    <h3 className={styles.indexTitle}>
-                                        {group.name}
-                                        <span className="mono">{String(group.links.length).padStart(2, '0')}</span>
-                                    </h3>
-                                    <ul>
-                                        {group.links.map((link) => (
-                                            <li key={link.href + link.label}>
-                                                <ExternalLink href={link.href} className={styles.indexLink} data-track={link.event} data-analytics-location="research-index" trackName={link.label}>
-                                                    {link.label}
-                                                    <span aria-hidden="true">↗</span>
-                                                </ExternalLink>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            ))}
-                        </div>
+                        <ResearchIndex groups={RESEARCH_INDEX} />
                     </div>
                 </section>
             </div>
 
-            {/* 23 — Final call to action */}
+            {/* Final call to action */}
             <section className={`section ${styles.final}`} data-analytics-section="final-cta">
                 <div className="container">
                     <div className={styles.finalInner} data-reveal>
@@ -659,7 +719,6 @@ export default function EVEngineerPage() {
                             </a>
                             <EvLink cta={visitEv} className="btn btn-secondary" location="final-cta" />
                         </div>
-                        <p className={styles.signature}>EV.ENGINEER™ · {EV_PERSON.location}</p>
                     </div>
                 </div>
             </section>

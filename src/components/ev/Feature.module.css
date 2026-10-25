@@ -110,11 +110,12 @@
 }
 
 .title {
-    font-size: clamp(1.9rem, 1.3rem + 2.2vw, 3rem);
+    font-size: clamp(2rem, 1.3rem + 2.2vw, 3.4rem);
+    letter-spacing: -0.03em;
 }
 
 .card .title {
-    font-size: clamp(1.35rem, 1.15rem + 0.8vw, 1.75rem);
+    font-size: clamp(1.5rem, 1.2rem + 1vw, 2.1rem);
     letter-spacing: -0.02em;
 }
 
@@ -167,6 +168,7 @@
 .relatedLink {
     display: inline-flex;
     align-items: center;
+    gap: 0.35rem;
     min-height: 40px;
     font-size: 0.92rem;
     color: var(--text-2);
@@ -208,5 +210,21 @@
 @media (max-width: 560px) {
     .actions :global(.text-link) {
         white-space: normal;
+    }
+}
+
+/* CTA arrows move a little on hover (desktop pointers only) */
+.arrow {
+    display: inline-block;
+    transition: transform 0.2s var(--ease);
+}
+
+@media (hover: hover) {
+    a:hover > .arrow {
+        transform: translateX(3px);
+    }
+
+    a:hover > .arrowOut {
+        transform: translate(2px, -2px);
     }
 }

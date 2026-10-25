@@ -13,6 +13,12 @@ const AEV = 'https://autonomous.ev.engineer';
 /** ev.engineer serves this page (next.config.mjs redirects its root to /ev-engineer). */
 export const EV_HOME = 'https://ev.engineer';
 
+/** The EV.ENGINEER™ platform that hosts the research pages; "Explore / Visit EV.ENGINEER™" lead here. */
+export const EV_PLATFORM = 'https://autonomous.ev.engineer/';
+
+export const EV_BRAND_LINE = 'Built by engineers. Driven by teams. Focused on solving difficult engineering problems.';
+export const EV_PILLARS = ['Engineering', 'Research', 'Learning', 'Building', 'Collaboration'] as const;
+
 export const EV_URL = {
     space: `${AEV}/space`,
     everyday: `${AEV}/space/everyday-applications`,
@@ -121,15 +127,16 @@ export const PATHWAYS: Pathway[] = [
 
 /* ---------- Partnerships & Engineering Ecosystem ---------- */
 
-export type Partner = EvLink & { label: string; line: string; status?: string; cta: string };
+export type Partner = EvLink & { label: string; mark: string; role: string; line: string; cta: string };
 
-// Each line follows the organisation's own published description; relationship status is stated
-// only where the iTelematics® ecosystem page already records it.
+// Each line follows the organisation's own published description. Marks are neutral monograms,
+// not the organisations' logos.
 export const PARTNERS: Partner[] = [
     {
         label: 'APEX Rocket Systems',
         line: 'Rocket propulsion and launch systems: from a liquid-engine demonstrator toward an integrated launch system.',
-        status: 'Rocket Systems · Engineering Collaboration',
+        mark: 'AR',
+        role: 'Rocket Systems',
         href: 'https://autonomous.ev.engineer/space/partners/apexrocketsystems',
         cta: 'Explore Collaboration →',
         event: 'ev_engineer_partner_click',
@@ -137,7 +144,8 @@ export const PARTNERS: Partner[] = [
     {
         label: 'Gamyaa AeroSystems',
         line: 'Engineering assurance for defence, aerospace and space: requirements, configuration, evidence and verification.',
-        status: 'Aerospace Engineering Assurance',
+        mark: 'GA',
+        role: 'Aerospace Assurance',
         href: 'https://aerosystems.gamyaa.in',
         cta: 'Visit Gamyaa AeroSystems ↗',
         event: 'ev_engineer_partner_click',
@@ -145,7 +153,8 @@ export const PARTNERS: Partner[] = [
     {
         label: 'UFlight™',
         line: 'Health and usage monitoring (HUMS) for aerospace and autonomous platforms.',
-        status: 'Aerospace Health · Telemetry',
+        mark: 'UF',
+        role: 'Aerospace Health · Telemetry',
         href: 'https://www.uflight.in/',
         cta: 'Visit UFlight™ ↗',
         event: 'ev_engineer_partner_click',
@@ -153,7 +162,8 @@ export const PARTNERS: Partner[] = [
     {
         label: 'iTelematics®',
         line: 'Applied Satellite Engineering: spacecraft energy, batteries, EPS, sensors, telemetry and health.',
-        status: 'Engineering Software · Intelligence',
+        mark: 'iT',
+        role: 'Engineering Software',
         href: 'https://itelematics.com/',
         cta: 'Visit iTelematics® ↗',
         event: 'ev_engineer_partner_click',
@@ -161,7 +171,8 @@ export const PARTNERS: Partner[] = [
     {
         label: 'iFab Innovations',
         line: 'Bengaluru engineering solutions. No formal partnership claimed.',
-        status: 'Embedded Systems · Firmware',
+        mark: 'iF',
+        role: 'Embedded Systems',
         href: 'https://ifab.tech/',
         cta: 'Visit iFab Innovations ↗',
         event: 'ev_engineer_partner_click',
@@ -169,7 +180,8 @@ export const PARTNERS: Partner[] = [
     {
         label: 'Thasmai InfoTech Private Limited',
         line: 'A CanSat and model-rocketry engineering research programme: avionics, telemetry, simulation and validation.',
-        status: 'Space Research · Technology',
+        mark: 'TI',
+        role: 'Space Research',
         href: 'https://www.thasmaiinfotech.com/space-research',
         cta: 'Explore Space Research ↗',
         event: 'ev_engineer_partner_click',
@@ -177,7 +189,8 @@ export const PARTNERS: Partner[] = [
     {
         label: 'EV Society™',
         line: 'A non-profit educational and technical community for electric mobility.',
-        status: 'EV Engineering · Education · Ecosystem',
+        mark: 'ES',
+        role: 'EV Education',
         href: 'https://www.evsociety.org/',
         cta: 'Visit EV Society™ ↗',
         event: 'ev_engineer_partner_click',
@@ -185,7 +198,8 @@ export const PARTNERS: Partner[] = [
     {
         label: 'CAR SOFTWARE SYSTEMS',
         line: 'Electric-vehicle engineering and agentic AI software.',
-        status: 'Engineering Software',
+        mark: 'CS',
+        role: 'Engineering Software',
         href: 'https://carsoftwaresystems.com/',
         cta: 'Visit CAR SOFTWARE SYSTEMS ↗',
         event: 'ev_engineer_partner_click',

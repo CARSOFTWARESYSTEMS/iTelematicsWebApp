@@ -2,6 +2,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import styles from './visuals.module.css';
 import Live, { Ticker } from './Live';
 import { EvtolDrawing, RocketEngineDrawing } from './drawings';
+import FlowSteps from './FlowSteps';
 
 /**
  * Animated engineering visuals for the space and aerospace research sections. Each sits in a
@@ -102,10 +103,13 @@ const LOADS = [
     { name: 'OBC · ADCS', y: 160 },
 ];
 
+const socSat = <Ticker values={['82 %', '81 %', '80 %', '81 %']} every={5000} />;
+const payload = <Ticker values={['12.4 W', '12.6 W', '12.4 W', '12.2 W']} every={4600} />;
+
 export function SatelliteSchematicVisual() {
     return (
         <Live label="Satellite power schematic: solar arrays feed the EPS, which charges the battery in sunlight, draws on it in eclipse and powers payload, communications and the onboard computer" className={styles.frame}>
-            <svg viewBox="0 0 560 300" className={styles.svg}>
+            <svg viewBox="0 0 560 300" className={`${styles.svg} ${styles.wideOnly}`}>
                 <g className={styles.sunlit}>
                     <line x1={28} y1={6} x2={46} y2={30} className={styles.rayLine} />
                     <line x1={58} y1={6} x2={76} y2={30} className={styles.rayLine} />
@@ -151,12 +155,25 @@ export function SatelliteSchematicVisual() {
 
                 <rect x={16} y={40} width={124} height={56} className={styles.eclipseTint} />
             </svg>
-            <Readouts
-                items={[
-                    { label: 'SOC', value: <Ticker values={['82 %', '81 %', '80 %', '81 %']} every={5000} /> },
-                    { label: 'EPS', value: 'Nominal', tone: 'nominal' },
-                    { label: 'Downlink', value: 'Active', tone: 'telemetry' },
-                    { label: 'Payload', value: <Ticker values={['12.4 W', '12.6 W', '12.4 W', '12.2 W']} every={4600} /> },
+            <div className={styles.wideOnly}>
+                <Readouts
+                    items={[
+                        { label: 'SOC', value: socSat },
+                        { label: 'EPS', value: 'Nominal', tone: 'nominal' },
+                        { label: 'Downlink', value: 'Active', tone: 'telemetry' },
+                        { label: 'Payload', value: payload },
+                    ]}
+                />
+            </div>
+            <FlowSteps
+                className={styles.narrowOnly}
+                steps={[
+                    { name: 'Sun', detail: 'Sunlight · eclipse cycle', tone: 'solar' },
+                    { name: 'Solar array', detail: 'Generating', tone: 'solar' },
+                    { name: 'EPS', detail: 'Nominal', tone: 'nominal' },
+                    { name: 'Battery', detail: <>SOC {socSat}</>, tone: 'nominal' },
+                    { name: 'Payload', detail: payload, tone: 'telemetry' },
+                    { name: 'Telemetry', detail: 'Downlink active', tone: 'telemetry' },
                 ]}
             />
         </Live>
@@ -296,7 +313,7 @@ export function StationVisual() {
                 items={[
                     { label: 'Arrays', value: 'Sun-tracking', tone: 'solar' },
                     { label: 'Power bus', value: <Ticker values={['84 kW', '86 kW', '85 kW']} every={5600} /> },
-                    { label: 'Data', value: 'Relay + ground', tone: 'telemetry' },
+                    { label: 'Links', value: '2 active', tone: 'telemetry' },
                     { label: 'Status', value: 'Concept study' },
                 ]}
                 note="Concept visual · illustrative values"

@@ -1,84 +1,212 @@
 import type { CSSProperties } from 'react';
 import styles from './visuals.module.css';
 import Live, { Ticker } from './Live';
-import { BatteryPackDrawing } from './drawings';
+import FlowSteps from './FlowSteps';
 import { Readouts } from './space-visuals';
 
 /**
- * Animated engineering visuals for the EV battery, safety, mobility and lab sections.
- * Same conventions as space-visuals: <Live> frames, CSS-only motion, HTML readouts.
+ * Animated engineering visuals for the EV battery, cybersecurity, safety, mobility and lab sections.
+ * Same conventions as space-visuals: <Live> frames, CSS-only motion, HTML readouts, and a vertical
+ * <FlowSteps> variant on phones where a diagram would otherwise shrink past legibility.
  */
 
 const v = (i: number) => ({ ['--i' as string]: i }) as CSSProperties;
 
-/* ---------- EV Battery & Energy Intelligence: pack diagnostics environment ---------- */
+/* ---------- Flagship: Battery Energy & Health Intelligence ---------- */
 
-const CELL_V = [96, 98, 97, 99, 95, 98, 97, 96, 98, 99, 97, 96, 98, 97, 95, 98];
+// Cell → module → pack along the top; pack → BMS → telemetry → diagnostics back along the bottom.
+const STAGES = [
+    { label: '01 CELL', x: 20, y: 40, w: 110, h: 150 },
+    { label: '02 MODULE', x: 170, y: 40, w: 170, h: 150 },
+    { label: '03 PACK', x: 380, y: 40, w: 360, h: 150 },
+    { label: '04 BMS', x: 560, y: 250, w: 180, h: 140 },
+    { label: '05 TELEMETRY', x: 320, y: 250, w: 200, h: 140 },
+    { label: '06 DIAGNOSTICS', x: 20, y: 250, w: 260, h: 140 },
+];
 
-export function BatteryVisual() {
+const STAGE_LINKS = [
+    { d: 'M 130 115 H 164', head: 'M 164 110 L 170 115 L 164 120 Z', kind: 'energy' },
+    { d: 'M 340 115 H 374', head: 'M 374 110 L 380 115 L 374 120 Z', kind: 'energy' },
+    { d: 'M 650 190 V 244', head: 'M 645 244 L 650 250 L 655 244 Z', kind: 'data' },
+    { d: 'M 560 320 H 526', head: 'M 526 315 L 520 320 L 526 325 Z', kind: 'data' },
+    { d: 'M 320 320 H 286', head: 'M 286 315 L 280 320 L 286 325 Z', kind: 'data' },
+] as const;
+
+// Module temperatures (°C): a quiet thermal map with one warmer module.
+const PACK_TEMPS = [30.8, 31.2, 31.6, 33.4, 31.0, 31.4, 31.9, 31.1];
+const tempTone = (t: number) => (t >= 33 ? styles.tWarm : t >= 31.5 ? styles.tMid : styles.tCool);
+
+const CELL_DV = [9, 11, 8, 12, 10, 7, 11, 9, 12, 10, 8, 11];
+
+export function BatteryFlagshipVisual() {
     return (
         <Live
-            label="Battery diagnostics environment: a 96-cell pack in eight modules with current flow, thermal zones, an anomaly scan and a BMS, beside pack readouts and cell voltages"
-            className={`${styles.frame} ${styles.batteryFrame}`}
+            label="Battery energy and health system: a cell, a twelve-cell module and a 96-cell pack with a thermal map feed the BMS, telemetry and diagnostics, which rate the risk as low. Simulated values."
+            className={`${styles.frame} ${styles.flagship}`}
         >
-            <svg viewBox="60 66 490 262" className={styles.svg}>
-                <BatteryPackDrawing detail />
+            <svg viewBox="0 0 760 410" className={`${styles.svg} ${styles.wideOnly}`}>
+                {STAGE_LINKS.map((link) => (
+                    <g key={link.d} className={link.kind === 'energy' ? styles.linkEnergy : styles.linkData}>
+                        <path d={link.d} className={styles.linkTrack} />
+                        <path d={link.d} className={styles.linkFlow} />
+                        <path d={link.head} className={styles.linkHead} />
+                    </g>
+                ))}
+
+                {STAGES.map((s, i) => (
+                    <g key={s.label}>
+                        <rect x={s.x} y={s.y} width={s.w} height={s.h} rx={8} className={styles.stageFrame} style={v(i)} />
+                        <text x={s.x} y={s.y - 10} className={styles.svgLabelStrong}>{s.label}</text>
+                    </g>
+                ))}
+
+                {/* Cell */}
+                <rect x={67} y={56} width={16} height={6} rx={2} className={styles.cellCap} />
+                <rect x={57} y={62} width={36} height={96} rx={7} className={styles.cellBody} />
+                <rect x={61} y={85} width={28} height={69} rx={4} className={styles.cellFill} />
+                <text x={75} y={180} textAnchor="middle" className={styles.svgLabel}>3.6 V · 5 Ah</text>
+
+                {/* Module */}
+                {Array.from({ length: 12 }, (_, c) => (
+                    <circle key={c} cx={197 + (c % 4) * 38} cy={76 + Math.floor(c / 4) * 32} r={11} className={styles.cellDot} />
+                ))}
+                <text x={255} y={180} textAnchor="middle" className={styles.svgLabel}>12S · 43.2 V</text>
+
+                {/* Pack thermal map */}
+                {PACK_TEMPS.map((t, m) => {
+                    const x = 396 + (m % 4) * 84;
+                    const y = 56 + Math.floor(m / 4) * 58;
+                    return (
+                        <g key={m}>
+                            <rect x={x} y={y} width={72} height={48} rx={4} className={`${styles.packModule} ${tempTone(t)} ${t >= 33 ? styles.breathe : ''}`} />
+                            <text x={x + 36} y={y + 29} textAnchor="middle" className={styles.moduleTemp}>{t.toFixed(1)}</text>
+                        </g>
+                    );
+                })}
+                <text x={560} y={180} textAnchor="middle" className={styles.svgLabel}>96S · 8 MODULES · THERMAL MAP °C</text>
+
+                {/* BMS */}
+                <rect x={574} y={276} width={40} height={40} rx={4} className={styles.chip} />
+                <rect x={585} y={287} width={18} height={18} rx={2} className={styles.chipCore} />
+                {[284, 296, 308].map((y) => (
+                    <path key={y} d={`M 567 ${y} H 574 M 614 ${y} H 621`} className={styles.pin} />
+                ))}
+                <text x={630} y={290} className={styles.svgLabelStrong}>CELL ΔV 12 mV</text>
+                <text x={630} y={310} className={styles.svgLabel}>BALANCING</text>
+                {CELL_DV.map((h, i) => (
+                    <rect key={i} x={580 + i * 12.5} y={376 - h * 2.2} width={8} height={h * 2.2} className={styles.dvBar} style={v(i)} />
+                ))}
+
+                {/* Telemetry */}
+                <path d="M 336 306 q 10 -20 20 0 t 20 0 t 20 0 t 20 0 t 20 0 t 20 0 t 20 0 t 20 0" pathLength={1} className={styles.waveTrace} />
+                <text x={336} y={350} className={styles.svgLabel}>CAN · 500 kbit/s</text>
+                <text x={336} y={370} className={`${styles.svgLabel} ${styles.t_telemetry}`}>CLOUD SYNC ACTIVE</text>
+
+                {/* Diagnostics */}
+                <text x={36} y={290} className={styles.svgLabel}>RISK</text>
+                <text x={36} y={322} className={styles.riskValue}>LOW</text>
+                <text x={36} y={352} className={styles.svgLabel}>ANOMALY SCAN · CLEAR</text>
+                <text x={36} y={372} className={styles.svgLabel}>THERMAL · NOMINAL</text>
+                <circle cx={226} cy={318} r={34} className={styles.ringTrack} />
+                <circle cx={226} cy={318} r={34} pathLength={100} className={styles.ring} transform="rotate(-90 226 318)" />
+                <text x={226} y={322} textAnchor="middle" className={styles.ringSmall}>SOH</text>
             </svg>
-            <div className={styles.diagnostics}>
-                <Readouts
-                    items={[
-                        { label: 'SOC', value: <Ticker values={['78 %', '78 %', '77 %']} every={5200} /> },
-                        { label: 'SOH', value: '94 %' },
-                        { label: 'Temp', value: <Ticker values={['31 °C', '32 °C', '31 °C']} every={4400} /> },
-                        { label: 'Pack', value: <Ticker values={['386 V', '385 V', '386 V']} every={3800} /> },
-                        { label: 'BMS', value: 'Online', tone: 'nominal' },
-                        { label: 'Faults', value: '0', tone: 'nominal' },
-                    ]}
-                    note=""
-                />
-                <div className={styles.cellPanel}>
-                    <div className={styles.cellHead}>
-                        <span className="label">Cell voltages · module 1–2</span>
-                        <span className="label tabular">ΔV 12 mV</span>
-                    </div>
-                    <div className={styles.cellBars}>
-                        {CELL_V.map((h, i) => (
-                            <i key={i} style={{ height: `${h}%`, ...v(i) }} />
-                        ))}
-                    </div>
-                </div>
-                <p className={styles.scanLine}>
-                    <span className={styles.scanDot} aria-hidden="true" />
-                    Anomaly detection · scanning
-                </p>
-                <p className={styles.note}>Simulated values</p>
-            </div>
+
+            <FlowSteps
+                className={styles.narrowOnly}
+                steps={[
+                    { name: 'Cell', detail: '3.6 V nominal', tone: 'solar' },
+                    { name: 'Module', detail: '12 cells in series', tone: 'solar' },
+                    { name: 'Pack', detail: '96S · thermal map', tone: 'solar' },
+                    { name: 'BMS', detail: 'Cell ΔV · balancing', tone: 'telemetry' },
+                    { name: 'Telemetry', detail: 'CAN · cloud sync', tone: 'telemetry' },
+                    { name: 'Diagnostics', detail: 'Risk low', tone: 'nominal' },
+                ]}
+            />
+
+            <aside className={styles.valuePanel}>
+                <p className={styles.panelTitle}>Simulated engineering values</p>
+                <dl>
+                    <div><dt>SOC</dt><dd><Ticker values={['78.4 %', '78.3 %', '78.2 %', '78.1 %']} every={6200} /></dd></div>
+                    <div><dt>SOH</dt><dd>94.2 %</dd></div>
+                    <div><dt>Voltage</dt><dd><Ticker values={['386.4 V', '386.1 V', '385.9 V', '386.2 V']} every={5200} /></dd></div>
+                    <div><dt>Current</dt><dd><Ticker values={['−42.6 A', '−44.1 A', '−41.8 A', '−43.0 A']} every={4400} /></dd></div>
+                    <div><dt>Temp</dt><dd><Ticker values={['31.6 °C', '31.7 °C', '31.8 °C', '31.7 °C']} every={5600} /></dd></div>
+                    <div><dt>Cell ΔV</dt><dd><Ticker values={['12 mV', '11 mV', '12 mV', '13 mV']} every={6800} /></dd></div>
+                    <div><dt>Risk</dt><dd><span className={`${styles.dot} state-nominal`} aria-hidden="true" />Low</dd></div>
+                </dl>
+            </aside>
         </Live>
     );
 }
 
-/* ---------- Battery Safety: pack → thermal → BMS → CAN → detection → mitigation ---------- */
+/* ---------- Cybersecurity: CAN network with one anomalous frame (12 s; resting frame = isolated) ---------- */
+
+const CAN_NODES = [
+    ['ECU', 'Vehicle controller'],
+    ['Gateway', 'Security gateway · IDS'],
+    ['BMS', 'Battery management'],
+    ['Motor controller', 'Inverter · drive'],
+] as const;
+
+export function CanNetworkVisual() {
+    return (
+        <Live
+            label="CAN network of an ECU, a security gateway, the BMS and a motor controller: normal frames flow, one anomalous frame from the ECU is detected at the gateway and the ECU is isolated"
+            className={`${styles.frame} ${styles.can}`}
+        >
+            <div className={styles.canHead}>
+                <span className="label">CAN bus · 500 kbit/s</span>
+                <span className={`${styles.stack} ${styles.canState}`}>
+                    <span className={styles.canNormal}>Normal</span>
+                    <span className={styles.canDetected}>Anomaly detected</span>
+                    <span className={styles.canIsolated}>Isolated</span>
+                </span>
+            </div>
+
+            <div className={styles.canNet}>
+                <ul className={styles.canNodes}>
+                    {CAN_NODES.map(([name, role], i) => (
+                        <li key={name} className={i === 0 ? styles.canSource : i === 1 ? styles.canGateway : undefined}>
+                            <span className={styles.canName}>{name}</span>
+                            <span className={styles.canRole}>{role}</span>
+                        </li>
+                    ))}
+                </ul>
+                <div className={styles.bus} aria-hidden="true">
+                    {[0, 1, 2, 3].map((i) => (
+                        <i key={i} className={styles.canFrameDot} style={v(i)} />
+                    ))}
+                    <i className={styles.canBad} />
+                </div>
+            </div>
+
+            <ol className={styles.canStates}>
+                <li className={styles.canStep1}>Normal traffic</li>
+                <li className={styles.canStep2}>Anomaly detected</li>
+                <li className={styles.canStep3}>Source isolated</li>
+            </ol>
+            <p className={styles.note}>Illustrative sequence</p>
+        </Live>
+    );
+}
+
+/* ---------- Battery Safety: pack → thermal → BMS → CAN → detection → mitigation (12 s) ---------- */
 
 const SAFETY = [
     ['Battery pack', '386 V · 31 °C'],
     ['Thermal change', 'Module 3 · +4 °C'],
     ['BMS alert', 'Thermal warning'],
-    ['CAN traffic', 'Frame rate rising'],
+    ['CAN traffic', 'Alert broadcast'],
     ['Anomaly detection', 'Flagged'],
     ['Mitigation', 'Charge current limited'],
 ] as const;
 
-const FRAMES = [
-    ['0x0C1', '4F 21 00 7C'],
-    ['0x18F', '0E 3A 11 00'],
-    ['0x2A0', '7D 00 46 1B'],
-    ['0x1A3', 'FF FF 3C 9A'],
-    ['0x0C1', '4F 22 00 7C'],
-] as const;
+const SAFETY_TEMPS = [31.0, 31.2, null, 30.9, 31.1, 31.4, 30.8, 31.0];
 
 export function SafetyVisual() {
     return (
-        <Live label="Safety sequence: a thermal change in the pack raises a BMS alert, unusual CAN traffic is flagged by anomaly detection and the system mitigates by limiting charge current" className={styles.frame}>
+        <Live label="Safety sequence: a module warms, the BMS raises an alert over CAN, anomaly detection flags it and charge current is limited until the module cools" className={styles.frame}>
             <div className={styles.safety}>
                 <ol className={styles.chain}>
                     {SAFETY.map(([name, detail], i) => (
@@ -89,23 +217,24 @@ export function SafetyVisual() {
                         </li>
                     ))}
                 </ol>
-                <div className={styles.canLog}>
-                    <p className="label">CAN bus · live frames</p>
+                <div className={styles.thermalMap}>
+                    <p className="label">Thermal map · °C</p>
                     <ul>
-                        {FRAMES.map(([id, data], i) => (
-                            <li key={i} className={i === 3 ? styles.flagged : undefined} style={v(i)}>
-                                <span>{id}</span>
-                                <span>{data}</span>
-                                {i === 3 && (
+                        {SAFETY_TEMPS.map((t, i) =>
+                            t === null ? (
+                                <li key={i} className={styles.hotModule}>
                                     <span className={styles.stack}>
-                                        <span className={styles.frameOk}>OK</span>
-                                        <span className={styles.frameFlag}>Anomaly</span>
-                                        <span className={styles.frameMitigated}>Mitigated</span>
+                                        <span className={styles.tempBefore}>31.4</span>
+                                        <span className={styles.tempHot}>35.2</span>
+                                        <span className={styles.tempAfter}>32.0</span>
                                     </span>
-                                )}
-                            </li>
-                        ))}
+                                </li>
+                            ) : (
+                                <li key={i}>{t.toFixed(1)}</li>
+                            ),
+                        )}
                     </ul>
+                    <p className={styles.thermalNote}>Module 3 · monitored</p>
                 </div>
             </div>
             <p className={styles.note}>Illustrative sequence</p>

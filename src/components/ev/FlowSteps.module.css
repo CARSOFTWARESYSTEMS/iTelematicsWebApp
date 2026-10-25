@@ -1,0 +1,85 @@
+.flow {
+    --step: 2.2s;
+    --cycle: calc(var(--n) * var(--step) + 1.5s);
+    position: relative;
+    list-style: none;
+    display: grid;
+    color: var(--telemetry);
+}
+
+/* The line, and a pulse travelling down it once per cycle */
+.flow::before,
+.flow::after {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 14px;
+    bottom: 14px;
+    width: 1px;
+}
+
+.flow::before {
+    background: linear-gradient(var(--solar), rgba(148, 163, 184, 0.25) 35%, rgba(148, 163, 184, 0.25) 65%, var(--telemetry));
+}
+
+.flow::after {
+    top: 0;
+    bottom: auto;
+    height: 48px;
+    opacity: 0;
+    background: linear-gradient(transparent, var(--telemetry), transparent);
+    animation: travel var(--cycle) linear infinite;
+}
+
+.flow li {
+    position: relative;
+    display: grid;
+    grid-template-columns: 15px 1fr;
+    column-gap: 1rem;
+    row-gap: 0.15rem;
+    padding: 0.7rem 0;
+}
+
+.marker {
+    grid-row: span 2;
+    position: relative;
+    z-index: 1;
+    width: 15px;
+    height: 15px;
+    margin-top: 0.3rem;
+    border-radius: 50%;
+    border: 1.5px solid currentColor;
+    background: var(--bg-2);
+    animation: light var(--cycle) var(--ease) infinite;
+    animation-delay: calc(var(--i) * var(--step));
+}
+
+.name {
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--text);
+}
+
+.detail {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    letter-spacing: 0.04em;
+    color: var(--text-2);
+    font-variant-numeric: tabular-nums;
+}
+
+.solar { color: var(--solar); }
+.telemetry { color: var(--telemetry); }
+.nominal { color: var(--nominal); }
+
+@keyframes travel {
+    from { top: 0; opacity: 0; }
+    10%, 90% { opacity: 1; }
+    to { top: calc(100% - 48px); opacity: 0; }
+}
+
+@keyframes light {
+    0%, 22%, 100% { background: var(--bg-2); box-shadow: none; }
+    6%, 16% { background: currentColor; box-shadow: 0 0 0 5px color-mix(in srgb, currentColor 18%, transparent); }
+}

@@ -26,6 +26,7 @@ export const CLICK_EVENTS = [
     'ev_engineer_aqip_click',
     'ev_engineer_battery_click',
     'ev_engineer_digital_twin_click',
+    'ev_engineer_cybersecurity_click',
     'ev_engineer_profile_click',
     'ev_engineer_partner_click',
     'ev_engineer_external_click',

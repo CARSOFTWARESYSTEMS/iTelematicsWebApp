@@ -114,23 +114,32 @@ and `/internships` fire their view events on landing.
 Every link on the page carries an explicit `data-track`, so these events take precedence over the
 destination rules above. Parameters are the standard ones: `section` (the research area, e.g.
 `satellite-engineering`), `cta_name` (the item, e.g. `Open Interactive 3D`), `cta_location` (the button
-location: `hero`, `primary-cta`, `secondary-cta`, `related-links`, `domain-cards`, `lab-card`,
-`pathway-card`, `partner-card`, `profile`, `research-index`, `final-cta`) and `destination`.
-No new parameters or GA4 custom definitions are needed.
+location: `hero`, `primary-cta`, `secondary-cta`, `related-links`, `domain-cards`, `topic-links`,
+`flagship`, `lab-card`, `pathway`, `partner`, `profile`, `research-index`, `final-cta`), `destination`
+and `device_category`. No new parameters or GA4 custom definitions are needed.
+
+The responsive-redesign brief (2026-10-25) suggested names such as `research_open` or `cta_click`
+with `item` and `device_class`. They map onto the events already collecting data, so names were kept:
+`research_open` → `ev_engineer_research_click`, `space_open` → `ev_engineer_space_click` /
+`_satellite_click` / `_rocket_click`, `aerospace_open` → `ev_engineer_aerospace_click` / `_aqip_click`,
+`battery_open` → `ev_engineer_battery_click`, `digital_twin_open` → `ev_engineer_digital_twin_click`,
+`cybersecurity_open` → `ev_engineer_cybersecurity_click`, `ecosystem_open` → `ev_engineer_partner_click`,
+`cta_click` → `ev_engineer_external_click`; `item` is `cta_name`, `device_class` is `device_category`.
 
 | Event | Fires for |
 |---|---|
-| `ev_engineer_research_click` | Explore Research & Development (hero, final CTA) and the four R&D domain cards (in-page anchors) |
+| `ev_engineer_research_click` | Explore Research & Development (hero, final CTA), the four R&D domain cards and the "Also in R&D" topic links (in-page anchors) |
 | `ev_engineer_space_click` | Space & Aerospace Technologies, Everyday Applications, Space Station, the index's Space group |
 | `ev_engineer_satellite_click` | Satellite Engineering, Open Interactive 3D, CubeSat and Everyday Applications links in that section |
 | `ev_engineer_rocket_click` | Rocket Engineering, Advanced Digital Twin, Model Rocketry |
 | `ev_engineer_aerospace_click` | Aerospace Systems, UFlight™ 3D, the index's Aerospace group |
 | `ev_engineer_aqip_click` | Aerospace Quality Intelligence |
-| `ev_engineer_battery_click` | EV battery, safety, health, pack engineering and electric-mobility links; Battery Engineering Portal and Repair pathways |
+| `ev_engineer_battery_click` | Flagship battery link; battery safety, health, pack engineering and electric-mobility links; Battery Engineering Portal and Repair pathways |
 | `ev_engineer_digital_twin_click` | CubeTwin section and the four Learn by Building lab cards |
+| `ev_engineer_cybersecurity_click` | Vehicle & Battery Cybersecurity: AegisCAN™ and Battery Cybersecurity |
 | `ev_engineer_profile_click` | View Profile |
 | `ev_engineer_partner_click` | Partnerships & Engineering Ecosystem cards and the index's Ecosystem group |
-| `ev_engineer_external_click` | Visit EV.ENGINEER™, ISHAVASYAM.ORG, the other Engineering Pathways and the index's Learning & Career group |
+| `ev_engineer_external_click` | Explore / Visit EV.ENGINEER™ (autonomous.ev.engineer), ISHAVASYAM.ORG, the other Engineering Pathways and the index's Learning & Career group |
 
 Same-page anchors (`href="#…"`, e.g. the sticky section navigation) never match destination rules;
 they are counted only when tagged, as the R&D CTAs are.

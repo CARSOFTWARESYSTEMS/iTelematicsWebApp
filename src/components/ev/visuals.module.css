@@ -90,6 +90,13 @@
     white-space: nowrap;
 }
 
+/* Smallest phones: let multi-word values wrap rather than overflow their cell */
+@media (max-width: 379px) {
+    .readouts dd {
+        white-space: normal;
+    }
+}
+
 .dot {
     width: 7px;
     height: 7px;
@@ -791,85 +798,460 @@
     100% { opacity: 0; }
 }
 
-/* ---------- EV battery diagnostics ---------- */
+/* ---------- Flagship: battery energy & health (12 s; six stages light in turn) ---------- */
 
-@media (min-width: 1024px) {
-    .batteryFrame {
-        grid-template-columns: 6fr 4fr;
+.flagship {
+    gap: 1.5rem;
+}
+
+@media (min-width: 1100px) {
+    .flagship {
+        grid-template-columns: minmax(0, 8fr) minmax(250px, 3fr);
         align-items: center;
-        gap: 2rem;
-    }
-
-    .batteryFrame .readouts {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 2.5rem;
+        padding: 2rem;
     }
 }
 
-.diagnostics {
-    display: grid;
-    gap: 1.25rem;
-    min-width: 0;
+.stageFrame {
+    fill: rgba(12, 23, 34, 0.88);
+    stroke: rgba(148, 163, 184, 0.24);
+    stroke-width: 1.2;
+    animation: stageLight 12s var(--ease) infinite;
+    animation-delay: calc(var(--i) * 2s);
 }
 
-@media (min-width: 560px) and (max-width: 1023px) {
-    .diagnostics .readouts {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
+.svgLabelStrong {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    fill: var(--text-2);
 }
 
-.cellPanel {
-    display: grid;
-    gap: 0.6rem;
+.linkEnergy { color: var(--solar); }
+.linkData { color: var(--telemetry); }
+
+.linkTrack {
+    fill: none;
+    stroke: rgba(148, 163, 184, 0.22);
+    stroke-width: 2;
 }
 
-.cellHead {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
+.linkFlow {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-dasharray: 4 9;
+    animation: dash 1.8s linear infinite;
 }
 
-.cellBars {
-    display: flex;
-    align-items: flex-end;
-    gap: 4px;
-    height: 56px;
-    padding-bottom: 2px;
-    border-bottom: 1px solid var(--border);
+.linkHead {
+    fill: currentColor;
+    opacity: 0.8;
 }
 
-.cellBars i {
-    flex: 1;
-    min-width: 0;
-    border-radius: 1px;
-    background: linear-gradient(var(--telemetry), rgba(34, 211, 238, 0.25));
-    opacity: 0.75;
+.cellCap {
+    fill: rgba(226, 232, 240, 0.5);
+}
+
+.cellBody {
+    fill: rgba(17, 32, 51, 0.9);
+    stroke: rgba(226, 232, 240, 0.7);
+    stroke-width: 1.3;
+}
+
+.cellFill {
+    fill: var(--nominal);
+    opacity: 0.22;
+}
+
+.packModule {
+    stroke: rgba(148, 163, 184, 0.4);
+    stroke-width: 1;
+}
+
+.tCool { fill: rgba(251, 191, 36, 0.05); }
+.tMid { fill: rgba(251, 191, 36, 0.12); }
+.tWarm { fill: rgba(251, 191, 36, 0.26); }
+
+.breathe {
+    animation: breathe 7s var(--ease) infinite;
+}
+
+.moduleTemp {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    fill: var(--text);
+}
+
+.chip {
+    fill: rgba(17, 32, 51, 0.9);
+    stroke: rgba(226, 232, 240, 0.7);
+    stroke-width: 1.2;
+}
+
+.chipCore {
+    fill: none;
+    stroke: var(--telemetry);
+    stroke-width: 1;
+}
+
+.pin {
+    stroke: rgba(226, 232, 240, 0.5);
+    stroke-width: 1.2;
+}
+
+.dvBar {
+    fill: var(--telemetry);
+    opacity: 0.6;
+    transform-box: fill-box;
     transform-origin: bottom;
     animation: bar 5s var(--ease) infinite alternate;
-    animation-delay: calc(var(--i) * -0.6s);
+    animation-delay: calc(var(--i) * -0.45s);
 }
 
-.scanLine {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
+.waveTrace {
+    fill: none;
+    stroke: var(--telemetry);
+    stroke-width: 1.6;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+    animation: draw 6s linear infinite -4s;
+}
+
+.riskValue {
+    font-size: 28px;
+    font-weight: 650;
+    fill: var(--nominal);
+}
+
+.ringSmall {
     font-family: var(--font-mono);
-    font-size: 0.78rem;
-    letter-spacing: 0.08em;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    fill: var(--text-2);
+}
+
+.valuePanel {
+    display: grid;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+.panelTitle {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--telemetry);
 }
 
-.scanDot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--telemetry);
-    animation: glow 2.4s var(--ease) infinite;
+.valuePanel dl {
+    display: grid;
+    border-top: 1px solid var(--border);
 }
 
-@keyframes bar {
-    from { transform: scaleY(0.94); }
-    to { transform: scaleY(1); }
+@media (min-width: 640px) and (max-width: 1099px) {
+    .valuePanel dl {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        column-gap: 2rem;
+    }
+}
+
+.valuePanel dl div {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.valuePanel dt {
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-3);
+}
+
+.valuePanel dd {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 1.05rem;
+    font-weight: 560;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+@keyframes stageLight {
+    0%, 16.7%, 100% { stroke: rgba(148, 163, 184, 0.24); }
+    4%, 12% { stroke: rgba(34, 211, 238, 0.65); }
+}
+
+@keyframes breathe {
+    0%, 100% { fill: rgba(251, 191, 36, 0.2); }
+    50% { fill: rgba(251, 191, 36, 0.3); }
+}
+
+@keyframes draw {
+    0% { stroke-dashoffset: 1; }
+    60%, 100% { stroke-dashoffset: 0; }
+}
+
+/* ---------- CAN network (12 s: normal 0–40 %, detected 40–65 %, isolated 65–100 %) ---------- */
+
+.can {
+    gap: 1.25rem;
+}
+
+.canHead {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.canState {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    justify-items: end;
+}
+
+.canNormal { opacity: 0; color: var(--nominal); animation: canNormal 12s linear infinite -9s; }
+.canDetected { opacity: 0; color: var(--solar); animation: canDetected 12s linear infinite -9s; }
+.canIsolated { color: var(--telemetry); animation: canIsolated 12s linear infinite -9s; }
+
+.canNet {
+    position: relative;
+    display: grid;
+}
+
+.canNodes {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.canNodes li {
+    position: relative;
+    display: grid;
+    align-content: center;
+    gap: 0.2rem;
+    padding: 0.8rem 0.9rem;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    background: rgba(12, 23, 34, 0.9);
+}
+
+/* Stub from each node down to the bus */
+.canNodes li::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 100%;
+    width: 1px;
+    height: 1.5rem;
+    background: rgba(148, 163, 184, 0.35);
+}
+
+.canName {
+    font-weight: 600;
+    color: var(--text);
+}
+
+.canRole {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    color: var(--text-3);
+}
+
+/* Resting frame (reduced motion, off screen): the ECU isolated, the gateway enforcing */
+.canNodes .canSource {
+    border-style: dashed;
+    opacity: 0.55;
+    animation: canSource 12s linear infinite -9s;
+}
+
+.canNodes .canGateway {
+    border-color: rgba(34, 211, 238, 0.5);
+    animation: canGateway 12s linear infinite -9s;
+}
+
+.bus {
+    position: relative;
+    height: 2px;
+    margin: 1.5rem 0 0.5rem;
+    background: rgba(148, 163, 184, 0.35);
+}
+
+.canFrameDot,
+.canBad {
+    position: absolute;
+    top: -3px;
+    width: 18px;
+    height: 8px;
+    border-radius: 2px;
+}
+
+.canFrameDot {
+    left: 0;
+    background: var(--telemetry);
+    opacity: 0.75;
+    animation: busX 4.8s linear infinite;
+    animation-delay: calc(var(--i) * -1.2s);
+}
+
+.canBad {
+    left: 10%;
+    background: var(--solar);
+    opacity: 0;
+    animation: badX 12s linear infinite -9s;
+}
+
+.canStates {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.canStates li {
+    padding: 0.3rem 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 0.8rem;
+    color: var(--text-3);
+}
+
+.canStep1 { animation: canStep1 12s linear infinite -9s; }
+.canStep2 { animation: canStep2 12s linear infinite -9s; }
+.canStates .canStep3 { color: var(--text); border-color: rgba(34, 211, 238, 0.5); animation: canStep3 12s linear infinite -9s; }
+
+/* Phones: nodes stacked, the bus runs down the left edge */
+@media (max-width: 639px) {
+    .canNet {
+        grid-template-columns: 2px 1fr;
+        column-gap: 1.25rem;
+    }
+
+    .canNodes {
+        grid-column: 2;
+        grid-row: 1;
+        grid-template-columns: 1fr;
+        grid-auto-rows: 1fr;
+    }
+
+    .canNodes li::after {
+        left: auto;
+        right: 100%;
+        top: 50%;
+        width: 1.25rem;
+        height: 1px;
+    }
+
+    .bus {
+        grid-column: 1;
+        grid-row: 1;
+        width: 2px;
+        height: auto;
+        margin: 0;
+    }
+
+    .canFrameDot,
+    .canBad {
+        top: 0;
+        left: -3px;
+        width: 8px;
+        height: 18px;
+    }
+
+    .canFrameDot {
+        animation-name: busY;
+    }
+
+    .canBad {
+        top: 10%;
+        animation-name: badY;
+    }
+}
+
+@keyframes busX {
+    from { left: 0; }
+    to { left: calc(100% - 18px); }
+}
+
+@keyframes busY {
+    from { top: 0; }
+    to { top: calc(100% - 18px); }
+}
+
+@keyframes badX {
+    0%, 40% { left: 10%; opacity: 0; }
+    41% { left: 10%; opacity: 1; }
+    54%, 64% { left: 33%; opacity: 1; }
+    66%, 100% { left: 33%; opacity: 0; }
+}
+
+@keyframes badY {
+    0%, 40% { top: 10%; opacity: 0; }
+    41% { top: 10%; opacity: 1; }
+    54%, 64% { top: 33%; opacity: 1; }
+    66%, 100% { top: 33%; opacity: 0; }
+}
+
+@keyframes canNormal {
+    0%, 39.5% { opacity: 1; }
+    40%, 100% { opacity: 0; }
+}
+
+@keyframes canDetected {
+    0%, 39.5% { opacity: 0; }
+    40%, 64.5% { opacity: 1; }
+    65%, 100% { opacity: 0; }
+}
+
+@keyframes canIsolated {
+    0%, 64.5% { opacity: 0; }
+    65%, 99.5% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+@keyframes canSource {
+    0%, 40% { border-style: solid; border-color: var(--border-strong); opacity: 1; }
+    41%, 64% { border-style: solid; border-color: rgba(251, 191, 36, 0.6); opacity: 1; }
+    65%, 99% { border-style: dashed; border-color: var(--border-strong); opacity: 0.55; }
+    100% { border-style: solid; opacity: 1; }
+}
+
+@keyframes canGateway {
+    0%, 53% { border-color: var(--border-strong); }
+    54%, 64% { border-color: rgba(251, 191, 36, 0.6); }
+    65%, 99% { border-color: rgba(34, 211, 238, 0.5); }
+    100% { border-color: var(--border-strong); }
+}
+
+@keyframes canStep1 {
+    0%, 39.5% { color: var(--text); border-color: rgba(52, 211, 153, 0.5); }
+    40%, 100% { color: var(--text-3); border-color: var(--border); }
+}
+
+@keyframes canStep2 {
+    0%, 39.5%, 65%, 100% { color: var(--text-3); border-color: var(--border); }
+    40%, 64.5% { color: var(--text); border-color: rgba(251, 191, 36, 0.55); }
+}
+
+@keyframes canStep3 {
+    0%, 64.5% { color: var(--text-3); border-color: var(--border); }
+    65%, 99.5% { color: var(--text); border-color: rgba(34, 211, 238, 0.5); }
+    100% { color: var(--text-3); border-color: var(--border); }
 }
 
 /* ---------- Battery safety (12 s; six 2 s steps; resting frame = mitigated) ---------- */
@@ -879,7 +1261,8 @@
     gap: 1.25rem;
 }
 
-@media (min-width: 560px) {
+/* Side by side only where the card is wide: single-column cards on large phones, 2-up cards on desktops */
+@media (min-width: 560px) and (max-width: 719px), (min-width: 1200px) {
     .safety {
         grid-template-columns: 1fr 1fr;
     }
@@ -934,63 +1317,72 @@
     color: var(--text-3);
 }
 
-.canLog {
+.thermalMap {
     display: grid;
     align-content: start;
     gap: 0.6rem;
     min-width: 0;
 }
 
-.canLog ul {
+.thermalMap ul {
     list-style: none;
     display: grid;
-    gap: 2px;
-    font-family: var(--font-mono);
-    font-size: 0.74rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 4px;
 }
 
-.canLog li {
+.thermalMap li {
     display: grid;
-    grid-template-columns: auto 1fr auto;
-    gap: 0.75rem;
-    padding: 0.35rem 0.5rem;
+    place-items: center;
+    min-height: 44px;
+    border: 1px solid rgba(148, 163, 184, 0.25);
     border-radius: 4px;
-    background: rgba(148, 163, 184, 0.04);
+    background: rgba(251, 191, 36, 0.06);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
     color: var(--text-2);
-    white-space: nowrap;
 }
 
-.flagged {
-    animation: flagRow 12s linear infinite -10.6s;
+/* Resting frame: module 3 cooled back to 32.0 °C after mitigation */
+.thermalMap .hotModule {
+    background: rgba(251, 191, 36, 0.14);
+    animation: hotModule 12s linear infinite -10.6s;
 }
 
-.frameOk { opacity: 0; color: var(--text-3); animation: frameOk 12s linear infinite -10.6s; }
-.frameFlag { opacity: 0; color: var(--solar); animation: frameFlag 12s linear infinite -10.6s; }
-.frameMitigated { color: var(--nominal); animation: frameMitigated 12s linear infinite -10.6s; }
+.tempBefore { opacity: 0; animation: tempBefore 12s linear infinite -10.6s; }
+.tempHot { opacity: 0; color: var(--solar); animation: tempHot 12s linear infinite -10.6s; }
+.tempAfter { color: var(--text); animation: tempAfter 12s linear infinite -10.6s; }
+
+.thermalNote {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    color: var(--text-3);
+}
 
 @keyframes chainStep {
     0%, 16% { border-color: var(--telemetry); background: var(--telemetry); box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.15); }
     16.7%, 100% { border-color: var(--text-3); background: var(--bg); box-shadow: none; }
 }
 
-@keyframes flagRow {
-    0%, 66% { background: rgba(148, 163, 184, 0.04); }
-    66.7%, 83% { background: rgba(251, 191, 36, 0.1); }
-    83.4%, 100% { background: rgba(52, 211, 153, 0.08); }
+@keyframes hotModule {
+    0%, 16% { background: rgba(251, 191, 36, 0.06); border-color: rgba(148, 163, 184, 0.25); }
+    16.7%, 83% { background: rgba(251, 191, 36, 0.3); border-color: rgba(251, 191, 36, 0.6); }
+    83.4%, 100% { background: rgba(251, 191, 36, 0.14); border-color: rgba(148, 163, 184, 0.25); }
 }
 
-@keyframes frameOk {
-    0%, 66% { opacity: 1; }
-    66.7%, 100% { opacity: 0; }
+@keyframes tempBefore {
+    0%, 16% { opacity: 1; }
+    16.7%, 100% { opacity: 0; }
 }
 
-@keyframes frameFlag {
-    0%, 66% { opacity: 0; }
-    66.7%, 83% { opacity: 1; }
+@keyframes tempHot {
+    0%, 16% { opacity: 0; }
+    16.7%, 83% { opacity: 1; }
     83.4%, 100% { opacity: 0; }
 }
 
-@keyframes frameMitigated {
+@keyframes tempAfter {
     0%, 83% { opacity: 0; }
     83.4%, 100% { opacity: 1; }
 }
@@ -1197,6 +1589,11 @@
 
 /* ---------- Shared keyframes ---------- */
 
+@keyframes bar {
+    from { transform: scaleY(0.94); }
+    to { transform: scaleY(1); }
+}
+
 @keyframes dash {
     to { stroke-dashoffset: -52; }
 }
@@ -1208,4 +1605,18 @@
 @keyframes ping {
     0% { transform: scale(0.6); opacity: 0.5; }
     60%, 100% { transform: scale(1.8); opacity: 0; }
+}
+
+/* ---------- Simplified variants: phones get the vertical flow, wider screens the diagram ---------- */
+
+@media (min-width: 640px) {
+    .narrowOnly {
+        display: none !important;
+    }
+}
+
+@media (max-width: 639px) {
+    .wideOnly {
+        display: none !important;
+    }
 }

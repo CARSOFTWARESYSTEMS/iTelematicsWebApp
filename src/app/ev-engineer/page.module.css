@@ -1,10 +1,22 @@
-/* EV.ENGINEER™ page. Built on the site tokens in globals.css; no new colours or type scale. */
+/* EV.ENGINEER™ page. Built on the site tokens in globals.css; no new colours. */
+
+.page {
+    /* Section rhythm: ~56 px on phones, ~72–110 on tablets, ~90–140 on laptops, 120–160 on desktops */
+    --section: clamp(3.5rem, 1rem + 7vw, 10rem);
+}
 
 /* In-page anchors scroll smoothly (globals switch this off under reduced motion) and land below
    both the site header and the local navigation. */
 :global(html):has(.page) {
     scroll-behavior: smooth;
     scroll-padding-top: calc(var(--header-h) + 68px);
+}
+
+/* Phones: a more compact header on this page leaves room for the sticky section bar */
+@media (max-width: 639px) {
+    :global(html):has(.page) {
+        --header-h: 64px;
+    }
 }
 
 .group:focus,
@@ -18,6 +30,14 @@
     animation-play-state: paused !important;
 }
 
+.page :global(.section-head) h2,
+.splitHead h2,
+.rndHead h2,
+.flagshipHead h2 {
+    font-size: clamp(2rem, 1.35rem + 2.4vw, 3.5rem);
+    letter-spacing: -0.03em;
+}
+
 .nowrap {
     white-space: nowrap;
 }
@@ -28,6 +48,10 @@
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--telemetry);
+}
+
+.kickerSolar {
+    color: var(--solar);
 }
 
 .stack {
@@ -43,14 +67,38 @@
     background: var(--bg-2);
 }
 
+/* Title on the left, description and actions on the right (stacked on narrow screens) */
+.splitHead,
+.rndHead,
+.flagshipHead {
+    display: grid;
+    gap: 1rem 4rem;
+    margin-bottom: clamp(2rem, 1.5rem + 2vw, 3.5rem);
+}
+
+.splitHead .kicker,
+.rndHead .kicker,
+.flagshipHead .kicker {
+    margin-bottom: 1rem;
+}
+
+@media (min-width: 960px) {
+    .splitHead,
+    .rndHead,
+    .flagshipHead {
+        grid-template-columns: 5fr 6fr;
+        align-items: end;
+    }
+}
+
 /* ---------- Hero ---------- */
 
 .hero {
     display: flex;
     align-items: center;
-    min-height: calc(90vh - var(--header-h) - 52px);
-    min-height: calc(90dvh - var(--header-h) - 52px);
-    padding: clamp(2.5rem, 1.5rem + 4vw, 5rem) 0;
+    min-height: calc(92vh - var(--header-h) - 52px);
+    min-height: calc(92dvh - var(--header-h) - 52px);
+    padding: clamp(2.25rem, 1.25rem + 3.5vw, 4.5rem) 0;
     background:
         radial-gradient(ellipse 55% 70% at 80% 45%, rgba(34, 211, 238, 0.06), transparent 70%),
         radial-gradient(ellipse 40% 50% at 10% 90%, rgba(251, 191, 36, 0.035), transparent 70%),
@@ -70,15 +118,22 @@
 .heroVisual { grid-area: visual; min-width: 0; }
 .heroMeta { grid-area: meta; }
 
+/* Wide desktops: the hero uses the larger 1440 px container */
+@media (min-width: 1500px) {
+    .heroGrid {
+        max-width: 1440px;
+    }
+}
+
 @media (min-width: 1024px) {
     .heroGrid {
-        grid-template-columns: 46fr 54fr;
+        grid-template-columns: 48fr 52fr;
         grid-template-areas:
             'copy visual'
             'meta visual';
         grid-template-rows: auto 1fr;
-        column-gap: 3.5rem;
-        row-gap: 2.5rem;
+        column-gap: clamp(2.5rem, 4vw, 4.5rem);
+        row-gap: 2rem;
         align-items: center;
     }
 
@@ -87,12 +142,33 @@
 }
 
 .display {
-    max-width: 17ch;
-    font-size: clamp(2.35rem, 1.3rem + 3.6vw, 4.35rem);
+    font-size: clamp(2.5rem, 1.2rem + 3vw, 4rem);
     font-weight: 640;
     line-height: 1.04;
     letter-spacing: -0.035em;
     color: var(--text-2);
+}
+
+/* Tablet landscape / small laptops: the copy column is narrow, so the headline steps down */
+@media (min-width: 1024px) and (max-width: 1199px) {
+    .display {
+        font-size: clamp(2.4rem, 4.3vw, 3.2rem) !important;
+    }
+
+    .heroLead {
+        font-size: 1.0625rem;
+    }
+}
+
+/* Laptops with short screens: keep the whole hero in the first viewport */
+@media (min-width: 1024px) and (max-height: 860px) {
+    .display {
+        font-size: clamp(2.4rem, 7.2vh, 3.6rem);
+    }
+
+    .hero {
+        padding: 2rem 0;
+    }
 }
 
 .display em {
@@ -112,8 +188,13 @@
 }
 
 .heroLead {
-    margin-top: 1.6rem;
+    margin-top: 1.5rem;
     max-width: 34rem;
+}
+
+/* Slightly tighter buttons keep both hero CTAs on one row on 1280 px laptops */
+.heroCopy :global(.btn) {
+    padding-inline: 1.15rem;
 }
 
 .heroMeta {
@@ -121,7 +202,7 @@
     gap: 0.4rem;
     padding-top: 1.25rem;
     border-top: 1px solid var(--border);
-    max-width: 34rem;
+    max-width: 36rem;
 }
 
 .heroMeta p {
@@ -136,7 +217,7 @@
     color: var(--text-2);
 }
 
-/* ---------- Research & Development: domain cards ---------- */
+/* ---------- Research overview ---------- */
 
 .rnd {
     border-bottom: 1px solid var(--border);
@@ -148,7 +229,7 @@
     gap: 1rem;
 }
 
-@media (min-width: 720px) {
+@media (min-width: 640px) {
     .domains {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -156,7 +237,7 @@
 
 @media (min-width: 1200px) {
     .domains {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: 1.35fr 1fr 1fr 1fr;
     }
 }
 
@@ -169,7 +250,7 @@
     flex-direction: column;
     gap: 0.6rem;
     width: 100%;
-    padding: 1.5rem;
+    padding: clamp(1.25rem, 1rem + 0.8vw, 1.75rem);
     border: 1px solid var(--border);
     border-radius: var(--radius-card);
     background: var(--surface);
@@ -185,16 +266,20 @@
     .domain:hover {
         transform: translateY(-3px);
     }
+
+    .domain:hover .domainMore span {
+        transform: translateY(2px);
+    }
 }
 
-.domainBattery {
+.domainPrimary {
     border-color: rgba(251, 191, 36, 0.28);
     background:
-        radial-gradient(ellipse 80% 60% at 100% 0%, rgba(251, 191, 36, 0.07), transparent 70%),
+        radial-gradient(ellipse 80% 60% at 100% 0%, rgba(251, 191, 36, 0.08), transparent 70%),
         var(--surface);
 }
 
-.domainBattery:hover {
+.domainPrimary:hover {
     border-color: rgba(251, 191, 36, 0.55);
 }
 
@@ -220,7 +305,7 @@
     stroke-linejoin: round;
 }
 
-.domainBattery .domainIcon {
+.domainPrimary .domainIcon {
     stroke: var(--solar);
 }
 
@@ -233,7 +318,7 @@
 }
 
 .domainTitle {
-    font-size: clamp(1.3rem, 1.15rem + 0.5vw, 1.55rem);
+    font-size: clamp(1.4rem, 1.2rem + 0.6vw, 1.75rem);
     font-weight: 620;
     letter-spacing: -0.02em;
     line-height: 1.15;
@@ -241,7 +326,7 @@
 }
 
 .domainText {
-    font-size: 0.95rem;
+    font-size: 0.97rem;
     line-height: 1.55;
     color: var(--text-2);
 }
@@ -252,7 +337,7 @@
     margin-top: 0.4rem;
     padding-top: 0.85rem;
     border-top: 1px solid var(--border);
-    font-size: 0.86rem;
+    font-size: 0.88rem;
     color: var(--text-3);
 }
 
@@ -266,8 +351,76 @@
     color: var(--telemetry);
 }
 
-.domainBattery .domainMore {
+.domainMore span {
+    display: inline-block;
+    transition: transform 0.25s var(--ease);
+}
+
+.domainPrimary .domainMore {
     color: var(--solar);
+}
+
+/* Secondary topics: compact links, not cards */
+.topics {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1.5rem;
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border);
+}
+
+.topicsLabel {
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-3);
+}
+
+.topics ul {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 1.5rem;
+}
+
+.topics a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-height: 44px;
+    font-size: 0.95rem;
+    color: var(--text-2);
+    transition: color 0.2s var(--ease);
+}
+
+.topics a:hover {
+    color: var(--text);
+}
+
+.topics a span {
+    color: var(--text-3);
+}
+
+/* ---------- Flagship ---------- */
+
+.flagship {
+    border-bottom: 1px solid var(--border);
+    background:
+        radial-gradient(ellipse 50% 60% at 20% 30%, rgba(251, 191, 36, 0.05), transparent 70%),
+        radial-gradient(ellipse 50% 60% at 85% 70%, rgba(34, 211, 238, 0.05), transparent 70%),
+        var(--bg-2);
+}
+
+.flagshipLink {
+    margin-top: 0.75rem;
+    color: var(--solar);
+}
+
+.flagshipLink:hover {
+    color: var(--text);
 }
 
 /* ---------- Groups and featured lab ---------- */
@@ -299,23 +452,6 @@
         var(--bg);
 }
 
-.aqipHead {
-    display: grid;
-    gap: 1.25rem 4rem;
-    margin-bottom: 2.5rem;
-}
-
-.aqipHead .kicker {
-    margin-bottom: 1rem;
-}
-
-@media (min-width: 1024px) {
-    .aqipHead {
-        grid-template-columns: 5fr 7fr;
-        align-items: end;
-    }
-}
-
 .lifecycle {
     list-style: none;
     display: grid;
@@ -324,13 +460,19 @@
     border-top: 1px solid var(--border);
 }
 
+@media (max-width: 419px) {
+    .lifecycle {
+        grid-template-columns: 1fr;
+    }
+}
+
 @media (min-width: 640px) {
     .lifecycle {
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 1200px) {
     .lifecycle {
         grid-template-columns: repeat(6, minmax(0, 1fr));
     }
@@ -365,44 +507,24 @@
     color: var(--text-3);
 }
 
-/* ---------- EV Battery & Energy Intelligence ---------- */
+/* ---------- EV Battery & Energy ---------- */
 
 .battery {
     border-top: 1px solid rgba(251, 191, 36, 0.14);
     background:
-        radial-gradient(ellipse 60% 40% at 15% 0%, rgba(251, 191, 36, 0.06), transparent 70%),
-        radial-gradient(ellipse 50% 40% at 90% 30%, rgba(34, 211, 238, 0.04), transparent 70%),
+        radial-gradient(ellipse 60% 40% at 15% 0%, rgba(251, 191, 36, 0.05), transparent 70%),
         var(--bg);
 }
 
-.batteryHead {
-    max-width: 900px;
-    margin-bottom: clamp(2rem, 1.5rem + 2vw, 3rem);
-}
-
-.batteryHead .kicker {
-    color: var(--solar);
-    margin-bottom: 1rem;
-}
-
-.batteryTitle {
-    font-size: clamp(2.3rem, 1.4rem + 3.6vw, 4.5rem);
-    letter-spacing: -0.035em;
-}
-
-.batteryHead :global(.lead) {
-    margin-top: 1.25rem;
-}
-
-.batteryChips {
+.headChips {
     list-style: none;
     display: flex;
     flex-wrap: wrap;
     gap: 0.4rem;
-    margin-top: 1.5rem;
+    margin-top: 1.25rem;
 }
 
-.batteryChips li {
+.headChips li {
     padding: 0.28rem 0.65rem;
     border: 1px solid rgba(251, 191, 36, 0.25);
     border-radius: 999px;
@@ -413,16 +535,19 @@
 .batteryGrid {
     display: grid;
     gap: 1.25rem;
-    margin-top: clamp(2rem, 1.5rem + 2vw, 3rem);
 }
 
-@media (min-width: 960px) {
+@media (min-width: 720px) {
     .batteryGrid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
-/* ---------- Learn by Building ---------- */
+.cyber {
+    padding-top: 0;
+}
+
+/* ---------- Learn by Building: 2 × 2, glyph beside text ---------- */
 
 .labs {
     list-style: none;
@@ -430,77 +555,78 @@
     gap: 1.25rem;
 }
 
-@media (min-width: 720px) {
+@media (min-width: 900px) {
     .labs {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
-@media (min-width: 1200px) {
-    .labs {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-}
-
-.labCard,
-.pathway,
-.partner {
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-    padding: 1.5rem;
+.labCard {
+    display: grid;
+    gap: 1.25rem;
+    padding: clamp(1.25rem, 1rem + 1vw, 2rem);
     border: 1px solid var(--border);
     border-radius: var(--radius-card);
     background: var(--bg);
-    transition: border-color 0.25s var(--ease);
+    transition: border-color 0.25s var(--ease), transform 0.25s var(--ease);
 }
 
-.labCard:hover,
-.pathway:hover,
-.partner:hover {
+@media (min-width: 560px) {
+    .labCard {
+        grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+        align-items: center;
+    }
+}
+
+.labCard:hover {
     border-color: rgba(34, 211, 238, 0.32);
-    --frame-border: rgba(34, 211, 238, 0.32);
 }
 
-.labCard h3,
-.pathway h3,
-.partner h3 {
-    font-size: clamp(1.15rem, 1.05rem + 0.4vw, 1.35rem);
+@media (hover: hover) {
+    .labCard:hover {
+        transform: translateY(-2px);
+    }
 }
 
-.labCard > p:not(.kicker),
-.pathway > p:not(.kicker),
-.partner > p:not(.kicker) {
-    font-size: 0.95rem;
+.labGlyph svg {
+    width: 100%;
+    height: auto;
+    max-height: 170px;
+}
+
+.labBody {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    min-width: 0;
+}
+
+.labBody h3 {
+    font-size: clamp(1.5rem, 1.25rem + 0.8vw, 2rem);
+    letter-spacing: -0.02em;
+}
+
+.labBody > p:not(.kicker) {
+    font-size: 0.98rem;
     line-height: 1.55;
 }
 
-.labGlyph {
-    margin: -0.25rem -0.25rem 0.5rem;
-    border-bottom: 1px solid var(--border);
-}
-
-.labLink,
-.pathLink,
-.partnerLink {
-    margin-top: auto;
-    padding-top: 0.5rem;
+.cardLink {
+    margin-top: 0.25rem;
     white-space: normal;
     color: var(--telemetry);
 }
 
-.labLink:hover,
-.pathLink:hover,
-.partnerLink:hover {
+.cardLink:hover {
     color: var(--text);
 }
 
-/* ---------- Engineering Pathways ---------- */
+/* ---------- Engineering Pathways: quiet numbered rows ---------- */
 
 .pathways {
     list-style: none;
     display: grid;
-    gap: 1rem;
+    column-gap: 3rem;
 }
 
 @media (min-width: 720px) {
@@ -509,14 +635,38 @@
     }
 }
 
-@media (min-width: 1100px) {
-    .pathways {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
+.pathway {
+    display: grid;
+    grid-template-columns: 2.5rem 1fr;
+    gap: 0.5rem;
+    padding: 1.5rem 0;
+    border-top: 1px solid var(--border);
 }
 
-.pathway {
-    background: var(--surface);
+.pathIndex {
+    padding-top: 0.2rem;
+    font-size: 0.78rem;
+    color: var(--text-3);
+}
+
+.pathLabel {
+    margin-bottom: 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-3);
+}
+
+.pathway h3 {
+    font-size: clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem);
+}
+
+.pathway p:not(.pathLabel) {
+    margin: 0.4rem 0 0.25rem;
+    font-size: 0.98rem;
+    line-height: 1.55;
+    max-width: 46ch;
 }
 
 /* ---------- Progression ---------- */
@@ -527,7 +677,7 @@
 }
 
 .progressTitle {
-    font-size: clamp(1.6rem, 1.1rem + 2.2vw, 3rem);
+    font-size: clamp(1.6rem, 1.1rem + 2.2vw, 3rem) !important;
     max-width: 22ch;
     margin: 0 auto;
 }
@@ -610,200 +760,224 @@
     4%, 10% { border-color: rgba(34, 211, 238, 0.6); stroke: var(--telemetry); }
 }
 
+/* ---------- EV.ENGINEER™ identity: quiet, collective ---------- */
+
+.identity {
+    border-top: 1px solid var(--border);
+    background:
+        radial-gradient(ellipse 50% 60% at 50% 40%, rgba(34, 211, 238, 0.05), transparent 70%),
+        #03070C;
+}
+
+.identityStack {
+    display: grid;
+    justify-items: center;
+    text-align: center;
+}
+
+.wordmark {
+    font-size: clamp(2.5rem, 1rem + 6vw, 5.5rem) !important;
+    font-weight: 680;
+    letter-spacing: -0.045em !important;
+    line-height: 1;
+}
+
+.connector {
+    position: relative;
+    display: block;
+    width: 1px;
+    height: clamp(44px, 32px + 3vw, 72px);
+    margin: clamp(1.1rem, 0.9rem + 1vw, 1.75rem) 0;
+    overflow: hidden;
+    background: rgba(148, 163, 184, 0.35);
+}
+
+.connector::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: -40%;
+    width: 1px;
+    height: 40%;
+    background: linear-gradient(transparent, var(--telemetry), transparent);
+    animation: travel 3.6s var(--ease) infinite;
+}
+
+.connector + .identityDomains + .connector::after {
+    animation-delay: 1.2s;
+}
+
+.identityDomains,
+.identityPillars {
+    max-width: 52rem;
+    font-family: var(--font-mono);
+    letter-spacing: 0.16em;
+    line-height: 1.9;
+    text-transform: uppercase;
+    text-wrap: balance;
+}
+
+.identityDomains {
+    font-size: clamp(0.78rem, 0.7rem + 0.35vw, 1rem);
+    color: var(--text);
+}
+
+.identityPillars {
+    font-size: clamp(0.72rem, 0.68rem + 0.25vw, 0.88rem);
+    color: var(--text-3);
+}
+
+.identityLine {
+    max-width: 34rem;
+    margin-top: clamp(2rem, 1.5rem + 2vw, 3rem);
+    font-size: clamp(1.1rem, 1rem + 0.5vw, 1.4rem);
+    line-height: 1.5;
+    color: var(--text-2);
+}
+
+@keyframes travel {
+    0% { top: -40%; }
+    70%, 100% { top: 100%; }
+}
+
 @media (prefers-reduced-motion: reduce) {
+    .connector::after,
     .stepIcon {
         animation: none;
     }
+
+    .connector::after {
+        top: 30%;
+    }
 }
 
-/* ---------- Profile ---------- */
+/* ---------- Ecosystem: quieter than R&D; monochrome marks, one-line roles ---------- */
 
-.profile {
+.ecosystem {
     border-top: 1px solid var(--border);
+    background: var(--bg-2);
 }
-
-.profileGrid {
-    display: grid;
-    gap: 2.5rem;
-    align-items: center;
-}
-
-@media (min-width: 1024px) {
-    .profileGrid {
-        grid-template-columns: 7fr 5fr;
-        gap: 5rem;
-    }
-}
-
-.profileName {
-    font-size: clamp(1.9rem, 1.4rem + 1.8vw, 3rem);
-    font-weight: 640;
-    letter-spacing: -0.03em;
-    line-height: 1.08;
-}
-
-.profileIdentity {
-    margin-top: 0.6rem;
-    font-size: clamp(1.15rem, 1.05rem + 0.5vw, 1.5rem);
-    font-weight: 600;
-    letter-spacing: -0.015em;
-    color: var(--telemetry);
-}
-
-.profileFocus {
-    margin-top: 1.25rem;
-    font-size: clamp(1rem, 0.95rem + 0.25vw, 1.15rem);
-    font-weight: 600;
-    color: var(--text);
-}
-
-.profileLine {
-    margin-top: 0.75rem;
-}
-
-.profileCard {
-    display: grid;
-    border-top: 1px solid var(--border-strong);
-}
-
-.profileCard div {
-    display: grid;
-    gap: 0.3rem;
-    padding: 1.1rem 0;
-    border-bottom: 1px solid var(--border);
-}
-
-@media (min-width: 560px) {
-    .profileCard div {
-        grid-template-columns: 7.5rem 1fr;
-        gap: 1rem;
-    }
-}
-
-.profileCard dt {
-    font-family: var(--font-mono);
-    font-size: 0.74rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--text-3);
-    padding-top: 0.2rem;
-}
-
-.profileCard dd {
-    color: var(--text);
-    font-weight: 500;
-}
-
-/* ---------- Partnerships ---------- */
 
 .partners {
     list-style: none;
     display: grid;
-    gap: 1rem;
+    column-gap: 3rem;
 }
 
-@media (min-width: 640px) {
+@media (min-width: 900px) {
     .partners {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
-@media (min-width: 1100px) {
-    .partners {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-}
-
-.partner .kicker {
-    color: var(--text-3);
-    font-size: 0.7rem;
-}
-
-.partnerNote {
-    margin-top: 1.5rem;
-    font-size: 0.85rem;
-    color: var(--text-3);
-}
-
-/* ---------- Research index ---------- */
-
-.index {
+.partner {
     display: grid;
-    gap: 2rem 2.5rem;
+    grid-template-columns: 44px 1fr;
+    gap: 0.25rem 1rem;
+    align-items: start;
+    padding: 1.25rem 0;
+    border-top: 1px solid var(--border);
 }
 
-@media (min-width: 640px) {
-    .index {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
+.mark {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    letter-spacing: 0.04em;
+    color: var(--text-2);
 }
 
-@media (min-width: 1024px) {
-    .index {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-}
-
-@media (min-width: 1280px) {
-    .index {
-        grid-template-columns: repeat(5, minmax(0, 1fr));
-    }
-}
-
-.indexGroup {
+.partnerBody {
     min-width: 0;
 }
 
-.indexTitle {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 1rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid var(--border-strong);
-    font-family: var(--font-mono);
-    font-size: 0.8rem;
-    font-weight: 500;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--text);
+.partnerBody h3 {
+    font-size: 1.1rem;
+    letter-spacing: -0.01em;
 }
 
-.indexTitle .mono {
-    font-size: 0.72rem;
+.role {
+    margin-top: 0.2rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
     color: var(--text-3);
 }
 
-.indexGroup ul {
-    list-style: none;
+.partnerLine {
+    margin-top: 0.4rem;
+    font-size: 0.93rem;
+    line-height: 1.5;
 }
 
-.indexLink {
-    display: flex;
-    justify-content: space-between;
+.partnerLink {
+    grid-column: 2;
+    display: inline-flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.35rem;
+    justify-self: start;
     min-height: 44px;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid var(--border);
-    font-size: 0.93rem;
-    line-height: 1.35;
+    font-size: 0.92rem;
+    font-weight: 600;
     color: var(--text-2);
     transition: color 0.2s var(--ease);
 }
 
-.indexLink [aria-hidden='true'] {
-    color: var(--text-3);
-    transition: color 0.2s var(--ease), transform 0.2s var(--ease);
+.partnerLink:hover {
+    color: var(--telemetry);
 }
 
-.indexLink:hover {
+.partnerNote {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.85rem;
+    color: var(--text-3);
+}
+
+/* Profile: secondary, a single quiet row */
+.profileStrip {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.25rem 2rem;
+    margin-top: clamp(2.5rem, 2rem + 2vw, 4rem);
+    padding: 1.25rem 1.5rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    background: var(--bg);
+}
+
+.profileStrip > div {
+    min-width: 0;
+}
+
+.profileLabel {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-3);
+}
+
+.profileName {
+    margin-top: 0.3rem;
+    font-size: 1.2rem;
+    font-weight: 600;
     color: var(--text);
 }
 
-.indexLink:hover [aria-hidden='true'] {
-    color: var(--telemetry);
-    transform: translate(2px, -2px);
+.profileMeta {
+    margin-top: 0.2rem;
+    font-size: 0.9rem;
+    color: var(--text-3);
 }
 
 /* ---------- Final CTA ---------- */
@@ -826,7 +1000,7 @@
 }
 
 .finalTitle {
-    font-size: clamp(2.2rem, 1.3rem + 3.6vw, 4.25rem);
+    font-size: clamp(2.2rem, 1.3rem + 3.6vw, 4.25rem) !important;
     letter-spacing: -0.035em;
 }
 
@@ -836,13 +1010,4 @@
 
 .finalInner :global(.actions) {
     justify-content: center;
-}
-
-.signature {
-    margin-top: 3rem;
-    font-family: var(--font-mono);
-    font-size: 0.78rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--text-3);
 }

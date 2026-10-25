@@ -4,7 +4,7 @@ import styles from './LocalNav.module.css';
 import { setMotionPaused, useMotionPaused, useReducedMotion } from './Live';
 
 export const LOCAL_SECTIONS = [
-    { id: 'research-development', label: 'Overview' },
+    { id: 'overview', label: 'Overview' },
     { id: 'space', label: 'Space' },
     { id: 'aerospace', label: 'Aerospace' },
     { id: 'battery', label: 'EV & Battery' },

@@ -1,0 +1,201 @@
+.stage {
+    display: grid;
+    gap: 1rem;
+    padding: clamp(1rem, 0.7rem + 1vw, 1.5rem);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    background:
+        linear-gradient(rgba(148, 163, 184, 0.045) 1px, transparent 1px) 0 0 / 28px 28px,
+        linear-gradient(90deg, rgba(148, 163, 184, 0.045) 1px, transparent 1px) 0 0 / 28px 28px,
+        radial-gradient(ellipse 70% 60% at 50% 45%, rgba(34, 211, 238, 0.05), transparent 70%),
+        rgba(8, 17, 27, 0.6);
+}
+
+.hud {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-3);
+}
+
+.stage dl {
+    gap: 0.75rem 1rem;
+}
+
+@media (min-width: 640px) {
+    .stage dl {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+.svg {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+}
+
+/* ---------- Nodes: each lights in turn, 12 s around the loop ---------- */
+
+.node {
+    fill: rgba(12, 23, 34, 0.92);
+    stroke: rgba(148, 163, 184, 0.28);
+    stroke-width: 1.2;
+    animation: node 12s var(--ease) infinite;
+    animation-delay: calc(var(--i) * 2s);
+}
+
+.nodeLabel,
+.nodeIndex,
+.small {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    fill: var(--text-3);
+}
+
+.nodeLabel {
+    fill: var(--text-2);
+}
+
+.value {
+    font-size: 17px;
+    font-weight: 600;
+    fill: var(--text);
+}
+
+.decision {
+    font-size: 24px;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    fill: var(--nominal);
+}
+
+.t_nominal { fill: var(--nominal); }
+
+/* ---------- Links ---------- */
+
+.track {
+    fill: none;
+    stroke: rgba(148, 163, 184, 0.22);
+    stroke-width: 2;
+}
+
+.flow {
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-dasharray: 4 9;
+    animation: dash 1.8s linear infinite;
+}
+
+.energy { color: var(--solar); }
+.data { color: var(--telemetry); }
+
+.flow,
+.head {
+    stroke: currentColor;
+}
+
+.head {
+    fill: currentColor;
+    stroke: none;
+    opacity: 0.8;
+}
+
+/* ---------- Node contents ---------- */
+
+.bolt {
+    fill: rgba(251, 191, 36, 0.12);
+    stroke: var(--solar);
+    stroke-width: 1.3;
+    stroke-linejoin: round;
+}
+
+.module {
+    fill: rgba(17, 32, 51, 0.8);
+    stroke: rgba(148, 163, 184, 0.45);
+    stroke-width: 1;
+}
+
+.thermal {
+    fill: var(--solar);
+    opacity: 0;
+    animation: thermal 13s var(--ease) infinite;
+    animation-delay: calc(var(--i) * -1.6s);
+}
+
+.socTrack {
+    fill: rgba(148, 163, 184, 0.16);
+}
+
+.socFill {
+    fill: var(--nominal);
+    opacity: 0.85;
+}
+
+.chip {
+    fill: rgba(17, 32, 51, 0.9);
+    stroke: rgba(226, 232, 240, 0.7);
+    stroke-width: 1.2;
+}
+
+.chipCore {
+    fill: none;
+    stroke: var(--telemetry);
+    stroke-width: 1;
+}
+
+.pin {
+    stroke: rgba(226, 232, 240, 0.5);
+    stroke-width: 1.2;
+}
+
+.ok {
+    fill: var(--nominal);
+}
+
+.wave {
+    fill: none;
+    stroke: var(--telemetry);
+    stroke-width: 1.6;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+    animation: wave 6s linear infinite -4s;
+}
+
+.bar {
+    fill: var(--telemetry);
+    opacity: 0.6;
+    transform-box: fill-box;
+    transform-origin: bottom;
+    animation: bar 5s var(--ease) infinite alternate;
+    animation-delay: calc(var(--i) * -0.7s);
+}
+
+@keyframes node {
+    0%, 16.7%, 100% { stroke: rgba(148, 163, 184, 0.28); }
+    4%, 12% { stroke: rgba(34, 211, 238, 0.7); }
+}
+
+@keyframes dash {
+    to { stroke-dashoffset: -52; }
+}
+
+@keyframes thermal {
+    0%, 55%, 100% { opacity: 0; }
+    25% { opacity: 0.22; }
+}
+
+@keyframes wave {
+    0% { stroke-dashoffset: 1; }
+    60%, 100% { stroke-dashoffset: 0; }
+}
+
+@keyframes bar {
+    from { transform: scaleY(0.8); }
+    to { transform: scaleY(1); }
+}

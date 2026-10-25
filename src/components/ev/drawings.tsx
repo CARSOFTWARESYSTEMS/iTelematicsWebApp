@@ -2,9 +2,8 @@ import type { CSSProperties } from 'react';
 import styles from './drawings.module.css';
 
 /**
- * Wireframe engineering models drawn in a shared 560 × 400 space: battery pack, satellite,
- * rocket engine and eVTOL. Used by the hero sequence and, with labels, by the research
- * sections. Motion is CSS-only and is held or removed by the surrounding <Live> frame.
+ * Wireframe engineering models drawn in a shared 560 × 400 space: rocket engine and eVTOL,
+ * used with labels by the research sections. Motion is CSS-only and is held or removed by the surrounding <Live> frame.
  */
 
 const v = (i: number) => ({ ['--i' as string]: i }) as CSSProperties;
@@ -23,130 +22,6 @@ function Sensor({ cx, cy, i, label, dx = 10, dy = -8, detail }: { cx: number; cy
             <circle cx={cx} cy={cy} r={9} className={styles.sensorHalo} style={v(i)} />
             <circle cx={cx} cy={cy} r={3.5} className={styles.sensor} />
             {detail && label && <Label x={cx + dx} y={cy + dy} tone="telemetry">{label}</Label>}
-        </g>
-    );
-}
-
-/* ---------- Battery pack: cells → modules → pack → BMS ---------- */
-
-const MODULES = Array.from({ length: 8 }, (_, i) => ({ i, x: 128 + (i % 4) * 80, y: i < 4 ? 112 : 200 }));
-
-export function BatteryPackDrawing({ detail = false }: { detail?: boolean }) {
-    return (
-        <g>
-            <rect x={110} y={96} width={340} height={196} rx={10} className={styles.enclosure} />
-            {MODULES.map((m) => (
-                <rect key={m.i} x={m.x} y={m.y} width={70} height={80} rx={4} className={styles.module} />
-            ))}
-
-            {/* Series current path through the modules */}
-            <path d="M 102 152 H 444 V 240 H 102" className={styles.current} />
-
-            {MODULES.map((m) =>
-                Array.from({ length: 12 }, (_, c) => (
-                    <circle key={`${m.i}-${c}`} cx={m.x + 17 + (c % 3) * 18} cy={m.y + 14 + Math.floor(c / 3) * 17.5} r={6.5} className={styles.cell} />
-                )),
-            )}
-
-            {/* Thermal zones drifting across modules */}
-            {MODULES.map((m) => (
-                <rect key={`t${m.i}`} x={m.x} y={m.y} width={70} height={80} rx={4} className={styles.thermal} style={v(m.i)} />
-            ))}
-
-            {/* Anomaly scan sweeping the cell array */}
-            <rect x={118} y={104} width={2} height={180} className={styles.scan} />
-
-            {/* HV terminals */}
-            <rect x={78} y={142} width={24} height={20} rx={3} className={styles.terminal} />
-            <rect x={78} y={230} width={24} height={20} rx={3} className={styles.terminal} />
-
-            {/* BMS with sense harness and cell-voltage bars */}
-            {[170, 190, 210, 230].map((y, i) => (
-                <g key={y}>
-                    <line x1={450} y1={y} x2={474} y2={y} className={styles.harness} />
-                    <line x1={450} y1={y} x2={474} y2={y} className={styles.packet} style={v(i)} />
-                </g>
-            ))}
-            <rect x={474} y={146} width={64} height={104} rx={6} className={styles.box} />
-            {Array.from({ length: 8 }, (_, i) => (
-                <rect key={i} x={484 + i * 6} y={186} width={3.5} height={30} className={styles.bar} style={v(i)} />
-            ))}
-            <circle cx={490} cy={234} r={3.5} className={styles.ok} />
-
-            <Label x={506} y={170} anchor="middle">BMS</Label>
-            {detail && (
-                <>
-                    <Label x={110} y={84}>PACK · 8 MODULES · 96 CELLS</Label>
-                    <Label x={74} y={134}>HV+</Label>
-                    <Label x={74} y={268}>HV−</Label>
-                    <Label x={500} y={238} tone="nominal">ONLINE</Label>
-                    <Label x={450} y={316} anchor="end" tone="telemetry">ANOMALY SCAN</Label>
-                </>
-            )}
-        </g>
-    );
-}
-
-/* ---------- Satellite: sunlight → arrays → EPS → battery → payload → downlink ---------- */
-
-const ARRAY_CELLS = Array.from({ length: 7 }, (_, i) => i + 1);
-
-export function SatelliteDrawing({ detail = false }: { detail?: boolean }) {
-    return (
-        <g className={styles.satCycle}>
-            <path d="M -20 412 Q 280 300 580 412" className={styles.limb} />
-
-            <g className={styles.sunlit}>
-                {[48, 68, 88].map((y) => (
-                    <g key={y} className={styles.ray}>
-                        <line x1={22} y1={y} x2={66} y2={y + 14} />
-                        <path d={`M 66 ${y + 9} L 74 ${y + 16.5} L 63 ${y + 18} Z`} />
-                    </g>
-                ))}
-            </g>
-
-            {[96, 328].map((x) => (
-                <g key={x}>
-                    <rect x={x} y={150} width={136} height={64} className={styles.panel} />
-                    {ARRAY_CELLS.map((c) => (
-                        <line key={c} x1={x + c * 17} y1={150} x2={x + c * 17} y2={214} className={styles.panelGrid} />
-                    ))}
-                    <line x1={x} y1={182} x2={x + 136} y2={182} className={styles.panelGrid} />
-                    <rect x={x} y={150} width={136} height={64} className={`${styles.sheen} ${styles.sunlit}`} />
-                </g>
-            ))}
-            <line x1={232} y1={182} x2={250} y2={182} className={styles.wireStrong} />
-            <line x1={310} y1={182} x2={328} y2={182} className={styles.wireStrong} />
-
-            {/* Generated power flowing to the bus */}
-            <path d="M 170 182 H 250" className={`${styles.power} ${styles.sunlit}`} />
-            <path d="M 390 182 H 310" className={`${styles.power} ${styles.sunlit}`} />
-
-            <rect x={250} y={134} width={60} height={96} rx={4} className={styles.body} />
-            {[158, 182, 206].map((y) => (
-                <line key={y} x1={256} y1={y} x2={304} y2={y} className={styles.slot} />
-            ))}
-            <rect x={256} y={186} width={48} height={16} rx={2} className={styles.batterySlot} />
-
-            <line x1={280} y1={230} x2={280} y2={252} className={styles.wireStrong} />
-            <path d="M 270 258 Q 280 248 290 258" className={styles.wireStrong} />
-
-            <path d="M 284 262 Q 400 300 470 336" className={styles.link} />
-            <path d="M 284 262 Q 400 300 470 336" className={styles.linkPackets} />
-            <path d="M 470 352 L 490 352 L 480 336 Z" className={styles.station} />
-
-            <rect x={0} y={0} width={560} height={400} className={styles.eclipseTint} />
-
-            {detail && (
-                <>
-                    <Label x={22} y={36} tone="solar">SUN</Label>
-                    <Label x={164} y={234} anchor="middle">SOLAR ARRAY</Label>
-                    <Label x={396} y={234} anchor="middle">SOLAR ARRAY</Label>
-                    <Label x={280} y={124} anchor="middle">EPS · BATTERY · OBC</Label>
-                    <Label x={430} y={300} tone="telemetry">DOWNLINK</Label>
-                    <Label x={500} y={350}>GROUND</Label>
-                </>
-            )}
         </g>
     );
 }

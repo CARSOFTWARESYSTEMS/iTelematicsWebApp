@@ -6,17 +6,26 @@ import type { ClickEvent } from '@/lib/analytics/taxonomy';
 
 export type Cta = { label: string; href: string; event: ClickEvent };
 
-/** External CTA tagged for analytics: event, clean item name and where on the card it sits. */
+const TRAILING_ARROW = /\s*([→↗])$/;
+
+/**
+ * External CTA tagged for analytics: event, clean item name and where on the card it sits. A trailing
+ * arrow is split off so it can move on hover and stays out of the accessible name.
+ */
 export function EvLink({ cta, className, location }: { cta: Cta; className: string; location?: string }) {
+    const arrow = cta.label.match(TRAILING_ARROW);
+    const text = arrow ? cta.label.slice(0, arrow.index) : cta.label;
     return (
-        <ExternalLink
-            href={cta.href}
-            className={className}
-            data-track={cta.event}
-            data-analytics-location={location}
-            trackName={cta.label.replace(/\s*[→↗]$/, '')}
-        >
-            {cta.label}
+        <ExternalLink href={cta.href} className={className} data-track={cta.event} data-analytics-location={location} trackName={text}>
+            {text}
+            {arrow && (
+                <>
+                    {' '}
+                    <span className={`${styles.arrow} ${arrow[1] === '↗' ? styles.arrowOut : ''}`} aria-hidden="true">
+                        {arrow[1]}
+                    </span>
+                </>
+            )}
         </ExternalLink>
     );
 }

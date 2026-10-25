@@ -21,6 +21,15 @@
     align-items: center;
     gap: 1rem;
     height: 52px;
+    /* Stay clear of iPhone notches in landscape if the page ever extends under them */
+    padding-left: max(var(--gutter), env(safe-area-inset-left));
+    padding-right: max(var(--gutter), env(safe-area-inset-right));
+}
+
+@media (max-width: 639px) {
+    .inner {
+        height: 48px;
+    }
 }
 
 .list {
@@ -131,7 +140,4 @@
         white-space: nowrap;
     }
 
-    .inner {
-        padding-right: calc(var(--gutter) - 0.25rem);
-    }
 }
