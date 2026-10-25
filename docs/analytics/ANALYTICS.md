@@ -42,7 +42,7 @@ Visitors can change their choice with **Analytics preferences** in the footer.
 | `internship_apply_click` | An Apply CTA | `data-track="internship_apply_click"` |
 | `research_collaboration_click` | A "Discuss Research Collaboration" style CTA | `data-track="research_collaboration_click"` |
 | `consultancy_click` | Any link inside the Consultancy & Services menu, or to internal `/consultancy…` | `data-track-fallback` / destination rule |
-| `partner_click` | Link to Gamyaa AeroSystems, APEX (official site and ecosystem page), UFlight™, iFab, EV Society, `autonomous.ev.engineer`, or `/ev-engineer` | Destination rule |
+| `partner_click` | Link to Gamyaa AeroSystems, APEX (official site and ecosystem page), UFlight™, iFab, EV Society, `autonomous.ev.engineer`, `ev.engineer`, or `/ev-engineer` | Destination rule |
 | `contact_submit` | A validated enquiry was handed to the visitor's email app: the form opened a `mailto:` draft to info@iTelematics.com. It measures intent, not delivery; the website cannot see whether the email was sent. Count actual enquiries in the mailbox. Invalid forms never fire it. | `ContactForm` |
 | `join_rnd_click` | The Join Satellite Engineering / Discuss Research CTAs (event name unchanged) | `data-track="join_rnd_click"` |
 | `mobile_navigation_use` | Mobile menu opened, or a mobile-menu link tapped that no other event claims | `Navbar` / `data-track-fallback` |
@@ -105,6 +105,7 @@ partners and consultancy. Explicit `data-track` is used only where the URL doesn
 | Explore Satellite Engineering (internal or course) | `satellite_engineering_click` | Hero, signposts, resource cards, CTA bands |
 | Explore Interactive 3D | `interactive_3d_click` | Signposts, resource cards, footer |
 | Ecosystem links | `partner_click` | Home (compact), Partners (list and ecosystem map) |
+| EV.ENGINEER™ and Prerequisites (autonomous.ev.engineer/internships) | `partner_click` (destination rule) | Internships hero and closing CTA |
 
 The homepage flagship section carries `data-track-view="research_platform_view"`; `/research-platform`
 and `/internships` fire their view events on landing.

@@ -63,6 +63,7 @@ describe('describeClick destination rules', () => {
             'https://uflight.in',
             'https://evsociety.org/',
             'https://autonomous.ev.engineer/',
+            'https://ev.engineer',
         ]) {
             expect(describeClick(link(href), ORIGIN), href).toMatchObject({ event: 'partner_click', params: { destination_type: 'partner' } });
         }

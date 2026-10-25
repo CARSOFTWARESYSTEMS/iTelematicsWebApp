@@ -164,6 +164,7 @@ const PARTNER_HOSTS = new Set([
     'uflight.in',
     'evsociety.org',
     'autonomous.ev.engineer',
+    'ev.engineer',
 ]);
 
 type LinkRule = {
