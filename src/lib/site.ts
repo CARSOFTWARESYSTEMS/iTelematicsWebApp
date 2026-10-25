@@ -28,6 +28,7 @@ export const SITE = {
     cin: 'U72200KA2012PTC065650',
     gstin: '29AADCI0384D1ZQ',
     msme: 'UDYAM-KR-02-0123269',
+    login: 'https://login.itelematics.com',
 } as const;
 
 export const CORE_QUESTION = 'Can the satellite generate, store and manage sufficient energy to safely accomplish its mission?';
@@ -238,12 +239,14 @@ export const ECOSYSTEM: EcosystemOrg[] = [
 
 /**
  * ev.engineer serves this site with /ev-engineer at its root. On those hosts the header logo reads
- * EV.ENGINEER™ / Energy & Battery; everywhere else it stays iTelematics® / Satellite Engineering.
+ * EV.ENGINEER™ / Energy & Battery and Login goes to the EV.ENGINEER™ sign-in service; everywhere else
+ * the header stays iTelematics® / Satellite Engineering with the iTelematics® sign-in.
  */
 export const EV_SITE = {
     hosts: ['ev.engineer', 'www.ev.engineer'],
     name: 'EV.ENGINEER™',
     tagline: 'Energy & Battery',
+    login: 'https://login.autonomous.ev.engineer',
 } as const;
 
 /** Routes in the active site, used by the sitemap. */

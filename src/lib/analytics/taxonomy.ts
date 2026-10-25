@@ -17,6 +17,7 @@ export const CLICK_EVENTS = [
     'partner_click',
     'join_rnd_click',
     'mobile_navigation_use',
+    'login_click',
     // EV.ENGINEER™ page (/ev-engineer): tagged explicitly with data-track on each CTA
     'ev_engineer_research_click',
     'ev_engineer_space_click',

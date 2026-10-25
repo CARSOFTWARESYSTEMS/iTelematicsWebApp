@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import styles from './Navbar.module.css';
 import ExternalLink from './site/ExternalLink';
 import { track } from '@/lib/analytics/client';
-import { CONTACT_NAV, EV_SITE, JOIN_HREF, PRIMARY_NAV, type NavGroup, type NavItem, type PrimaryNavItem } from '@/lib/site';
+import { CONTACT_NAV, EV_SITE, JOIN_HREF, PRIMARY_NAV, SITE, type NavGroup, type NavItem, type PrimaryNavItem } from '@/lib/site';
 
 const isActive = (pathname: string, href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
@@ -59,6 +59,20 @@ function Groups({ item, onNavigate }: { item: PrimaryNavItem; onNavigate: () => 
                     </ul>
                 </div>
             )}
+        </>
+    );
+}
+
+/** Login on this host's sign-in service. Both links render; CSS shows the one for the host from first paint. */
+function LoginLink({ className }: { className: string }) {
+    return (
+        <>
+            <a href={SITE.login} className={`${className} ${styles.itSite}`} data-track="login_click">
+                Login
+            </a>
+            <a href={EV_SITE.login} className={`${className} ${styles.evSite}`} data-track="login_click">
+                Login
+            </a>
         </>
     );
 }
@@ -181,6 +195,7 @@ export default function Navbar() {
                         ))}
                     </ul>
                     <div className={styles.right}>
+                        <LoginLink className={styles.link} />
                         <Link
                             href={CONTACT_NAV.href}
                             className={`${styles.link} ${isActive(pathname, CONTACT_NAV.href) ? styles.active : ''}`}
@@ -195,6 +210,7 @@ export default function Navbar() {
                 </div>
 
                 {/* Mobile and tablet */}
+                <LoginLink className={styles.mobileLogin} />
                 <button
                     type="button"
                     className={styles.menuButton}

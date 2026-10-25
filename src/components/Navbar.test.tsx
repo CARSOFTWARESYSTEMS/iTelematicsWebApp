@@ -38,6 +38,19 @@ describe('Navbar', () => {
         expect(logo.textContent).not.toMatch(/R&D/);
     });
 
+    it('offers Login on each host’s sign-in service, tracked, in the desktop bar and the mobile bar', () => {
+        render(<Navbar />);
+        const logins = screen.getAllByRole('link', { name: 'Login' });
+        // iTelematics® and EV.ENGINEER™ variants, desktop and mobile; CSS shows the one for the host
+        expect(logins.map((a) => a.getAttribute('href')).sort()).toEqual([
+            'https://login.autonomous.ev.engineer',
+            'https://login.autonomous.ev.engineer',
+            'https://login.itelematics.com',
+            'https://login.itelematics.com',
+        ]);
+        logins.forEach((a) => expect(a).toHaveAttribute('data-track', 'login_click'));
+    });
+
     it('presents the logo as EV.ENGINEER™ on ev.engineer hosts', () => {
         document.documentElement.setAttribute('data-site', 'ev');
         mockPathname = '/ev-engineer';

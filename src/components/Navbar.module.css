@@ -92,13 +92,10 @@
     color: var(--text-3);
 }
 
-/* Host variant: data-site="ev" is set on <html> by the layout script on ev.engineer */
-.evSite {
+/* Host variant: data-site="ev" is set on <html> by the layout script on ev.engineer. Each variant
+   keeps its own display when shown; these selectors outrank single-class rules when hiding. */
+:global(html:not([data-site='ev'])) .evSite {
     display: none;
-}
-
-:global(html[data-site='ev']) .evSite {
-    display: flex;
 }
 
 :global(html[data-site='ev']) .itSite {
@@ -254,9 +251,10 @@
 
 .menuButton {
     display: inline-flex;
+    flex-shrink: 0;
     align-items: center;
     justify-content: center;
-    width: 48px;
+    width: 44px;
     height: 48px;
     margin-right: -0.5rem;
     border: none;
@@ -388,13 +386,54 @@
     font-size: 1.05rem;
 }
 
+/* Phones and tablets: Login stays in the bar, beside the menu button; neither may shrink */
+.mobileLogin {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    min-height: 44px;
+    margin-left: auto;
+    margin-right: -0.5rem;
+    padding: 0 0.5rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-2);
+    white-space: nowrap;
+    transition: color 0.2s var(--ease);
+}
+
+.mobileLogin:hover {
+    color: var(--text);
+}
+
+/* Logo, Login and the menu button share one row on phones */
+@media (max-width: 1279px) {
+    .bar {
+        gap: 0.75rem;
+    }
+}
+
+@media (max-width: 399px) {
+    .logoTag {
+        font-size: 0.62rem;
+        letter-spacing: 0.08em;
+    }
+}
+
+@media (max-width: 349px) {
+    .logoTag {
+        display: none;
+    }
+}
+
 @media (min-width: 1280px) {
     .desktop {
         display: flex;
     }
 
     .menuButton,
-    .mobile {
+    .mobile,
+    .mobileLogin {
         display: none;
     }
 }
@@ -422,5 +461,31 @@
 
     .cta {
         padding: 0 0.85rem;
+    }
+}
+
+/* With Login in the bar: tighter link spacing keeps one line, with the 17px scrollbar allowance at
+   1280 px and about 60 px to spare inside the full-width container */
+@media (min-width: 1280px) {
+    .bar {
+        gap: 1rem;
+    }
+
+    .desktop,
+    .right {
+        gap: 0.5rem;
+    }
+
+    .link {
+        padding: 0 0.4rem;
+    }
+
+    .active::after {
+        left: 0.4rem;
+        right: 0.4rem;
+    }
+
+    .cta {
+        padding: 0 0.75rem;
     }
 }
