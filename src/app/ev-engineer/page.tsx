@@ -205,8 +205,11 @@ export default function EVEngineerPage() {
             {/* Hero: 45 % content / 55 % live engineering system */}
             <section className={styles.hero} data-analytics-section="ev-hero">
                 <div className={`container ${styles.heroGrid}`}>
+                    <p className={styles.heroBrand}>EV.ENGINEER™</p>
                     <div className={styles.heroCopy}>
-                        <p className="eyebrow">EV.ENGINEER™ · Engineering &amp; Research</p>
+                        <p className="eyebrow">
+                            <span className={styles.eyebrowBrand}>EV.ENGINEER™ · </span>Engineering &amp; Research
+                        </p>
                         <h1 className={styles.display}>
                             Building <em>World‑Class Engineers</em> to Solve <em>Energy</em> &amp; <em>Battery</em> Challenges
                         </h1>

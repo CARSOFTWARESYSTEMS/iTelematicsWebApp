@@ -108,15 +108,27 @@
 .heroGrid {
     display: grid;
     grid-template-areas:
+        'brand'
         'copy'
         'visual'
         'meta';
     gap: 2.25rem;
 }
 
+.heroBrand { grid-area: brand; }
 .heroCopy { grid-area: copy; min-width: 0; }
 .heroVisual { grid-area: visual; min-width: 0; }
 .heroMeta { grid-area: meta; }
+
+/* The page title: centred above everything on phones and tablets, top right on desktops */
+.heroBrand {
+    font-size: clamp(2.5rem, 1.4rem + 4.4vw, 5rem);
+    font-weight: 680;
+    letter-spacing: -0.045em;
+    line-height: 1;
+    text-align: center;
+    color: var(--text);
+}
 
 /* Wide desktops: the hero uses the larger 1440 px container */
 @media (min-width: 1500px) {
@@ -125,20 +137,30 @@
     }
 }
 
+/* Single column: the title sits right above the label, so the label drops the repeated brand */
+@media (max-width: 1023px) {
+    .eyebrowBrand {
+        display: none;
+    }
+}
+
 @media (min-width: 1024px) {
     .heroGrid {
         grid-template-columns: 48fr 52fr;
         grid-template-areas:
+            'copy brand'
             'copy visual'
             'meta visual';
-        grid-template-rows: auto 1fr;
+        grid-template-rows: auto auto 1fr;
         column-gap: clamp(2.5rem, 4vw, 4.5rem);
         row-gap: 2rem;
-        align-items: center;
+        align-items: start;
     }
 
-    .heroCopy { align-self: end; }
-    .heroMeta { align-self: start; }
+    .heroBrand {
+        font-size: clamp(3.25rem, 1.2rem + 3.6vw, 5rem);
+        text-align: right;
+    }
 }
 
 .display {
@@ -166,8 +188,16 @@
         font-size: clamp(2.4rem, 7.2vh, 3.6rem);
     }
 
+    .heroBrand {
+        font-size: clamp(2.75rem, 6.4vh, 4rem);
+    }
+
+    .heroGrid {
+        row-gap: 1.25rem;
+    }
+
     .hero {
-        padding: 2rem 0;
+        padding: 1.25rem 0;
     }
 }
 
