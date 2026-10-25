@@ -289,22 +289,6 @@ export default function EVEngineerPage() {
                     </div>
                 </section>
 
-                {/* Flagship engineering visual */}
-                <section className={`section ${styles.flagship}`} data-analytics-section="battery-flagship">
-                    <div className="container">
-                        <div className={styles.flagshipHead} data-reveal>
-                            <div>
-                                <p className={styles.kicker}>Battery Intelligence · Flagship</p>
-                                <h2>Battery Energy &amp; Health Intelligence</h2>
-                            </div>
-                            <div>
-                                <p className="lead">How an EV battery stores, delivers, protects and reports energy throughout its operating life.</p>
-                                <EvLink cta={{ label: 'Explore Battery Research ↗', href: EV_URL.batteryPortal, event: 'ev_engineer_battery_click' }} className={`text-link ${styles.flagshipLink}`} location="flagship" />
-                            </div>
-                        </div>
-                        <BatteryFlagshipVisual />
-                    </div>
-                </section>
             </div>
 
             {/* Space */}
@@ -705,6 +689,23 @@ export default function EVEngineerPage() {
                     </div>
                 </section>
             </div>
+
+            {/* Flagship engineering visual, closing the page before the final call to action */}
+            <section className={`section ${styles.flagship}`} data-analytics-section="battery-flagship">
+                <div className="container">
+                    <div className={styles.flagshipHead} data-reveal>
+                        <div>
+                            <p className={styles.kicker}>Battery Intelligence · Flagship</p>
+                            <h2>Battery Energy &amp; Health Intelligence</h2>
+                        </div>
+                        <div>
+                            <p className="lead">How an EV battery stores, delivers, protects and reports energy throughout its operating life.</p>
+                            <EvLink cta={{ label: 'Explore Battery Research ↗', href: EV_URL.batteryPortal, event: 'ev_engineer_battery_click' }} className={`text-link ${styles.flagshipLink}`} location="flagship" />
+                        </div>
+                    </div>
+                    <BatteryFlagshipVisual />
+                </div>
+            </section>
 
             {/* Final call to action */}
             <section className={`section ${styles.final}`} data-analytics-section="final-cta">
