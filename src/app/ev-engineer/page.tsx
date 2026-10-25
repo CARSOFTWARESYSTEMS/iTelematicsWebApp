@@ -123,6 +123,14 @@ const DOMAINS = [
         items: ['Battery Energy & Health Intelligence', 'Safety & Fire Prevention', 'Health & Diagnostics', 'Pack Engineering', 'Electric Mobility'],
     },
     {
+        id: 'digital-twins',
+        icon: 'twin',
+        label: 'Interactive Lab',
+        title: 'Digital Twins',
+        text: 'Systems to run and observe: satellite, CubeSat energy, rocket propulsion and battery health.',
+        items: ['Interactive 3D Satellite', 'CubeTwin', 'Rocket Propulsion Digital Twin', 'Battery Diagnostics Toolkit'],
+    },
+    {
         id: 'space',
         icon: 'space',
         label: 'Space Systems',
@@ -137,14 +145,6 @@ const DOMAINS = [
         title: 'Aerospace',
         text: 'Connected aircraft, eVTOL health monitoring, cyber-resilience and quality assurance.',
         items: ['Aerospace Cybersecurity & Digital Twins', 'UFlight™ 3D', 'Aerospace Quality Intelligence'],
-    },
-    {
-        id: 'digital-twins',
-        icon: 'twin',
-        label: 'Interactive Lab',
-        title: 'Digital Twins',
-        text: 'Systems to run and observe: satellite, CubeSat energy, rocket propulsion and battery health.',
-        items: ['Interactive 3D Satellite', 'CubeTwin', 'Rocket Propulsion Digital Twin', 'Battery Diagnostics Toolkit'],
     },
 ];
 
