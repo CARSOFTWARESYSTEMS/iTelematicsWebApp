@@ -34,7 +34,7 @@
 .splitHead h2,
 .rndHead h2,
 .flagshipHead h2 {
-    font-size: clamp(2rem, 1.35rem + 2.4vw, 3.5rem);
+    font-size: clamp(2rem, 1.3rem + 2.4vw, 3.25rem);
     letter-spacing: -0.03em;
 }
 
@@ -100,6 +100,7 @@
     min-height: calc(92dvh - var(--header-h) - 52px);
     padding: clamp(2.25rem, 1.25rem + 3.5vw, 4.5rem) 0;
     background:
+        linear-gradient(to bottom, transparent 70%, var(--bg-2)),
         radial-gradient(ellipse 55% 70% at 80% 45%, rgba(34, 211, 238, 0.06), transparent 70%),
         radial-gradient(ellipse 40% 50% at 10% 90%, rgba(251, 191, 36, 0.035), transparent 70%),
         var(--bg);
@@ -120,14 +121,15 @@
 .heroVisual { grid-area: visual; min-width: 0; }
 .heroMeta { grid-area: meta; }
 
-/* The page title: centred above everything on phones and tablets, top right on desktops */
+/* The page title: centred above everything on phones and tablets, top right on desktops. A quiet
+   wordmark, smaller than the headline, so the headline leads as it does on the home page. */
 .heroBrand {
-    font-size: clamp(2.5rem, 1.4rem + 4.4vw, 5rem);
-    font-weight: 680;
-    letter-spacing: -0.045em;
+    font-size: clamp(1.75rem, 1.2rem + 2.2vw, 2.75rem);
+    font-weight: 660;
+    letter-spacing: -0.04em;
     line-height: 1;
     text-align: center;
-    color: var(--text);
+    color: var(--text-2);
 }
 
 /* Wide desktops: the hero uses the larger 1440 px container */
@@ -158,17 +160,17 @@
     }
 
     .heroBrand {
-        font-size: clamp(3.25rem, 1.2rem + 3.6vw, 5rem);
+        font-size: clamp(2rem, 0.9rem + 1.8vw, 2.75rem);
         text-align: right;
     }
 }
 
 .display {
-    font-size: clamp(2.5rem, 1.2rem + 3vw, 4rem);
+    font-size: clamp(2.5rem, 1.2rem + 3.2vw, 4.25rem);
     font-weight: 640;
-    line-height: 1.04;
+    line-height: 1.02;
     letter-spacing: -0.035em;
-    color: var(--text-2);
+    color: var(--text);
 }
 
 /* Tablet landscape / small laptops: the copy column is narrow, so the headline steps down */
@@ -189,7 +191,7 @@
     }
 
     .heroBrand {
-        font-size: clamp(2.75rem, 6.4vh, 4rem);
+        font-size: clamp(1.9rem, 4.4vh, 2.5rem);
     }
 
     .heroGrid {
@@ -201,20 +203,9 @@
     }
 }
 
+/* One solid headline, as on the home page: emphasis stays in the markup, not in underlines */
 .display em {
     font-style: normal;
-    color: var(--text);
-    text-decoration: underline;
-    text-decoration-thickness: 2px;
-    text-underline-offset: 0.16em;
-    text-decoration-color: rgba(34, 211, 238, 0.55);
-    text-decoration-skip-ink: auto;
-}
-
-/* Energy and Battery carry the power hue */
-.display em + em,
-.display em:last-child {
-    text-decoration-color: rgba(251, 191, 36, 0.6);
 }
 
 .heroLead {
@@ -476,12 +467,12 @@
 
 /* ---------- Aerospace Quality Intelligence ---------- */
 
+/* Cinematic band, as the home page's interactive-satellite section: a soft glow, no grid paper */
 .aqip {
     border-top: 1px solid var(--border);
     background:
-        linear-gradient(rgba(148, 163, 184, 0.035) 1px, transparent 1px) 0 0 / 40px 40px,
-        linear-gradient(90deg, rgba(148, 163, 184, 0.035) 1px, transparent 1px) 0 0 / 40px 40px,
-        var(--bg);
+        radial-gradient(ellipse 55% 80% at 70% 55%, rgba(34, 211, 238, 0.05), transparent 70%),
+        linear-gradient(180deg, #050A10, #07101A 50%, #050A10);
 }
 
 .lifecycle {
@@ -712,6 +703,7 @@
     font-size: clamp(1.6rem, 1.1rem + 2.2vw, 3rem) !important;
     max-width: 22ch;
     margin: 0 auto;
+    text-wrap: balance;
 }
 
 .progressTitle span {
@@ -808,7 +800,7 @@
 }
 
 .wordmark {
-    font-size: clamp(2.5rem, 1rem + 6vw, 5.5rem) !important;
+    font-size: clamp(2.25rem, 1.4rem + 3.4vw, 4rem) !important;
     font-weight: 680;
     letter-spacing: -0.045em !important;
     line-height: 1;
@@ -1032,7 +1024,7 @@
 }
 
 .finalTitle {
-    font-size: clamp(2.2rem, 1.3rem + 3.6vw, 4.25rem) !important;
+    font-size: clamp(1.875rem, 1.25rem + 2.5vw, 3.25rem) !important;
     letter-spacing: -0.035em;
 }
 

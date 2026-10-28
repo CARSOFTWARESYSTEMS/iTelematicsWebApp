@@ -57,7 +57,15 @@ export function SpaceOrbitVisual() {
                 ))}
                 <text x={8} y={146} className={`${styles.svgLabel} ${styles.t_solar}`}>SUN</text>
 
-                <rect x={250} y={128} width={230} height={124} className={styles.umbra} />
+                {/* Earth's shadow fades out rather than stopping at the drawing's edge */}
+                <defs>
+                    <linearGradient id="ev-orbit-umbra">
+                        <stop offset="0" stopColor="#A5B4FC" stopOpacity={0.07} />
+                        <stop offset="0.55" stopColor="#A5B4FC" stopOpacity={0.05} />
+                        <stop offset="1" stopColor="#A5B4FC" stopOpacity={0} />
+                    </linearGradient>
+                </defs>
+                <rect x={250} y={128} width={230} height={124} fill="url(#ev-orbit-umbra)" />
                 <circle cx={250} cy={190} r={124} className={styles.orbitPath} />
                 <path d="M 357.4 128 A 124 124 0 0 1 357.4 252" className={styles.eclipseArc} />
                 <path d="M 203.6 75 A 124 124 0 0 1 296.4 75" className={styles.contactArc} />

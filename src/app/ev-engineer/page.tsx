@@ -614,10 +614,11 @@ export default function EVEngineerPage() {
                 <section className={`section ${styles.progressSection}`} data-analytics-section="progression">
                     <div className="container">
                         <div className="section-head center" data-reveal>
+                            {/* Each arrow is held to the step before it, so a wrapped line never opens with an arrow */}
                             <h2 className={styles.progressTitle}>
-                                Learn <span aria-hidden="true">→</span> Model <span aria-hidden="true">→</span> Build{' '}
-                                <span aria-hidden="true">→</span> Test <span aria-hidden="true">→</span> Verify{' '}
-                                <span aria-hidden="true">→</span> Research <span aria-hidden="true">→</span> Lead
+                                Learn{' '}<span aria-hidden="true">→</span> Model{' '}<span aria-hidden="true">→</span> Build{' '}
+                                <span aria-hidden="true">→</span> Test{' '}<span aria-hidden="true">→</span> Verify{' '}
+                                <span aria-hidden="true">→</span> Research{' '}<span aria-hidden="true">→</span> Lead
                             </h2>
                             <p className="lead">
                                 EV.ENGINEER™ connects engineering education with systems thinking, simulation, digital twins,

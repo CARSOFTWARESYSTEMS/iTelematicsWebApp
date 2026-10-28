@@ -11,18 +11,6 @@
 
 .visual {
     min-width: 0;
-    transition: transform 0.4s var(--ease);
-}
-
-/* Hover: the instrument frame brightens; nothing depends on it */
-.feature:hover {
-    --frame-border: rgba(34, 211, 238, 0.32);
-}
-
-@media (hover: hover) {
-    .feature:hover .visual {
-        transform: translateY(-3px);
-    }
 }
 
 @media (min-width: 1024px) {
@@ -83,8 +71,11 @@
     border-color: var(--border-strong);
 }
 
+/* A hairline, not a box, separates the open visual from the card's copy */
 .card .copy {
     order: 2;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
 }
 
 .card .visual {
@@ -110,7 +101,7 @@
 }
 
 .title {
-    font-size: clamp(2rem, 1.3rem + 2.2vw, 3.4rem);
+    font-size: clamp(2rem, 1.3rem + 2.2vw, 3.25rem);
     letter-spacing: -0.03em;
 }
 
