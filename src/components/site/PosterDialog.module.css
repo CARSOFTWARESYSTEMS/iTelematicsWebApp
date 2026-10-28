@@ -1,0 +1,136 @@
+/* Poster dialog. Site tokens; the veil, shadow and WhatsApp green are the only literal colours. */
+
+:global(html):has(.dialog[open]) {
+    overflow: hidden;
+}
+
+/* The dialog fills the viewport as the dimmed veil and centres the panel. */
+.dialog[open] {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 16px;
+    border: 0;
+    overflow-y: auto;
+    background: rgba(5, 10, 16, 0.82);
+    backdrop-filter: blur(6px);
+    color: var(--text);
+    animation: fadeIn 0.2s var(--ease);
+}
+
+.dialog::backdrop {
+    background: transparent;
+}
+
+/* As wide as the screen allows while the whole poster and its actions fit in the viewport height. */
+.panel {
+    --chrome: 3px;
+    position: relative;
+    width: min(100%, 960px, (100vh - 32px - var(--chrome)) * var(--ratio));
+    width: min(100%, 960px, (100dvh - 32px - var(--chrome)) * var(--ratio));
+    min-width: min(100%, 300px);
+    margin: auto;
+    overflow: hidden;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-card);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+    animation: rise 0.25s var(--ease);
+}
+
+.withActions {
+    --chrome: 75px;
+}
+
+.poster {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid rgba(248, 250, 252, 0.25);
+    border-radius: 50%;
+    background: rgba(5, 10, 16, 0.75);
+    color: var(--text);
+    cursor: pointer;
+}
+
+.close:hover {
+    background: rgba(5, 10, 16, 0.95);
+}
+
+.close:focus-visible,
+.action:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* Time left before the poster closes itself; holds with the countdown. */
+.timer {
+    display: block;
+    height: 3px;
+    background: var(--accent);
+    transform-origin: left;
+    animation: countdown var(--seconds) linear forwards;
+}
+
+.dialog[data-paused] .timer {
+    animation-play-state: paused;
+}
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px;
+}
+
+.action {
+    flex: 1 1 0;
+    min-width: max-content;
+    min-height: 44px;
+    padding: 0.5rem 1rem;
+    font-size: 0.95rem;
+}
+
+.whatsapp {
+    background: #25D366;
+    color: #062B14;
+}
+
+.whatsapp:hover {
+    filter: brightness(1.08);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+}
+
+@keyframes rise {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.98);
+    }
+}
+
+@keyframes countdown {
+    to {
+        transform: scaleX(0);
+    }
+}

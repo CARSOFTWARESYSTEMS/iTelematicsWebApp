@@ -17,6 +17,7 @@ export const SITE = {
     hrEmail: 'hr@iTelematics.com',
     phone: '+91 91082 06147',
     phoneHref: 'tel:+919108206147',
+    whatsappHref: 'https://wa.me/919108206147',
     address: {
         street: 'Bhoganahalli',
         locality: 'Bangalore',

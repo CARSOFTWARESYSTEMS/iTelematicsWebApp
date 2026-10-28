@@ -65,6 +65,16 @@ export const EV_PERSON = {
     profile: EV_URL.profile,
 } as const;
 
+/** The FAI & drawing-ballooning card that opens over this page once per visit (PosterDialog). */
+export const EV_CARD = {
+    id: 'ev-engineer-card',
+    src: '/images/ev-engineer-fai-card.webp',
+    width: 1659,
+    height: 948,
+    label: `${EV_PERSON.name}, ${EV_PERSON.identity}`,
+    alt: `${EV_PERSON.name}, ${EV_PERSON.identity}, ${EV_PERSON.location}. FAI AS9102 & Drawing Ballooning Automation: Defence Aerospace Quality Intelligence Platform. +91 9845561518, sudarshana.karkala@gmail.com, https://fai.ev.engineer.`,
+} as const;
+
 export type EvLink = { label: string; href: string; event: ClickEvent };
 
 /* ---------- Engineering Pathways ---------- */

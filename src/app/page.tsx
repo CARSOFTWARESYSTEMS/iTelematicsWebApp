@@ -4,6 +4,7 @@ import JsonLd, { pageSchema } from '@/components/JsonLd';
 import ArchitectureLine from '@/components/site/ArchitectureLine';
 import ExternalLink from '@/components/site/ExternalLink';
 import OrbitInstrument from '@/components/site/OrbitInstrument';
+import PosterDialog from '@/components/site/PosterDialog';
 import Satellite3D from '@/components/site/Satellite3D';
 import { EcosystemList } from '@/components/site/blocks';
 import { INTERNSHIP_THEMES } from '@/lib/internships';
@@ -13,6 +14,19 @@ export default function Home() {
     return (
         <>
             <JsonLd data={pageSchema({ path: '/', name: 'iTelematics® | Satellite Engineering & Internships', description: SITE.description })} />
+            <PosterDialog
+                id="ishavasyam-digital-twin"
+                src="/images/ishavasyam-digital-twin.webp"
+                width={1672}
+                height={941}
+                label="ISHAVASYAM.ORG: Digital Twin Design"
+                alt="Digital Twin Design, physics based: a dimensioned blueprint of a space station module above the Earth. ISHAVASYAM.ORG, Space Station Research Organisation. Aerospace, Defence, Space."
+                actions={[
+                    { label: 'WhatsApp', href: SITE.whatsappHref, tone: 'whatsapp' },
+                    { label: `Call ${SITE.phone}`, href: SITE.phoneHref },
+                    { label: SITE.email, href: `mailto:${SITE.email}` },
+                ]}
+            />
 
             {/* 1 — Hero */}
             <section className={styles.hero} data-analytics-section="hero">

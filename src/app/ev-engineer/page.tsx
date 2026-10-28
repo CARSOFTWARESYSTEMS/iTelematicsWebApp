@@ -7,6 +7,7 @@ import Feature, { EvLink, type Cta } from '@/components/ev/Feature';
 import EnergyHero from '@/components/ev/EnergyHero';
 import LocalNav from '@/components/ev/LocalNav';
 import ResearchIndex from '@/components/ev/ResearchIndex';
+import PosterDialog from '@/components/site/PosterDialog';
 import {
     AerospaceVisual,
     AqipVisual,
@@ -30,6 +31,7 @@ import {
 } from '@/components/ev/battery-visuals';
 import {
     EV_BRAND_LINE,
+    EV_CARD,
     EV_DOMAINS,
     EV_HOME,
     EV_PERSON,
@@ -201,6 +203,7 @@ export default function EVEngineerPage() {
     return (
         <div className={styles.page}>
             <JsonLd data={structuredData()} />
+            <PosterDialog {...EV_CARD} />
 
             {/* Hero: 45 % content / 55 % live engineering system */}
             <section className={styles.hero} data-analytics-section="ev-hero">
