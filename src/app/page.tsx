@@ -15,12 +15,12 @@ export default function Home() {
         <>
             <JsonLd data={pageSchema({ path: '/', name: 'iTelematics® | Satellite Engineering & Internships', description: SITE.description })} />
             <PosterDialog
-                id="ishavasyam-digital-twin"
-                src="/images/ishavasyam-digital-twin-research.webp"
+                id="gamyaa-digital-twin"
+                src="/images/gamyaa-digital-twin-research.webp"
                 width={1672}
                 height={941}
-                label="ISHAVASYAM.ORG: Digital Twin Design"
-                alt="Digital Twin Design, physics based: a dimensioned blueprint of a space station module above the Earth. ISHAVASYAM.ORG, Space Systems & Digital Twin Research. Aerospace, Defence, Space."
+                label="Gamyaa AeroSystems: Digital Twin Design"
+                alt="Digital Twin Design, physics based: a dimensioned blueprint of a space station module above the Earth. GAMYAA Aero Systems Private Limited, Space Systems & Digital Twin Research. Aerospace, Defence, Space."
                 actions={[
                     { label: 'WhatsApp', href: SITE.whatsappHref, tone: 'whatsapp' },
                     { label: `Call ${SITE.phone}`, href: SITE.phoneHref },
