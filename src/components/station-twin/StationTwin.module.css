@@ -1,0 +1,578 @@
+/* Interactive station model on /space-station. Its own stylesheet, built only from the site's
+   design tokens and following the Space Digital Twin viewer's look, so the two read as one family
+   without sharing a file. Nothing here reaches outside the viewer. */
+
+.viewer {
+    display: grid;
+    gap: 1rem;
+    margin: 0;
+}
+
+/* ---------- The 3D frame ---------- */
+
+.stagePanel {
+    display: grid;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    background: var(--surface);
+    overflow: hidden;
+}
+
+.frameWrap {
+    position: relative;
+}
+
+.frame {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    max-height: min(78vh, 720px);
+    width: 100%;
+    overflow: hidden;
+    background: radial-gradient(80% 60% at 70% 20%, rgba(34, 211, 238, 0.05), transparent 70%), #03050a;
+}
+
+.poster {
+    object-fit: cover;
+}
+
+.canvas {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.6s var(--ease);
+}
+
+.frame[data-ready] .canvas {
+    opacity: 1;
+}
+
+.canvasInner {
+    position: absolute;
+    inset: 0;
+}
+
+.loading {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(5, 10, 16, 0.72);
+    border: 1px solid var(--border-strong);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    color: var(--text-3);
+    pointer-events: none;
+}
+
+.hud {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.stageChip {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: calc(100% - 32px);
+    padding: 8px 14px 10px;
+    border-radius: var(--radius-control);
+    background: rgba(5, 10, 16, 0.72);
+    border: 1px solid var(--border-strong);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: var(--text);
+    font-size: 0.8rem;
+    font-weight: 560;
+}
+
+.stageNum {
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.08em;
+    color: var(--telemetry);
+    font-variant-numeric: tabular-nums;
+}
+
+.stageTitle {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.stageBar {
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    bottom: 4px;
+    height: 2px;
+    border-radius: 2px;
+    background: rgba(148, 163, 184, 0.16);
+    overflow: hidden;
+}
+
+.stageFill {
+    display: block;
+    height: 100%;
+    background: var(--telemetry);
+    transform-origin: left;
+    animation-name: stationFill;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+}
+
+@keyframes stationFill {
+    from {
+        transform: scaleX(0);
+    }
+    to {
+        transform: scaleX(1);
+    }
+}
+
+/* Simulated telemetry: a compact instrument card, always words as well as colour. */
+.hudCard {
+    position: absolute;
+    left: 16px;
+    bottom: 16px;
+    width: 308px;
+    padding: 12px 14px;
+    border-radius: var(--radius-card);
+    background: rgba(5, 10, 16, 0.78);
+    border: 1px solid var(--border-strong);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: var(--text);
+    font-size: 0.78rem;
+    line-height: 1.4;
+}
+
+.hudCard[data-alert] {
+    border-color: rgba(248, 113, 113, 0.5);
+}
+
+.hudHead {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--telemetry);
+}
+
+.hudDot,
+.modeDot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.mode {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.readings {
+    display: grid;
+    gap: 3px;
+}
+
+.readings > div {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.readings dt {
+    color: var(--text-3);
+    white-space: nowrap;
+}
+
+.readings dd {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    font-weight: 560;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    color: var(--text);
+}
+
+.readingNote {
+    color: var(--text-3);
+    font-weight: 400;
+    font-size: 0.7rem;
+}
+
+.hudNote,
+.steps {
+    margin-top: 8px;
+    color: var(--text-2);
+    font-size: 0.74rem;
+    line-height: 1.45;
+}
+
+.steps {
+    padding-left: 1.1rem;
+}
+
+.health {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+    list-style: none;
+    color: var(--text-2);
+    font-size: 0.7rem;
+}
+
+.health li {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.health li::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--nominal);
+}
+
+.health li[data-state='WARNING']::before {
+    background: var(--solar);
+}
+
+.health li[data-state='FAULT']::before {
+    background: var(--fault);
+}
+
+.healthState {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.06em;
+    color: var(--text-3);
+}
+
+.health li[data-state='FAULT'] .healthState {
+    color: var(--fault);
+}
+
+.health li[data-state='WARNING'] .healthState {
+    color: var(--solar);
+}
+
+/* Labels pinned to the model. */
+.chip {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(5, 10, 16, 0.78);
+    border: 1px solid rgba(34, 211, 238, 0.45);
+    color: var(--text);
+    font-size: 0.72rem;
+    font-weight: 560;
+    white-space: nowrap;
+}
+
+.chipAlert {
+    border-color: rgba(248, 113, 113, 0.7);
+}
+
+.fallback {
+    position: absolute;
+    left: 16px;
+    right: 180px;
+    bottom: 16px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    background: rgba(5, 10, 16, 0.8);
+    color: var(--text-2);
+    font-size: 0.8rem;
+}
+
+.tools {
+    position: absolute;
+    right: 16px;
+    bottom: 16px;
+    display: flex;
+    gap: 8px;
+}
+
+.tool {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid var(--border-strong);
+    background: rgba(5, 10, 16, 0.72);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: var(--text-2);
+    font-size: 0.85rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: color 0.2s var(--ease), border-color 0.2s var(--ease);
+}
+
+.tool:hover {
+    color: var(--text);
+    border-color: rgba(148, 163, 184, 0.4);
+}
+
+.tool[aria-pressed='true'] {
+    color: var(--telemetry);
+}
+
+/* ---------- Controls under the frame ---------- */
+
+.panel {
+    display: grid;
+    gap: 0.75rem;
+    padding: 1rem 1.1rem 1.1rem;
+    border-top: 1px solid var(--border);
+}
+
+.stages {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.4rem;
+}
+
+.stageBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    padding: 0 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-control);
+    background: transparent;
+    color: var(--text-2);
+    font-size: 0.9rem;
+    font-weight: 560;
+    cursor: pointer;
+    transition: color 0.2s var(--ease), background-color 0.2s var(--ease), border-color 0.2s var(--ease);
+}
+
+.stageBtn:hover {
+    color: var(--text);
+    border-color: var(--border-strong);
+}
+
+.stageBtn[aria-pressed='true'] {
+    color: var(--text);
+    background: var(--surface-2);
+    border-color: rgba(34, 211, 238, 0.45);
+}
+
+.stageBtnNum {
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    color: var(--text-3);
+}
+
+.stageBtn[aria-pressed='true'] .stageBtnNum {
+    color: var(--telemetry);
+}
+
+.parts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.partBtn {
+    min-height: 40px;
+    padding: 0 0.95rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-2);
+    font-size: 0.88rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.2s var(--ease), background-color 0.2s var(--ease), border-color 0.2s var(--ease);
+}
+
+.partBtn:hover {
+    color: var(--text);
+    border-color: var(--border-strong);
+}
+
+.partBtn[aria-pressed='true'] {
+    color: var(--text);
+    background: var(--accent-soft);
+    border-color: rgba(34, 211, 238, 0.55);
+}
+
+.explainArea {
+    min-height: 2.75rem;
+}
+
+.explain {
+    padding: 0.6rem 0.8rem;
+    border-left: 2px solid var(--telemetry);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    background: var(--accent-soft);
+    color: var(--text-2);
+    font-size: 0.92rem;
+    line-height: 1.55;
+}
+
+.explain strong {
+    color: var(--text);
+    font-weight: 600;
+}
+
+.explain a {
+    margin-left: 0.35rem;
+    white-space: nowrap;
+}
+
+.hint {
+    padding: 0.6rem 0;
+    color: var(--text-3);
+    font-size: 0.88rem;
+}
+
+.caption {
+    display: grid;
+    gap: 0.45rem;
+    font-size: 0.8rem;
+    line-height: 1.55;
+    color: var(--text-3);
+}
+
+.captionHead {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.75rem;
+    color: var(--text-2);
+}
+
+.assumptions ul {
+    display: grid;
+    gap: 0.5rem;
+    padding-left: 1.1rem;
+    color: var(--text-2);
+    font-size: 0.92rem;
+}
+
+.assumptions p {
+    margin-top: 0.85rem;
+    font-size: 0.88rem;
+    color: var(--text-3);
+}
+
+/* ---------- Tablets and phones ---------- */
+
+@media (max-width: 1024px) {
+    .frame {
+        aspect-ratio: 4 / 3;
+    }
+}
+
+@media (max-width: 640px) {
+    .frame {
+        aspect-ratio: 4 / 5;
+        max-height: none;
+    }
+
+    .stageChip {
+        top: 10px;
+        left: 10px;
+        max-width: calc(100% - 20px);
+        padding: 6px 10px 8px;
+        font-size: 0.74rem;
+    }
+
+    .tools {
+        top: 52px;
+        right: 10px;
+        bottom: auto;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .tool {
+        width: 40px;
+        height: 40px;
+    }
+
+    /* Telemetry becomes one compact strip along the bottom: the four headline readings. */
+    .hudCard {
+        left: 8px;
+        right: 8px;
+        bottom: 8px;
+        width: auto;
+        padding: 8px 10px;
+        font-size: 0.72rem;
+    }
+
+    .hudHead {
+        margin-bottom: 4px;
+    }
+
+    .readings {
+        gap: 1px;
+    }
+
+    .readings > div:nth-child(n + 5) {
+        display: none;
+    }
+
+    .readingNote,
+    .health {
+        display: none;
+    }
+
+    .hudNote {
+        margin-top: 4px;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .stages {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .panel {
+        padding: 0.85rem 0.85rem 1rem;
+    }
+
+    .fallback {
+        right: 8px;
+        left: 8px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .canvas,
+    .tool,
+    .stageBtn,
+    .partBtn {
+        transition: none;
+    }
+}

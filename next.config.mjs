@@ -26,6 +26,9 @@ const nextConfig = {
             // The Research Platform moved to the bottom of the Research Lab.
             { source: "/research-platform", destination: "/research-lab#flagship-research", statusCode: 301 },
             { source: "/research-platform/:path*", destination: "/research-lab#flagship-research", statusCode: 301 },
+            // Satellite Engineering became the Space Station Digital Twin R&D Center (2026-11-14).
+            { source: "/satellite-engineering", destination: "/space-station", statusCode: 301 },
+            { source: "/satellite-engineering/:path*", destination: "/space-station", statusCode: 301 },
             { source: "/policies/refund", destination: "/policies/terms", statusCode: 301 },
             { source: "/policies/delivery", destination: "/policies/terms", statusCode: 301 },
             // Documents republished under neutral filenames (originals in archive/public-originals).

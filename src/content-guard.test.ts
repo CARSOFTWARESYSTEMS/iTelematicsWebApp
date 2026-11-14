@@ -2,7 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { readdirSync, readFileSync, statSync } from 'fs';
 import path from 'path';
 
-// Guards for the content rules of the Satellite Engineering redesign.
+// Guards for the site's content rules: the Satellite Engineering redesign, and since 2026-11-14 the
+// Space Station Digital Twin R&D positioning.
 const SRC = path.resolve(import.meta.dirname);
 
 function allFiles(dir: string): string[] {
@@ -38,7 +39,7 @@ describe('site content rules', () => {
         expect(published.filter((f) => /sudarshan|karkala/i.test(f))).toEqual([]);
     });
 
-    it('positions the company as Satellite Engineering, never as a training provider', () => {
+    it('never says "Satellite Engineering R&D" and never positions the company as a training provider', () => {
         expect(offenders(/Satellite Engineering R&(amp;)?D/i)).toEqual([]);
         expect(offenders(/\btraining\b|intern-driven|learn by doing|engineers in training/i, [EV_ENGINEER_CONTENT])).toEqual([]);
         const llms = readFileSync(path.resolve(SRC, '../public/llms.txt'), 'utf8');
@@ -65,6 +66,35 @@ describe('site content rules', () => {
         expect(offenders(/["'`]\/(about|research-platform)(?=["'`#?/])/)).toEqual([]);
         const llms = readFileSync(path.resolve(SRC, '../public/llms.txt'), 'utf8');
         expect(llms).not.toMatch(/itelematics\.com\/(about|research-platform)\b/);
+    });
+
+    // /satellite-engineering became /space-station (instruction, 2026-11-14) and 301s there. The
+    // analytics rules still match the old path on purpose, so old links keep their event.
+    it('links /space-station, not the retired /satellite-engineering page', () => {
+        expect(offenders(/["'`]\/satellite-engineering(?=["'`#?/])/, [path.join('lib', 'analytics', 'taxonomy.ts')])).toEqual([]);
+        const llms = readFileSync(path.resolve(SRC, '../public/llms.txt'), 'utf8');
+        expect(llms).not.toMatch(/itelematics\.com\/satellite-engineering\b/);
+        expect(llms).toMatch(/itelematics\.com\/space-station\b/);
+    });
+
+    // The Space Station Digital Twin R&D content is country-neutral and names no station programme.
+    it('keeps the space station content country-neutral and free of named programmes', () => {
+        const station = files.filter(({ file }) => file.startsWith(path.join('components', 'station-twin')) || file.startsWith(path.join('lib', 'station-twin')) || file.startsWith(path.join('app', 'space-station')) || file === path.join('lib', 'space-station.ts'));
+        expect(station.length).toBeGreaterThan(5);
+        const named = /\bISS\b|International Space Station|Tiangong|Bharatiya|Gateway|Axiom|Mir\b|Skylab|ISHAVASYAM|Gamyaa|APEX|UFlight|iFab|NASA|ESA\b|ISRO|JAXA|Roscosmos|CNSA|SpaceX|Boeing|Airbus|India|Indian/;
+        expect(station.filter(({ text }) => named.test(text)).map(({ file }) => file)).toEqual([]);
+    });
+
+    it('keeps llms-full.txt to the same content rules as the site', () => {
+        const full = readFileSync(path.resolve(SRC, '../public/llms-full.txt'), 'utf8');
+        expect(full).not.toMatch(/Satellite Engineering R&D|\btraining\b|internship|intern-driven|career-focused/i);
+        expect(full).not.toMatch(/itelematics\.com\/(about|research-platform|satellite-engineering)\b/);
+        expect(full).not.toMatch(PERSONAL_NAME);
+        expect(full).not.toMatch(/\b(NASA|SpaceX|ISRO|JAXA|ESA|ISS)\b|International Space Station/);
+    });
+
+    it('makes no unverified promotional claims', () => {
+        expect(offenders(/world[’']s first|flight[- ]proven|mission[- ]certified|fully autonomous|human[- ]rated/i)).toEqual([]);
     });
 
     it('names no other organisation inside the Space Digital Twin experiences', () => {

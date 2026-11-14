@@ -1,0 +1,149 @@
+/* List-and-detail explorer on /space-station. Site tokens only; follows the viewer's tab style. */
+
+.explorer {
+    display: grid;
+    gap: 1rem;
+    scroll-margin-top: calc(var(--header-h) + 1rem);
+}
+
+@media (min-width: 960px) {
+    .explorer {
+        grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+        gap: 1.5rem;
+        align-items: start;
+    }
+}
+
+.list {
+    display: flex;
+    gap: 0.35rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+    padding-bottom: 0.25rem;
+}
+
+.list::-webkit-scrollbar {
+    display: none;
+}
+
+@media (min-width: 960px) {
+    .list {
+        flex-direction: column;
+        overflow: visible;
+        padding: 0.3rem;
+        border: 1px solid var(--border);
+        border-radius: calc(var(--radius-control) + 4px);
+        background: var(--bg);
+    }
+}
+
+.tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    flex-shrink: 0;
+    min-height: 44px;
+    padding: 0.55rem 1rem;
+    scroll-snap-align: start;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-control);
+    background: transparent;
+    color: var(--text-2);
+    font-size: 0.95rem;
+    font-weight: 540;
+    text-align: left;
+    cursor: pointer;
+    transition: color 0.2s var(--ease), background-color 0.2s var(--ease), border-color 0.2s var(--ease);
+}
+
+@media (min-width: 960px) {
+    .tab {
+        border-color: transparent;
+    }
+}
+
+.tab:hover {
+    color: var(--text);
+}
+
+.tab[aria-selected='true'] {
+    color: var(--text);
+    background: var(--surface-2);
+    border-color: rgba(34, 211, 238, 0.45);
+}
+
+.num,
+.titleNum {
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: var(--text-3);
+}
+
+.tab[aria-selected='true'] .num {
+    color: var(--telemetry);
+}
+
+.panel {
+    padding: clamp(1.25rem, 1rem + 1vw, 2rem);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    background: var(--surface);
+}
+
+.panel:focus-visible {
+    outline-offset: 4px;
+}
+
+.title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.4rem 0.75rem;
+    font-size: clamp(1.25rem, 1.1rem + 0.6vw, 1.6rem);
+}
+
+.titleNum {
+    color: var(--telemetry);
+}
+
+.fields {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1.25rem;
+}
+
+@media (min-width: 720px) {
+    .fields {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1.25rem 2rem;
+    }
+}
+
+.fields > div {
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+}
+
+.fields dt {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-3);
+}
+
+.fields dd {
+    margin-top: 0.4rem;
+    color: var(--text-2);
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tab {
+        transition: none;
+    }
+}

@@ -7,14 +7,15 @@ import OrbitInstrument from '@/components/site/OrbitInstrument';
 import PosterDialog from '@/components/site/PosterDialog';
 import Satellite3D from '@/components/site/Satellite3D';
 import SpaceTwinSection from '@/components/space-twin/SpaceTwinSection';
+import StationHero from '@/components/station-twin/StationHero';
 import { EcosystemList } from '@/components/site/blocks';
 import { RESEARCH_THEMES } from '@/lib/research-lab';
-import { FLAGSHIP, JOIN_HREF, RESOURCES, SITE } from '@/lib/site';
+import { FLAGSHIP, JOIN_HREF, RESOURCES, SITE, STATION_IMAGE } from '@/lib/site';
 
 export default function Home() {
     return (
         <>
-            <JsonLd data={pageSchema({ path: '/', name: 'iTelematics® | Satellite Engineering & Research Lab', description: SITE.description })} />
+            <JsonLd data={pageSchema({ path: '/', name: SITE.title, description: SITE.description, image: STATION_IMAGE })} />
             <PosterDialog
                 id="gamyaa-digital-twin"
                 src="/images/gamyaa-digital-twin-research.webp"
@@ -32,26 +33,27 @@ export default function Home() {
             {/* 1 — Hero */}
             <section className={styles.hero} data-analytics-section="hero">
                 <div className={`container ${styles.heroGrid}`}>
-                    <div className={styles.heroCopy}>
-                        <p className="eyebrow">{SITE.legalName}</p>
-                        <h1 className={styles.display}>Satellite Engineering</h1>
+                    <div className={`${styles.heroCopy} ${styles.heroCopyFit}`}>
+                        <p className="eyebrow">{SITE.name} · Space Research</p>
+                        <h1 className={`${styles.display} ${styles.displayTwoLine}`}>
+                            <span>Space Station</span> <span>Digital Twin R&amp;D</span>
+                        </h1>
+                        <p className={styles.heroStatement}>Engineering the Intelligence Behind Future Space Stations.</p>
                         <p className={`lead ${styles.heroLead}`}>
-                            Practical satellite engineering research, digital twin development and collaborative R&amp;D addressing real industry challenges.
+                            Research and develop physics-based digital twins, energy systems intelligence, integrated health monitoring and
+                            engineering assurance technologies for future orbital infrastructure.
                         </p>
                         <div className="actions hero-actions">
-                            <Link href="/research-lab#flagship-research" className="btn btn-primary">Explore Research</Link>
-                            <Link href={JOIN_HREF} className="btn btn-secondary" data-track="join_rnd_click">Discuss Research</Link>
+                            <Link href="/space-station" className="btn btn-primary">Explore Space Station R&amp;D</Link>
+                            <Link href="/research-lab" className="btn btn-secondary">Explore Research Lab</Link>
                         </div>
                     </div>
                     <div className={styles.heroVisual}>
-                        <Satellite3D
-                            variant="hero"
-                            label="Illustrative 6U satellite with deployed solar arrays, alternating between sunlight and eclipse"
-                        />
+                        <StationHero label="Illustrative conceptual space station in low Earth orbit, with solar wings, truss, radiators and pressurised modules, passing between sunlight and eclipse" />
                     </div>
                     <div className={styles.heroMeta}>
                         <p className="mono">Solar · EPS · Battery · Sensors · Telemetry · Health</p>
-                        <Link href="/research-lab" className="text-link">Satellite Engineering Research Lab →</Link>
+                        <Link href="/research-lab" className="text-link">Space Station Digital Twin Research Lab →</Link>
                     </div>
                 </div>
             </section>
@@ -61,7 +63,10 @@ export default function Home() {
                 <div className="container">
                     <div className="section-head center" data-reveal>
                         <h2>Can the satellite complete its mission safely?</h2>
-                        <p className="lead">Everything begins with energy, sensing and reliable telemetry.</p>
+                        <p className="lead">
+                            Everything begins with energy, sensing and reliable telemetry. Understanding spacecraft energy and health is an
+                            essential foundation for integrated orbital infrastructure research.
+                        </p>
                     </div>
                     <div data-reveal>
                         <ArchitectureLine />
@@ -78,7 +83,10 @@ export default function Home() {
                     <div className="section-head" data-reveal>
                         <p className="eyebrow">Flagship research</p>
                         <h2>{FLAGSHIP}</h2>
-                        <p className="lead">Model how spacecraft generate, store, consume and report energy throughout a mission.</p>
+                        <p className="lead">
+                            Model how spacecraft generate, store, consume and report energy throughout a mission. Foundational spacecraft
+                            energy research supporting the development of future station power and health intelligence.
+                        </p>
                     </div>
                     <OrbitInstrument idPrefix="home-orbit" />
                     <div className="actions hero-actions">
@@ -113,10 +121,10 @@ export default function Home() {
             <section className="section section-alt" data-analytics-section="internship-cta">
                 <div className={`container ${styles.split}`}>
                     <div data-reveal>
-                        <h2>Satellite Engineering Research Lab</h2>
+                        <h2>Space Station Digital Twin Research Lab</h2>
                         <p className="lead">
-                            Practical research inspired by startup ideas, industry requirements and real engineering problems
-                            in the space sector.
+                            Scientific research, mathematical modelling, physics simulation, engineering prototypes, telemetry and health
+                            monitoring, experimentation and verification evidence, inspired by startup ideas and real industry requirements.
                         </p>
                         <div className="actions hero-actions">
                             <Link href="/research-lab" className="btn btn-primary">Explore Research Lab</Link>
@@ -146,11 +154,11 @@ export default function Home() {
                     <EcosystemList compact />
 
                     <div className={styles.final} data-reveal>
-                        <h2>Start a Satellite Engineering discussion.</h2>
+                        <h2>Collaborate on Space Station Digital Twin Research.</h2>
                         <p className="lead">Research, engineering projects, technical reviews, collaboration or consultancy.</p>
                         <div className="actions hero-actions">
-                            <Link href="/contact" className="btn btn-primary">Start a Discussion</Link>
-                            <Link href="/satellite-engineering" className="btn btn-secondary">Explore Satellite Engineering</Link>
+                            <Link href={JOIN_HREF} className="btn btn-primary" data-track="join_rnd_click">Discuss Research</Link>
+                            <Link href="/space-station" className="btn btn-secondary">Explore Space Station R&amp;D</Link>
                         </div>
                     </div>
                 </div>

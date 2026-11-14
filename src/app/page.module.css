@@ -61,6 +61,37 @@
     color: var(--text-2);
 }
 
+/* Hero heading on two lines, "Space Station" / "Digital Twin R&D": each line stays whole. The
+   display size is kept on phones and tablets; in the two-column desktop layout it is capped so the
+   longer line (7.39 em) fits the copy column (13.4 % of its width), about 72 px at most. */
+.heroCopyFit {
+    container-type: inline-size;
+}
+
+.displayTwoLine {
+    font-size: min(clamp(2.6rem, 1.4rem + 4.4vw, 5rem), 13.4cqi);
+}
+
+.displayTwoLine > span {
+    display: block;
+    white-space: nowrap;
+}
+
+/* Supporting statement under the hero heading (Space Station Digital Twin R&D). */
+.heroStatement {
+    margin-top: 1.5rem;
+    max-width: 32rem;
+    font-size: clamp(1.2rem, 1.05rem + 0.6vw, 1.55rem);
+    font-weight: 560;
+    line-height: 1.35;
+    letter-spacing: -0.01em;
+    color: var(--text);
+}
+
+.heroStatement + .heroLead {
+    margin-top: 1rem;
+}
+
 .heroMeta {
     display: grid;
     gap: 0.35rem;

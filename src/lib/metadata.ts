@@ -1,11 +1,19 @@
 import type { Metadata } from 'next';
 import { SITE } from '@/lib/site';
 
-const OG_IMAGE = {
-    url: '/opengraph-image',
+type ShareImage = { url: string; width: number; height: number; alt: string; type?: string };
+
+/**
+ * The site-wide share card: the homepage hero space station with the site title. A static JPEG
+ * (about 160 KB) rather than a generated PNG (about 540 KB), so link previews also appear in
+ * apps with small image limits such as WhatsApp.
+ */
+export const OG_IMAGE: ShareImage = {
+    url: '/images/og/itelematics-space-station.jpg',
     width: 1200,
     height: 630,
-    alt: 'iTelematics®: Satellite Engineering and Research Lab',
+    type: 'image/jpeg',
+    alt: 'iTelematics® - Space Station Digital Twin Research & Development: a conceptual research space station in orbit above the Earth',
 };
 
 /**
@@ -24,7 +32,7 @@ export function pageMetadata({
     title: string;
     description: string;
     absoluteTitle?: boolean;
-    image?: typeof OG_IMAGE;
+    image?: ShareImage;
 }): Metadata {
     const shareTitle = absoluteTitle ? title : `${title} | ${SITE.name}`;
     return {

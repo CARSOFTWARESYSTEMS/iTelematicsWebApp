@@ -8,15 +8,16 @@ import { PageHero } from '@/components/site/blocks';
 import { SITE } from '@/lib/site';
 
 const PATH = '/contact';
-const TITLE = 'Start a Satellite Engineering Discussion';
+const TITLE = 'Discuss Space Station Research & Development';
 const DESCRIPTION =
-    'Contact iTelematics® about the Satellite Engineering Research Lab, research or academic collaboration, technical reviews, industry projects, consultancy or investment.';
+    'Contact iTelematics® about Space Station Digital Twin R&D, the Research Lab, research collaboration, technical reviews, industry projects, consultancy or investment.';
 
 export const metadata: Metadata = pageMetadata({ path: PATH, title: TITLE, description: DESCRIPTION });
 
 const DISCUSS = [
+    'Space Station Digital Twin R&D',
     'Research Collaboration',
-    'Satellite Engineering Research Lab',
+    'Space Station Digital Twin Research Lab',
     'Academic Collaboration',
     'Industry R&D',
     'Technical Review',
@@ -29,7 +30,7 @@ export default function ContactPage() {
         <>
             <JsonLd data={pageSchema({ path: PATH, name: TITLE, description: DESCRIPTION, type: 'ContactPage', breadcrumbs: [{ name: 'Contact', path: PATH }] })} />
             <PageHero
-                title="Start a Satellite Engineering Discussion"
+                title="Discuss Space Station Research & Development"
                 lead="Research, engineering projects, technical reviews, collaboration or consultancy."
                 breadcrumbs={[{ name: 'Contact', path: PATH }]}
                 visual={<SignalWave />}

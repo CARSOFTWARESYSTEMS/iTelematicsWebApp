@@ -18,6 +18,10 @@ export const CLICK_EVENTS = [
     'join_rnd_click',
     'mobile_navigation_use',
     'login_click',
+    // Space Station Digital Twin R&D (2026-11-14)
+    'space_station_click',
+    'station_model_interaction',
+    'station_explorer_select',
     // EV.ENGINEER™ page (/ev-engineer): tagged explicitly with data-track on each CTA
     'ev_engineer_research_click',
     'ev_engineer_space_click',
@@ -33,7 +37,7 @@ export const CLICK_EVENTS = [
     'ev_engineer_external_click',
 ] as const;
 
-export const VIEW_EVENTS = ['research_platform_view', 'internship_view'] as const;
+export const VIEW_EVENTS = ['research_platform_view', 'internship_view', 'space_station_view', 'station_model_view'] as const;
 
 export type ClickEvent = (typeof CLICK_EVENTS)[number];
 export type ViewEvent = (typeof VIEW_EVENTS)[number];
@@ -187,6 +191,8 @@ const LINK_RULES: LinkRule[] = [
         type: 'resource',
         match: (d) => d.host === 'aerospace.ev.engineer' && under(d.path, '/space/satellite-engineering'),
     },
+    // The flagship Space Station R&D page. The retired /satellite-engineering path 301s there but keeps its own event.
+    { event: 'space_station_click', match: (d) => d.internal && under(d.path, '/space-station') },
     { event: 'satellite_engineering_click', match: (d) => d.internal && under(d.path, '/satellite-engineering') },
     {
         event: 'partner_click',
@@ -201,6 +207,7 @@ const LINK_RULES: LinkRule[] = [
 const ROUTE_VIEWS: [string, ViewEvent][] = [
     // The Research Lab keeps the internship_view event name, so reports stay continuous.
     ['/research-lab', 'internship_view'],
+    ['/space-station', 'space_station_view'],
 ];
 
 export function routeViewEvent(pathname: string): ViewEvent | null {

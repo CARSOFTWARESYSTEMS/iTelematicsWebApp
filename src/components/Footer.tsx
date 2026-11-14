@@ -10,13 +10,13 @@ export default function Footer() {
             <div className={styles.inner}>
                 <div className={styles.brand}>
                     <p className={styles.brandName}>iTelematics®</p>
-                    <p className={styles.brandLine}>Satellite Engineering</p>
+                    <p className={styles.brandLine}>Space Station R&amp;D</p>
                 </div>
 
                 <nav aria-label="Research" className={styles.column}>
                     <p className={styles.heading}>Research</p>
                     <ul>
-                        <li><Link href="/satellite-engineering">Satellite Engineering</Link></li>
+                        <li><Link href="/space-station">Space Station</Link></li>
                         <li><ExternalLink href={RESOURCES.interactive3d.href}>Interactive 3D</ExternalLink></li>
                         <li><Link href="/research-lab">Research Lab</Link></li>
                     </ul>

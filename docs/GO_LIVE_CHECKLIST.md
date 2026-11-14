@@ -27,7 +27,7 @@ GA4 → Admin → Data streams → Web → Enhanced measurement:
   `destination_type`, `device_category`, `enquiry_type`.
 - [ ] Mark key events: `contact_submit`, `internship_apply_click`, `research_collaboration_click`, `join_rnd_click`.
 
-Then verify in DebugView: navigate `/ → /satellite-engineering → /contact` and confirm exactly **one**
+Then verify in DebugView: navigate `/ → /space-station → /contact` and confirm exactly **one**
 `page_view` per page, with no query strings in the page location. (Local testing on 2026-10-20, with the
 history setting still on, showed a duplicate `page_view` for every in-app navigation.)
 
@@ -40,10 +40,10 @@ history setting still on, showed a duplicate `page_view` for every in-app naviga
 | Consent: Decline → no gtag, no hits (also after reload) | ☐ | ☐ | ☐ | ☐ |
 | Mobile navigation opens, links work, menu closes | — | — | ☐ | ☐ |
 | Consultancy menu (click and keyboard) | ☐ | ☐ | ☐ | ☐ |
-| Explore Satellite Engineering → `satellite_engineering_click` | ☐ | ☐ | ☐ | ☐ |
+| Explore Space Station R&D → `satellite_engineering_click`; `/satellite-engineering` 301s to `/space-station` | ☐ | ☐ | ☐ | ☐ |
 | Explore Interactive 3D → `interactive_3d_click` | ☐ | ☐ | ☐ | ☐ |
 | Discuss Research (Research Lab) → `internship_apply_click` | ☐ | ☐ | ☐ | ☐ |
-| Join Satellite Engineering → `/contact?enquiry=research`, Research Collaboration preselected, `join_rnd_click` | ☐ | ☐ | ☐ | ☐ |
+| Join Space Station R&D → `/contact?enquiry=research`, Research Collaboration preselected, `join_rnd_click` | ☐ | ☐ | ☐ | ☐ |
 | Partner outbound links → `partner_click` | ☐ | ☐ | ☐ | ☐ |
 | Contact form opens an email draft | ☐ | ☐ | ☐ | ☐ |
 

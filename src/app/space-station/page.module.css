@@ -1,0 +1,439 @@
+/* /space-station: layout only, from the site's existing tokens, type scale and card language. */
+
+.heroText {
+    margin-top: 1rem;
+    max-width: var(--measure);
+    color: var(--text-2);
+}
+
+.identity {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 1.75rem;
+}
+
+.identity li {
+    padding: 0.3rem 0.65rem;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    font-size: 0.82rem;
+    color: var(--text-2);
+}
+
+/* ---------- On this page ---------- */
+
+.onPage {
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+}
+
+.onPage ul {
+    list-style: none;
+    display: flex;
+    gap: 0.25rem 1.5rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 0.85rem 0;
+}
+
+.onPage ul::-webkit-scrollbar {
+    display: none;
+}
+
+.onPage a {
+    display: inline-block;
+    padding: 0.35rem 0;
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--text-3);
+    transition: color 0.2s var(--ease);
+}
+
+.onPage a:hover {
+    color: var(--text);
+}
+
+/* ---------- Grids and cards ---------- */
+
+.grid4,
+.grid3,
+.experiments {
+    list-style: none;
+    display: grid;
+    gap: 1rem;
+}
+
+@media (min-width: 720px) {
+    .grid4,
+    .grid3 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1100px) {
+    .grid4 {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .grid3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    padding: clamp(1.25rem, 1rem + 0.8vw, 1.75rem);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    background: var(--surface);
+}
+
+.card h3 {
+    font-size: clamp(1.1rem, 1rem + 0.4vw, 1.3rem);
+}
+
+.card > p {
+    margin-top: 0.6rem;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.card h3 + p {
+    margin-top: 0.6rem;
+}
+
+.badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+}
+
+.cardLink {
+    margin-top: auto;
+    padding-top: 1rem;
+}
+
+.fieldLabel {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--telemetry);
+}
+
+.card > .fieldLabel {
+    margin: 0 0 0.5rem;
+}
+
+.note {
+    margin-top: 1.75rem;
+    max-width: var(--measure);
+    font-size: 0.92rem;
+    color: var(--text-3);
+}
+
+.subhead {
+    margin-top: clamp(3.5rem, 2.5rem + 3vw, 5.5rem);
+}
+
+/* ---------- Terms ---------- */
+
+.terms {
+    margin-top: clamp(2.5rem, 2rem + 2vw, 3.5rem);
+}
+
+.terms dl {
+    display: grid;
+    gap: 1rem 2rem;
+    margin-top: 1rem;
+}
+
+@media (min-width: 720px) {
+    .terms dl {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1100px) {
+    .terms dl {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+.terms dl > div {
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border-strong);
+}
+
+.terms dt {
+    font-weight: 600;
+    color: var(--text);
+}
+
+.terms dd {
+    margin-top: 0.35rem;
+    font-size: 0.92rem;
+    color: var(--text-2);
+}
+
+/* ---------- Vision and mission ---------- */
+
+.vm {
+    display: grid;
+    gap: clamp(2rem, 1.5rem + 2vw, 3rem);
+}
+
+@media (min-width: 960px) {
+    .vm {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: clamp(3rem, 2rem + 3vw, 5rem);
+    }
+}
+
+.statement {
+    font-size: clamp(1.25rem, 1.05rem + 0.8vw, 1.65rem);
+    line-height: 1.45;
+    letter-spacing: -0.01em;
+    color: var(--text);
+}
+
+/* ---------- Goals ---------- */
+
+.goals {
+    list-style: none;
+    display: grid;
+    gap: 1.5rem 3rem;
+}
+
+@media (min-width: 900px) {
+    .goals {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.goals li {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 1rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--border-strong);
+}
+
+.goals h3 {
+    font-size: clamp(1.05rem, 1rem + 0.3vw, 1.2rem);
+}
+
+.goals p {
+    margin-top: 0.5rem;
+    font-size: 0.95rem;
+}
+
+.goals .fieldLabel {
+    margin-right: 0.35rem;
+}
+
+.index {
+    font-size: clamp(1.6rem, 1.3rem + 1.2vw, 2.25rem);
+    font-weight: 300;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    color: var(--text-3);
+}
+
+/* ---------- Timelines ---------- */
+
+.timeline,
+.roadmap {
+    list-style: none;
+    display: grid;
+    gap: 1.25rem;
+}
+
+@media (min-width: 900px) {
+    .timeline {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+
+    .roadmap {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+.timeline li,
+.roadmap li {
+    padding-top: 1rem;
+    border-top: 2px solid var(--border-strong);
+}
+
+.timeline li > p:last-child,
+.roadmap li > p:last-child {
+    margin-top: 0.6rem;
+    font-size: 0.92rem;
+    line-height: 1.6;
+}
+
+.year {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    letter-spacing: 0.04em;
+    color: var(--telemetry);
+}
+
+.roadmap h3 {
+    margin-top: 0.5rem;
+    font-size: clamp(1.15rem, 1rem + 0.5vw, 1.4rem);
+}
+
+/* ---------- Curriculum domains ---------- */
+
+.domains {
+    display: grid;
+    margin-top: clamp(2.5rem, 2rem + 2vw, 3.5rem);
+    column-gap: 3rem;
+}
+
+@media (min-width: 960px) {
+    .domains {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    /* Two columns of disclosures: each column keeps its own top and bottom rule. */
+    .domains :global(.disclosure:nth-last-child(2)) {
+        border-bottom: 1px solid var(--border);
+    }
+}
+
+.domainNum {
+    margin-right: 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    font-weight: 500;
+    color: var(--text-3);
+}
+
+.fields {
+    display: grid;
+    gap: 0.9rem;
+}
+
+.fields > div {
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--border);
+}
+
+.fields dt {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-3);
+}
+
+.fields dd {
+    margin-top: 0.3rem;
+    font-size: 0.93rem;
+    line-height: 1.6;
+    color: var(--text-2);
+}
+
+.card .fields {
+    margin-top: 1rem;
+}
+
+/* ---------- Research directions ---------- */
+
+.directions {
+    margin-top: clamp(2.5rem, 2rem + 2vw, 3.5rem);
+}
+
+.directions ul {
+    list-style: none;
+    display: grid;
+    gap: 1rem 2rem;
+    margin-top: 1rem;
+}
+
+@media (min-width: 900px) {
+    .directions ul {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+.directions li {
+    padding-top: 0.85rem;
+    border-top: 1px solid var(--border-strong);
+}
+
+.directions h3 {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.05rem;
+}
+
+.directions li p {
+    margin-top: 0.4rem;
+    font-size: 0.92rem;
+}
+
+/* ---------- Deliverables ---------- */
+
+.tableWrap {
+    margin-top: clamp(2rem, 1.5rem + 2vw, 3rem);
+    overflow-x: auto;
+}
+
+.tableWrap table {
+    min-width: 640px;
+}
+
+/* ---------- Flagship research ---------- */
+
+.question {
+    margin-top: 1.25rem;
+    max-width: 52ch;
+    font-size: clamp(1.15rem, 1rem + 0.7vw, 1.5rem);
+    line-height: 1.5;
+    color: var(--text);
+}
+
+@media (min-width: 900px) {
+    .experiments {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .experiments > li:last-child:nth-child(odd) {
+        grid-column: 1 / -1;
+    }
+}
+
+/* ---------- FAQ ---------- */
+
+.faq {
+    max-width: var(--article);
+}
+
+.faq :global(.disclosure) p {
+    max-width: 68ch;
+    font-size: 0.98rem;
+    line-height: 1.65;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .onPage a {
+        transition: none;
+    }
+}

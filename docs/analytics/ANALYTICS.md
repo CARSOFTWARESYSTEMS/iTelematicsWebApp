@@ -35,7 +35,7 @@ Visitors can change their choice with **Analytics preferences** in the footer.
 | Event | Fires when | How it's detected |
 |---|---|---|
 | `page_view` | Each distinct path, including App Router (SPA) navigations | `usePathname()` in `<Analytics />`; de-duplicated per path |
-| `satellite_engineering_click` | Link to `aerospace.ev.engineer/space/satellite-engineering…` or internal `/satellite-engineering…` | Destination rule |
+| `satellite_engineering_click` | Link to `aerospace.ev.engineer/space/satellite-engineering…` (the external Satellite Engineering resource) or the retired internal `/satellite-engineering…` (301s to `/space-station`). Internal `/space-station` links report `space_station_click` since 2026-11-14 | Destination rule |
 | `interactive_3d_click` | Link to `…/space/satellite-engineering/interactive-3d` | Destination rule (checked first) |
 | `research_platform_view` | A `data-track-view="research_platform_view"` section scrolling into view: the homepage flagship section and the flagship research on `/research-lab` (the `/research-platform` page was retired on 2026-11-14) | IntersectionObserver |
 | `internship_view` | Landing on `/research-lab…` (the former `/internships`; the event keeps its name), or a `data-track-view="internship_view"` section | Route map / IntersectionObserver |
@@ -44,7 +44,12 @@ Visitors can change their choice with **Analytics preferences** in the footer.
 | `consultancy_click` | Any link inside the Consultancy & Services menu, or to internal `/consultancy…` | `data-track-fallback` / destination rule |
 | `partner_click` | Link to Gamyaa AeroSystems, APEX (official site and ecosystem page), UFlight™, iFab, EV Society, `autonomous.ev.engineer`, `ev.engineer`, or `/ev-engineer` | Destination rule |
 | `contact_submit` | A validated enquiry was handed to the visitor's email app: the form opened a `mailto:` draft to info@iTelematics.com. It measures intent, not delivery; the website cannot see whether the email was sent. Count actual enquiries in the mailbox. Invalid forms never fire it. | `ContactForm` |
-| `join_rnd_click` | The Join Satellite Engineering / Discuss Research CTAs (event name unchanged) | `data-track="join_rnd_click"` |
+| `join_rnd_click` | The Join Space Station R&D / Discuss Research CTAs (event name unchanged) | `data-track="join_rnd_click"` |
+| `space_station_click` | Internal link to `/space-station…` from any page (hero, nav, footer, CTAs), plus any link on `/space-station` that no other event claims (on-page navigation, "See it", Explore Research Lab) | Destination rule; `data-track-fallback` on `/space-station` |
+| `station_model_interaction` | The `/space-station` station model: stage buttons (`Stage: Recovery`), subsystem buttons (`Subsystem: Solar power channels`), a part picked in the 3D scene (`Subsystem (3D): …`, sent by the viewer), Subsystem details link, play/pause/reset/replay (`Control: …`); and the homepage hero station's pause/play (`Hero animation: pause`) | `data-track`, `cta_name` from `data-track-name` |
+| `station_explorer_select` | A system or competency pathway chosen in the `/space-station` explorers, by click or keyboard (`Space station systems: Thermal Control`) | `data-track` on clicks; sent by the explorer on arrow keys |
+| `space_station_view` | Landing on `/space-station` | Route view event |
+| `station_model_view` | The station model section scrolling into view on `/space-station` | `data-track-view` |
 | `mobile_navigation_use` | Mobile menu opened, or a mobile-menu link tapped that no other event claims | `Navbar` / `data-track-fallback` |
 | `login_click` | Header Login (desktop and mobile bar), to login.itelematics.com or, on ev.engineer, login.autonomous.ev.engineer | `data-track="login_click"` |
 
@@ -98,12 +103,13 @@ partners and consultancy. Explicit `data-track` is used only where the URL doesn
 
 | CTA | Event | Where |
 |---|---|---|
-| Join Satellite Engineering (header and mobile menu) / Discuss Research (home hero) → `/contact?enquiry=research` (Research Collaboration preselected, changeable) | `join_rnd_click` | Header desktop + mobile, home hero |
+| Join Space Station R&D (header and mobile menu) / Discuss Research (homepage closing section) → `/contact?enquiry=research` (Research Collaboration preselected, changeable) | `join_rnd_click` | Header desktop + mobile, home hero |
 | Discuss Research (Research Lab) | `internship_apply_click` | Home, Research Lab |
-| Discuss R&D / Research Collaboration | `research_collaboration_click` | Home, Satellite Engineering, Research Lab (flagship research) |
+| Discuss R&D / Research Collaboration | `research_collaboration_click` | Space Station (hero, collaboration), Research Lab (flagship research) |
 | Discuss Industry Collaboration | `research_collaboration_click` | Partners |
 | Discuss Consultancy | `consultancy_click` (section fallback) | Consultancy & Services page |
-| Explore Satellite Engineering (internal or course) | `satellite_engineering_click` | Hero, signposts, resource cards, CTA bands |
+| Explore Space Station R&D, nav Space Station, footer Space Station | `space_station_click` | Home hero, homepage closing section, header, footer, 404 |
+| Explore complete Satellite Engineering (external course) | `satellite_engineering_click` | Homepage interactive-satellite section |
 | Explore Interactive 3D | `interactive_3d_click` | Signposts, resource cards, footer |
 | Ecosystem links | `partner_click` | Home (compact), Partners (list and ecosystem map) |
 | EV.ENGINEER™ and Prerequisites (autonomous.ev.engineer/internships) | `partner_click` (destination rule) | Research Lab hero and closing CTA |
@@ -161,7 +167,7 @@ Build these as GA4 **Explore → Funnel exploration** reports (open funnel, step
 
 | Journey | Step 1 | Step 2 | Step 3 |
 |---|---|---|---|
-| Home → Satellite Engineering → Research Lab | `page_view` path = `/` | `satellite_engineering_click` | `internship_view` or `internship_apply_click` |
+| Home → Space Station → Research Lab | `page_view` path = `/` | `space_station_click`, then `space_station_view` | `internship_view` or `internship_apply_click` |
 | Home → Satellite Engineering → Interactive 3D | `page_view` path = `/` | `satellite_engineering_click` | `interactive_3d_click` |
 | Home → Flagship research → Collaboration | `page_view` path = `/` | `research_platform_view` | `research_collaboration_click` |
 | Home → Ecosystem → Partner | `page_view` path = `/` | `page_view` path = `/partners` | `partner_click` |

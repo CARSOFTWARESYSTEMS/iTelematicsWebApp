@@ -58,6 +58,76 @@
     color: var(--text-3);
 }
 
+/* ---------- Station R&D programmes and participation ---------- */
+
+.programs {
+    list-style: none;
+    display: grid;
+    gap: 1rem;
+}
+
+@media (min-width: 720px) {
+    .programs {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1100px) {
+    .programs {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+.program {
+    padding: clamp(1.25rem, 1rem + 0.8vw, 1.75rem);
+}
+
+.program h3 {
+    margin-top: 1rem;
+    font-size: clamp(1.1rem, 1rem + 0.4vw, 1.3rem);
+}
+
+.program p {
+    margin-top: 0.6rem;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.participation {
+    display: grid;
+    gap: 1.25rem 3rem;
+}
+
+@media (min-width: 900px) {
+    .participation {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+.participation > div {
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-strong);
+}
+
+.participation dt {
+    font-weight: 600;
+    color: var(--text);
+}
+
+.participation dd {
+    margin-top: 0.45rem;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--text-2);
+}
+
+.context {
+    margin-top: 1rem;
+    max-width: var(--measure);
+    font-size: 0.95rem;
+    color: var(--text-3);
+}
+
 /* ---------- Flagship research (formerly /research-platform) ---------- */
 
 .flagship {

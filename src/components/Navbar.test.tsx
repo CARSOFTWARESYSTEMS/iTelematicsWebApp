@@ -10,7 +10,7 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('@/lib/analytics/client', () => ({ track: vi.fn() }));
 
-const PRIMARY = ['Satellite Engineering', 'Research Lab', 'Ecosystem'];
+const PRIMARY = ['Space Station', 'Research Lab', 'Ecosystem'];
 
 describe('Navbar', () => {
     beforeEach(() => {
@@ -18,24 +18,25 @@ describe('Navbar', () => {
         vi.mocked(track).mockClear();
     });
 
-    it('shows the primary destinations, Contact and the Join Satellite Engineering CTA', () => {
+    it('shows the primary destinations, Contact and the Join Space Station R&D CTA', () => {
         render(<Navbar />);
         const nav = screen.getByRole('navigation', { name: 'Main' });
         for (const name of PRIMARY) {
             expect(within(nav).getAllByRole('link', { name: new RegExp(`^${name}$`) }).length).toBeGreaterThan(0);
         }
+        expect(within(nav).getAllByRole('link', { name: /^Space Station$/ })[0]).toHaveAttribute('href', '/space-station');
         expect(within(nav).getByRole('button', { name: /^Consultancy/ })).toBeInTheDocument();
         expect(within(nav).getByRole('link', { name: 'Contact' })).toHaveAttribute('href', '/contact');
-        const cta = within(nav).getByRole('link', { name: 'Join Satellite Engineering' });
+        const cta = within(nav).getByRole('link', { name: 'Join Space Station R&D' });
         expect(cta).toHaveAttribute('data-track', 'join_rnd_click');
         expect(cta).toHaveAttribute('href', '/contact?enquiry=research');
     });
 
-    it('labels the logo "Satellite Engineering"', () => {
+    it('labels the logo "Space Station R&D"', () => {
         render(<Navbar />);
         const logo = screen.getByRole('link', { name: 'iTelematics® home' });
-        expect(logo).toHaveTextContent('iTelematics®Satellite Engineering');
-        expect(logo.textContent).not.toMatch(/R&D/);
+        expect(logo).toHaveTextContent('iTelematics®Space Station R&D');
+        expect(logo.textContent).not.toMatch(/Satellite Engineering/);
     });
 
     it('offers Login on each host’s sign-in service, tracked, in the desktop bar and the mobile bar', () => {
@@ -102,7 +103,7 @@ describe('Navbar', () => {
         const menu = document.getElementById('mobile-menu') as HTMLElement;
         expect(menu).not.toHaveAttribute('hidden');
         expect(within(menu).getByRole('link', { name: 'Contact' })).toBeInTheDocument();
-        expect(within(menu).getByRole('link', { name: 'Join Satellite Engineering' })).toHaveAttribute('data-track', 'join_rnd_click');
+        expect(within(menu).getByRole('link', { name: 'Join Space Station R&D' })).toHaveAttribute('data-track', 'join_rnd_click');
 
         const accordion = within(menu).getByRole('button', { name: /^Consultancy/ });
         fireEvent.click(accordion);

@@ -1,0 +1,67 @@
+# iTelematics® — Space Station Digital Twin Research & Development (full summary)
+
+This file is a factual summary of https://itelematics.com for AI assistants and search engines. Quote it as it stands; where it says "planned", "proposed" or "concept", the work does not yet exist.
+
+## Organisation
+
+- Legal name: iTelematics Software Private Limited. Brand: iTelematics®. Bangalore (Bhoganahalli, 560103), India.
+- Positioning: Space Station Digital Twin R&D Center. Tagline: "Engineering the Intelligence Behind Future Space Stations."
+- Research identity: Physics-Based Modelling · Digital Twin Engineering · Energy Autonomy · Integrated Health Intelligence · Mission Assurance.
+- Research philosophy: Understand the System. Model the Physics. Investigate the Behaviour. Verify the Evidence.
+- Contact: info@iTelematics.com, +91 91082 06147. The contact page opens an email draft; it does not store enquiries.
+
+## What iTelematics does and does not do
+
+- Does: research and develop physics-based, data-driven digital twin technology for future space stations, starting with station energy and health intelligence; foundational spacecraft energy and telemetry research; engineering consultancy and workshops (see the Consultancy page).
+- Does not: build, launch or operate space stations or spacecraft. Nothing on the site is flight-qualified, human-rated or an operational digital twin. Fault detection shown on the site is a deterministic rule, not trained AI. No quantum advantage is claimed.
+
+## Vision and mission
+
+- Vision (2047): To advance the engineering and operational intelligence of future space stations through trusted digital twins that help make orbital infrastructure safer, more resilient, autonomous and sustainable.
+- Mission: To research, develop and validate physics-based, data-driven and intelligent digital twin technologies for the design, integration, simulation, health monitoring, fault diagnosis, predictive analysis and operational assurance of space-station systems.
+- Proposed milestones (planning targets, not commitments): 2027 reference architecture and verified energy model; 2029 telemetry replay, coupled power–thermal models, benchmarked health monitoring; 2032 multi-subsystem twin validated against laboratory or collaborator data; 2035 station-level health intelligence with external collaborators; 2047 trusted, continuously updated digital twins for orbital infrastructure, contingent on progress.
+
+## Definitions used on the site
+
+- Digital model: a static or manually updated digital representation.
+- Simulation: an engineering model that predicts behaviour under defined assumptions.
+- Digital shadow: a representation updated from measured data, without full two-way synchronisation.
+- Digital twin: a system-specific, appropriately synchronised and validated digital representation with a defined engineering purpose.
+
+## R&D programmes (maturity as it stands)
+
+1. Station Power & Energy Intelligence: active priority (Simulation).
+2. Integrated Station Health Monitoring: active priority (Research).
+3. Integrated Space Station Digital Twin: Concept.
+4. Thermal & Environmental Intelligence: Planned.
+5. Robotics, Docking & Operations: Planned.
+6. Autonomous Systems and Mission Assurance: Planned.
+
+Flagship research: Space Station Energy & Health Intelligence. Research question: "How can a space station maintain reliable power, protect critical systems and anticipate failures throughout long-duration orbital operations?" Defined experiments (not yet run): nominal station energy balance; eclipse power management; solar generation degradation; battery capacity loss; electrical power distribution fault.
+
+## Station Reference Case SRC-1 (conceptual, illustrative parameters, simulated values)
+
+- Circular 400 km orbit, β = 0°: about 92.6 min period, about 36.1 min of eclipse per orbit.
+- Four solar power channels of 40 kW each while sunlit (160 kW), sun-tracking.
+- 180 kWh usable battery storage; 90 % distribution efficiency, 95 % charge efficiency.
+- Loads: 40 kW critical (life support, thermal control, avionics, communications), 16 kW essential, 18 kW deferrable research (74 kW total).
+- Simulated fault: one channel falls to 30 % output. Health rule: residual above 20 % on 5 consecutive 1-minute samples. Response: research loads deferred from 18 to 4 kW; critical loads stay at 100 %.
+- Projected orbit energy margin: +11.3 % nominal, −8.2 % with the degraded channel, +13.3 % after load priority.
+- The 6U CubeSat reference case (Satellite Energy & Telemetry Intelligence) is separate: foundational spacecraft research, not a station model.
+
+## Space station systems covered
+
+Mission architecture and orbital environment; structural modules and station assembly; solar power generation; electrical power distribution; battery energy storage; thermal control; environmental control and life support; avionics and flight computing; communications and ground systems; robotics, docking and station operations; integrated health monitoring and FDIR; safety, reliability and mission assurance. For each, the Space Station page gives purpose, principles, physical models, interfaces, telemetry, dependencies, budgets, research questions and digital twin opportunities. Complete twins do not yet exist for any of them.
+
+## Collaboration
+
+Scientists, engineers, research organisations and technical leaders can propose projects, review models or contribute to experiments through https://itelematics.com/research-lab or https://itelematics.com/contact. Participation does not imply employment, funding, certification or university affiliation. Competency pathways on the site are capability descriptions, not job vacancies.
+
+## Pages
+
+- https://itelematics.com/ — home
+- https://itelematics.com/space-station — Space Station Digital Twin R&D Center (flagship)
+- https://itelematics.com/research-lab — Space Station Digital Twin Research Lab
+- https://itelematics.com/partners — engineering ecosystem
+- https://itelematics.com/consultancy — consultancy and services
+- https://itelematics.com/contact — contact

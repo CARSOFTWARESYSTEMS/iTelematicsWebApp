@@ -9,10 +9,12 @@ export const SITE = {
     name: 'iTelematics®',
     legalName: 'iTelematics Software Private Limited',
     url: 'https://itelematics.com',
-    positioning: 'Satellite Engineering',
-    descriptor: 'Solar · EPS · Battery · Sensors · Telemetry · Spacecraft Health',
+    /** Homepage SEO title (the user's wording, 2026-11-14; ® per the brand rule). */
+    title: 'iTelematics® - Space Station Digital Twin Research & Development',
+    positioning: 'Space Station Digital Twin R&D',
+    descriptor: 'Physics-Based Modelling · Digital Twin Engineering · Energy Autonomy · Integrated Health Intelligence · Mission Assurance',
     description:
-        'Applied Satellite Engineering projects in spacecraft energy, batteries, EPS, sensors, telemetry and health, shaped by startup and industry requirements.',
+        'Space Station Digital Twin R&D: physics-based digital twins, energy intelligence, health monitoring and engineering assurance for future space stations.',
     email: 'info@iTelematics.com',
     hrEmail: 'hr@iTelematics.com',
     phone: '+91 91082 06147',
@@ -30,6 +32,17 @@ export const SITE = {
     gstin: '29AADCI0384D1ZQ',
     msme: 'UDYAM-KR-02-0123269',
     login: 'https://login.itelematics.com',
+} as const;
+
+/**
+ * The space station image used for search and sharing (structured data, sitemap, share cards):
+ * the homepage hero station, rendered from the live 3D scene. 1312 × 1082 JPEG.
+ */
+export const STATION_IMAGE = {
+    path: '/images/station-twin/hero-station-src1.jpg',
+    width: 1312,
+    height: 1082,
+    alt: 'Conceptual modular research space station in low Earth orbit above the Earth, with eight solar array wings, an integrated truss, radiators and pressurised modules',
 } as const;
 
 export const CORE_QUESTION = 'Can the satellite generate, store and manage sufficient energy to safely accomplish its mission?';
@@ -85,6 +98,7 @@ export const CONSULTANCY_GROUPS: NavGroup[] = [
         name: 'Papers & Presentations',
         links: [
             { name: 'IEEE - Battery Intelligence', href: '/research/IEEE conference certificate - Battery Intelligence - secure.pdf', external: true },
+            { name: 'IEEE - AI-Powered Battery Health Prediction and Failure Detection System in Electric Vehicle', href: 'https://ieeexplore.ieee.org/document/11764767', external: true },
             { name: 'PPT - Battery Intelligence v.1', href: '/public/Battery Intelligence v.1.pdf', external: true },
             { name: 'PPT - Battery Pack Aadhaar Services', href: '/documents/battery-pack-aadhaar.pdf', external: true },
         ],
@@ -146,7 +160,7 @@ export const CONSULTANCY_MENU: NavGroup[] = [
 ];
 
 export const PRIMARY_NAV: PrimaryNavItem[] = [
-    { name: 'Satellite Engineering', href: '/satellite-engineering' },
+    { name: 'Space Station', href: '/space-station' },
     { name: 'Research Lab', href: '/research-lab' },
     { name: 'Ecosystem', href: '/partners' },
     {
@@ -159,7 +173,7 @@ export const PRIMARY_NAV: PrimaryNavItem[] = [
 
 export const CONTACT_NAV: NavItem = { name: 'Contact', href: '/contact' };
 
-/** Join Satellite Engineering opens the enquiry form with Research Collaboration preselected; visitors can change it. */
+/** Join Space Station R&D opens the enquiry form with Research Collaboration preselected; visitors can change it. */
 export const JOIN_HREF = '/contact?enquiry=research';
 
 export const RESOURCES = {
@@ -239,7 +253,7 @@ export const ECOSYSTEM: EcosystemOrg[] = [
 /**
  * ev.engineer serves this site with /ev-engineer at its root. On those hosts the header logo reads
  * EV.ENGINEER™ / Energy & Battery and Login goes to the EV.ENGINEER™ sign-in service; everywhere else
- * the header stays iTelematics® / Satellite Engineering with the iTelematics® sign-in.
+ * the header stays iTelematics® / Space Station R&D with the iTelematics® sign-in.
  */
 export const EV_SITE = {
     hosts: ['ev.engineer', 'www.ev.engineer'],
@@ -251,7 +265,7 @@ export const EV_SITE = {
 /** Routes in the active site, used by the sitemap. */
 export const SITE_ROUTES = [
     { path: '/', priority: 1 },
-    { path: '/satellite-engineering', priority: 0.9 },
+    { path: '/space-station', priority: 0.9 },
     { path: '/research-lab', priority: 0.9 },
     { path: '/partners', priority: 0.6 },
     { path: '/consultancy', priority: 0.5 },

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { describeClick, describeDestination, routeViewEvent, sanitizeParams, stripQuery } from './taxonomy';
+import { describeClick, describeDestination, isViewEvent, routeViewEvent, sanitizeParams, stripQuery } from './taxonomy';
 
 const ORIGIN = 'https://itelematics.com';
 
@@ -51,6 +51,26 @@ describe('describeClick destination rules', () => {
     it('classifies Satellite Engineering links, internal or external', () => {
         expect(describeClick(link('https://aerospace.ev.engineer/space/satellite-engineering'), ORIGIN)?.event).toBe('satellite_engineering_click');
         expect(describeClick(link('/satellite-engineering'), ORIGIN)?.event).toBe('satellite_engineering_click');
+    });
+
+    it('classifies links to the Space Station R&D page, and explicit station model controls', () => {
+        expect(describeClick(link('/space-station'), ORIGIN)?.event).toBe('space_station_click');
+        expect(describeClick(link('/space-station#station-model'), ORIGIN)).toMatchObject({
+            event: 'space_station_click',
+            params: { destination: '/space-station#station-model', destination_type: 'internal' },
+        });
+        const stage = document.createElement('button');
+        stage.setAttribute('data-track', 'station_model_interaction');
+        stage.setAttribute('data-track-name', 'Stage: Recovery');
+        const section = document.createElement('section');
+        section.setAttribute('data-analytics-section', 'station-model');
+        section.appendChild(stage);
+        expect(describeClick(stage, ORIGIN)).toMatchObject({
+            event: 'station_model_interaction',
+            params: { section: 'station-model', cta_location: 'station-model', cta_name: 'Stage: Recovery' },
+        });
+        expect(routeViewEvent('/space-station')).toBe('space_station_view');
+        expect(isViewEvent('station_model_view')).toBe(true);
         expect(describeClick(link('https://aerospace.ev.engineer/space/cubesat'), ORIGIN)).toBeNull();
     });
 

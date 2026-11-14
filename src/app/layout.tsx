@@ -6,6 +6,7 @@ import Footer from '@/components/Footer';
 import JsonLd, { organizationSchema, websiteSchema } from '@/components/JsonLd';
 import Analytics from '@/components/analytics/Analytics';
 import Reveal from '@/components/site/Reveal';
+import { OG_IMAGE } from '@/lib/metadata';
 import { EV_SITE, SITE } from '@/lib/site';
 
 const inter = Inter({
@@ -21,7 +22,8 @@ const mono = JetBrains_Mono({
     weight: ['400', '500'],
 });
 
-const DEFAULT_TITLE = 'iTelematics® | Satellite Engineering & Research Lab';
+/** The homepage's SEO title; inner pages use "<title> | iTelematics®". */
+const DEFAULT_TITLE = SITE.title;
 
 export const metadata: Metadata = {
     metadataBase: new URL(SITE.url),
@@ -36,13 +38,21 @@ export const metadata: Metadata = {
         description: SITE.description,
         url: '/',
         locale: 'en',
+        images: [OG_IMAGE],
     },
     twitter: {
         card: 'summary_large_image',
         title: DEFAULT_TITLE,
         description: SITE.description,
+        images: [OG_IMAGE.url],
     },
-    robots: { index: true, follow: true },
+    robots: {
+        index: true,
+        follow: true,
+        // Let search and AI answer surfaces show large image previews and full snippets.
+        googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1, 'max-video-preview': -1 },
+    },
+    category: 'science',
 };
 
 // Marks EV.ENGINEER™ hosts on <html> before first paint, so the header shows the right logo with no

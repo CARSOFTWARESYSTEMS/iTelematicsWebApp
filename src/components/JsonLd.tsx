@@ -1,4 +1,4 @@
-import { SITE } from '@/lib/site';
+import { SITE, STATION_IMAGE } from '@/lib/site';
 
 type Schema = Record<string, unknown>;
 
@@ -13,10 +13,16 @@ export function organizationSchema(): Schema {
         alternateName: SITE.name,
         url: SITE.url,
         logo: `${SITE.url}/iTelematics.png`,
+        image: `${SITE.url}${STATION_IMAGE.path}`,
+        slogan: 'Engineering the Intelligence Behind Future Space Stations.',
         description: SITE.description,
         email: SITE.email,
         telephone: SITE.phone,
         knowsAbout: [
+            'Space station digital twins',
+            'Space station electrical power and energy systems',
+            'Integrated space station health monitoring',
+            'Physics-based modelling and simulation',
             'Satellite Engineering',
             'Spacecraft electrical power systems',
             'Satellite battery state of charge and state of health',
@@ -53,16 +59,33 @@ export function websiteSchema(): Schema {
     };
 }
 
+type PageImage = { path: string; width: number; height: number; alt: string };
+
 type PageSchemaInput = {
     path: string;
     name: string;
     description: string;
     type?: string;
     breadcrumbs?: { name: string; path: string }[];
+    /** The page's main image, for search results and AI answers. */
+    image?: PageImage;
 };
 
+/** An ImageObject for structured data, with an absolute URL. */
+export function imageObject(image: PageImage): Schema {
+    return {
+        '@type': 'ImageObject',
+        '@id': `${SITE.url}${image.path}`,
+        url: `${SITE.url}${image.path}`,
+        contentUrl: `${SITE.url}${image.path}`,
+        width: image.width,
+        height: image.height,
+        caption: image.alt,
+    };
+}
+
 /** WebPage (or subtype) plus an optional BreadcrumbList for an inner page. */
-export function pageSchema({ path, name, description, type = 'WebPage', breadcrumbs }: PageSchemaInput): Schema[] {
+export function pageSchema({ path, name, description, type = 'WebPage', breadcrumbs, image }: PageSchemaInput): Schema[] {
     const url = `${SITE.url}${path === '/' ? '' : path}`;
     const page: Schema = {
         '@type': type,
@@ -73,6 +96,7 @@ export function pageSchema({ path, name, description, type = 'WebPage', breadcru
         isPartOf: { '@id': WEBSITE_ID },
         about: { '@id': ORG_ID },
         inLanguage: 'en',
+        ...(image ? { primaryImageOfPage: imageObject(image), image: `${SITE.url}${image.path}` } : {}),
     };
     if (!breadcrumbs) return [page];
 

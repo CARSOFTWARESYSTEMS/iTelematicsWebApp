@@ -44,7 +44,7 @@ describe('ContactForm (email draft)', () => {
         const href: string = hrefSetter.mock.calls[0][0];
         expect(href.startsWith('mailto:info@iTelematics.com?subject=')).toBe(true);
         const params = new URLSearchParams(href.split('?')[1]);
-        expect(params.get('subject')).toBe('Satellite Engineering Research Lab: Jane Researcher');
+        expect(params.get('subject')).toBe('Space Station Digital Twin Research Lab: Jane Researcher');
         expect(params.get('body')).toContain('Battery SOC research during eclipse & safe mode.');
         expect(params.get('body')).toContain('Email: jane@example.org');
 
@@ -82,7 +82,7 @@ describe('ContactForm (email draft)', () => {
         fireEvent.click(screen.getByRole('button', { name: 'Copy message' }));
 
         await waitFor(() => expect(screen.getByRole('button', { name: 'Copied' })).toBeInTheDocument());
-        expect(writeText.mock.calls[0][0]).toMatch(/^To: info@iTelematics\.com\nSubject: Satellite Engineering Research Lab: Jane Researcher/);
+        expect(writeText.mock.calls[0][0]).toMatch(/^To: info@iTelematics\.com\nSubject: Space Station Digital Twin Research Lab: Jane Researcher/);
     });
 
     it('preselects the enquiry type from ?enquiry= and ignores unknown values', async () => {

@@ -142,7 +142,7 @@ export default function Navbar() {
                     <span className={styles.logoMark} aria-hidden="true" />
                     <span className={`${styles.logoText} ${styles.itSite}`}>
                         <span className={styles.logoName}>iTelematics<sup className={styles.reg}>®</sup></span>
-                        <span className={styles.logoTag}>Satellite Engineering</span>
+                        <span className={styles.logoTag}>Space Station R&amp;D</span>
                     </span>
                     <span className={`${styles.logoText} ${styles.evSite}`}>
                         <span className={styles.logoName}>EV.ENGINEER<sup className={styles.reg}>™</sup></span>
@@ -204,7 +204,7 @@ export default function Navbar() {
                             {CONTACT_NAV.name}
                         </Link>
                         <Link href={JOIN_HREF} className={`btn ${styles.cta}`} data-track="join_rnd_click">
-                            Join Satellite Engineering
+                            Join Space Station R&amp;D
                         </Link>
                     </div>
                 </div>
@@ -272,7 +272,7 @@ export default function Navbar() {
                     </ul>
                     <div className={styles.mobileFoot}>
                         <Link href={JOIN_HREF} className={`btn btn-primary ${styles.mobileCta}`} data-track="join_rnd_click" onClick={closeAll}>
-                            Join Satellite Engineering
+                            Join Space Station R&amp;D
                         </Link>
                     </div>
                 </div>

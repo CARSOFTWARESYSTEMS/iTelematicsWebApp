@@ -1,18 +1,22 @@
 # iTelematics®
 
-> iTelematics Software Private Limited (Bangalore, India) works on applied Satellite Engineering: practical projects in spacecraft solar energy, batteries, the electrical power system (EPS), sensors, telemetry and satellite health, shaped by startup opportunities, industry requirements and collaborative research. Its flagship research platform is Satellite Energy & Telemetry Intelligence, built around one question: can the satellite generate, store and manage sufficient energy to safely accomplish its mission?
+> iTelematics Software Private Limited (Bangalore, India) runs the Space Station Digital Twin R&D Center: long-term engineering and scientific research into physics-based, data-driven digital twins for future space stations, with an initial specialisation in Station Energy & Health Intelligence. Tagline: "Engineering the Intelligence Behind Future Space Stations." It does not build or operate space stations. The work builds on foundational spacecraft research, Satellite Energy & Telemetry Intelligence, around one question: can the satellite generate, store and manage sufficient energy to safely accomplish its mission?
 
-Research results are labelled by maturity (Concept, Research, Simulation, Prototype, Experimental, Validated, Planned). Nothing on the site is flight-qualified, and reference values are simulated, not flight data.
+Research results are labelled by maturity (Concept, Research, Simulation, Prototype, Experimental, Validated, Planned). Nothing on the site is flight-qualified or an operational digital twin, and reference values are simulated, not flight data. A fuller, citable summary is in [llms-full.txt](https://itelematics.com/llms-full.txt).
 
 ## Main pages
 
-- [Satellite Engineering](https://itelematics.com/satellite-engineering): the spacecraft as one connected system: mission and orbit, power, avionics, ADCS, communications, payload, thermal and ground
-- [Research Lab](https://itelematics.com/research-lab): Satellite Engineering Research Lab: practical research in satellite electrical power systems, battery energy storage, telemetry, spacecraft health, physics-based modelling and digital twin engineering; includes the Space Digital Twin (four interactive 3D experiences of a satellite, an orbital constellation, a spacecraft and a space station, built on physics-based and mathematical models driven by simulated data; AI health monitoring and cybersecurity are planned) and the flagship research, Satellite Energy & Telemetry Intelligence: orbit, energy, telemetry, fault scenarios, equations and engineering evidence with maturity labels
+- [Space Station Digital Twin R&D](https://itelematics.com/space-station): vision (2047), mission, goals and proposed milestones; twelve space station systems with their physics, interfaces, telemetry and digital twin opportunities; an interactive model of a conceptual station (Station Reference Case SRC-1) with a simulated solar-channel fault and load-priority response; a competency pathway; six R&D programmes (two active priorities: station power and energy, station health monitoring); deliverables with their status; flagship experiments; competency pathways, a research roadmap and frequently asked questions
+- [Research Lab](https://itelematics.com/research-lab): Space Station Digital Twin Research Lab: the practical R&D environment, station R&D programmes and research participation; includes the Space Digital Twin (four interactive 3D experiences of a satellite, an orbital constellation, a spacecraft and a space station, built on physics-based and mathematical models driven by simulated data; AI health monitoring and cybersecurity are planned) and the foundational spacecraft reference case, Satellite Energy & Telemetry Intelligence: orbit, energy, telemetry, fault scenarios, equations and engineering evidence with maturity labels
 - [Engineering Ecosystem](https://itelematics.com/partners): Gamyaa AeroSystems, APEX Rocket Systems (proposed, concept stage), UFlight™ (aerospace health and usage monitoring), iFab Innovations (engineering & innovation ecosystem; no partnership claimed), EV Society™ and EV.ENGINEER™, each relationship described as it stands
 - [Consultancy & Services](https://itelematics.com/consultancy): engineering consultancy, workshops and resources offered alongside the research
-- [Contact](https://itelematics.com/contact): opens an email draft to info@iTelematics.com for Research Lab, research, academic, industry, consultancy and investment enquiries
+- [Contact](https://itelematics.com/contact): opens an email draft to info@iTelematics.com for space station R&D, Research Lab, research, academic, industry, consultancy and investment enquiries
 
 ## Engineering resources
 
 - [Satellite Engineering reference](https://aerospace.ev.engineer/space/satellite-engineering): spacecraft architecture on EV.ENGINEER™ around a 6U Earth-observation reference mission
 - [Interactive 3D Satellite](https://aerospace.ev.engineer/space/satellite-engineering/interactive-3d): interactive model of satellite subsystems
+
+## Optional
+
+- [Full summary for AI assistants](https://itelematics.com/llms-full.txt): facts, definitions, reference-case numbers and what is not claimed
