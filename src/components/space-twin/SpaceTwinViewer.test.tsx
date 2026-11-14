@@ -34,10 +34,10 @@ beforeAll(() => {
 });
 
 describe('SpaceTwinViewer', () => {
-    it('offers the four experiences as keyboard-operable tabs', () => {
+    it('offers the four experiences and Station Power & Energy as keyboard-operable tabs', () => {
         render(<SpaceTwinViewer />);
         const tabs = screen.getAllByRole('tab');
-        expect(tabs.map((t) => t.textContent)).toEqual(['01Satellite', '02Orbital Constellation', '03Spacecraft', '04Space Station']);
+        expect(tabs.map((t) => t.textContent)).toEqual(['01Satellite', '02Orbital Constellation', '03Spacecraft', '04Space Station', '05Station Power & Energy']);
         expect(tabs[0]).toHaveAttribute('aria-selected', 'true');
         expect(tabs[1]).toHaveAttribute('tabindex', '-1');
 
@@ -45,8 +45,23 @@ describe('SpaceTwinViewer', () => {
         fireEvent.keyDown(tabs[0], { key: 'ArrowRight' });
         expect(screen.getByRole('tab', { name: /Orbital Constellation/ })).toHaveAttribute('aria-selected', 'true');
         fireEvent.keyDown(screen.getByRole('tab', { name: /Orbital Constellation/ }), { key: 'End' });
+        expect(screen.getByRole('tab', { name: /Station Power & Energy/ })).toHaveAttribute('aria-selected', 'true');
+        expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-labelledby', 'twin-tab-eps');
+        fireEvent.keyDown(screen.getByRole('tab', { name: /Station Power & Energy/ }), { key: 'ArrowLeft' });
         expect(screen.getByRole('tab', { name: /Space Station/ })).toHaveAttribute('aria-selected', 'true');
         expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-labelledby', 'twin-tab-station');
+    });
+
+    it('opens the fifth option without disturbing the four experiences', () => {
+        render(<SpaceTwinViewer />);
+        expect(screen.getByRole('group', { name: 'Satellite stages' })).toBeInTheDocument();
+        fireEvent.click(screen.getByRole('tab', { name: /Station Power & Energy/ }));
+        expect(screen.queryByRole('group', { name: 'Satellite stages' })).not.toBeInTheDocument();
+        expect(screen.queryByText('Model assumptions and limits')).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole('tab', { name: /Satellite/ }));
+        expect(screen.getByRole('tab', { name: /Satellite/ })).toHaveAttribute('aria-selected', 'true');
+        expect(screen.getByRole('group', { name: 'Satellite stages' })).toBeInTheDocument();
+        expect(screen.getByText('Model assumptions and limits')).toBeInTheDocument();
     });
 
     it('describes the scene in words and states its maturity and assumptions', () => {

@@ -15,8 +15,22 @@ describe('validateContact', () => {
         const result = validateContact({ ...VALID, name: '  Jane   Researcher ', organisation: ' IISc ' });
         expect(result).toEqual({
             valid: true,
-            data: { name: 'Jane Researcher', email: 'jane@example.org', organisation: 'IISc', country: '', enquiry: 'internship', message: VALID.message },
+            data: { name: 'Jane Researcher', email: 'jane@example.org', phone: '', organisation: 'IISc', country: '', enquiry: 'internship', message: VALID.message },
         });
+    });
+
+    it('accepts an optional phone number in international formats and rejects implausible ones', () => {
+        for (const phone of ['+91 98765 43210', '+1 (415) 555-0134', '+44 20 7946 0958', '098765 43210', '+49.30.1234567']) {
+            const r = validateContact({ ...VALID, phone });
+            expect(r.valid, phone).toBe(true);
+            if (r.valid) expect(r.data.phone).toBe(phone);
+        }
+        for (const phone of ['12345', 'call me', '+91 98765 43210 ext 5', '+1234567890123456', '<script>']) {
+            const r = validateContact({ ...VALID, phone });
+            expect(r.valid, phone).toBe(false);
+            if (!r.valid) expect(Object.keys(r.errors)).toEqual(['phone']);
+        }
+        expect(validateContact({ ...VALID, phone: '   ' })).toMatchObject({ valid: true, data: { phone: '' } });
     });
 
     it('accepts names from any script', () => {

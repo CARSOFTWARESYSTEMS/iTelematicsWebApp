@@ -44,7 +44,11 @@ export type ViewEvent = (typeof VIEW_EVENTS)[number];
 export type AnalyticsEvent = 'page_view' | 'contact_submit' | ClickEvent | ViewEvent;
 
 /** Controlled vocabulary for `enquiry_type`; any other value is dropped before sending. */
-export const ENQUIRY_TYPES = ['internship', 'research', 'academic', 'industry', 'consultancy', 'investment', 'other'] as const;
+/**
+ * "internship" = Space Station Digital Twin / Research Lab enquiries (historical name, kept for report
+ * continuity); "internships" = the internships option; "students" = Student’s space playground.
+ */
+export const ENQUIRY_TYPES = ['internship', 'internships', 'students', 'research', 'academic', 'industry', 'consultancy', 'investment', 'other'] as const;
 
 export type EnquiryType = (typeof ENQUIRY_TYPES)[number];
 export type DestinationType = 'internal' | 'resource' | 'partner' | 'document' | 'external' | 'email' | 'phone';

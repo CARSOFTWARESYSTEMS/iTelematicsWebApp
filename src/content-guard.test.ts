@@ -53,8 +53,11 @@ describe('site content rules', () => {
     // Internships became the Satellite Engineering Research Lab (instruction, 2026-11-14). Technical
     // identifiers (the "internship" enquiry value, internship_* analytics events) keep their names;
     // EV.ENGINEER™'s own programme names on /ev-engineer are its destinations and stay as they are.
+    // Exception (instruction, 2026-11-14): the contact form offers "Internships" as one enquiry type,
+    // defined only in lib/contact/enquiries.ts. Elsewhere the Research Lab wording stands.
     it('presents the Research Lab, not internships', () => {
-        expect(offenders(/\bInternships?\b|Career-Focused|Apply \/ Discuss|Explore Internships/, [EV_ENGINEER_CONTENT])).toEqual([]);
+        const CONTACT_ENQUIRIES = path.join('lib', 'contact', 'enquiries.ts');
+        expect(offenders(/\bInternships?\b|Career-Focused|Apply \/ Discuss|Explore Internships/, [EV_ENGINEER_CONTENT, CONTACT_ENQUIRIES])).toEqual([]);
         expect(offenders(/href=["'{`]\/internships/)).toEqual([]);
         const llms = readFileSync(path.resolve(SRC, '../public/llms.txt'), 'utf8');
         expect(llms).not.toMatch(/internship|career-focused/i);
@@ -79,7 +82,7 @@ describe('site content rules', () => {
 
     // The Space Station Digital Twin R&D content is country-neutral and names no station programme.
     it('keeps the space station content country-neutral and free of named programmes', () => {
-        const station = files.filter(({ file }) => file.startsWith(path.join('components', 'station-twin')) || file.startsWith(path.join('lib', 'station-twin')) || file.startsWith(path.join('app', 'space-station')) || file === path.join('lib', 'space-station.ts'));
+        const station = files.filter(({ file }) => file.startsWith(path.join('components', 'station-twin')) || file.startsWith(path.join('lib', 'station-twin')) || file.startsWith(path.join('app', 'space-station')) || file === path.join('lib', 'space-station.ts') || file.startsWith(path.join('components', 'station-eps')) || file.startsWith(path.join('lib', 'station-eps')));
         expect(station.length).toBeGreaterThan(5);
         const named = /\bISS\b|International Space Station|Tiangong|Bharatiya|Gateway|Axiom|Mir\b|Skylab|ISHAVASYAM|Gamyaa|APEX|UFlight|iFab|NASA|ESA\b|ISRO|JAXA|Roscosmos|CNSA|SpaceX|Boeing|Airbus|India|Indian/;
         expect(station.filter(({ text }) => named.test(text)).map(({ file }) => file)).toEqual([]);

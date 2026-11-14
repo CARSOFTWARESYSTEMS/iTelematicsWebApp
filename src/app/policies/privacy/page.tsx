@@ -46,13 +46,15 @@ export default function PrivacyPolicyPage() {
                         The contact form does not send or store anything. It prepares an email draft in your own email app,
                         addressed to {SITE.email}; nothing reaches us unless you choose to send it. When you do, we receive
                         the details you included (typically your name, email address, enquiry type and message, and
-                        optionally your organisation and country). The same applies when you email, call or message us on
+                        optionally your phone or WhatsApp number, organisation and country) and, added to the draft for you to see, the website and
+                        page you wrote from (for example iTelematics.com or EV.ENGINEER), so we know where the enquiry
+                        started. The same applies when you email, call or message us on
                         WhatsApp directly; WhatsApp and your phone or email provider handle those messages under their own
                         privacy terms.
                     </p>
                     <p>
-                        We use those details only to reply and to handle the research, collaboration, Research Lab,
-                        consultancy or other matter you raise. We do not sell them, add you to marketing lists or publish
+                        We use those details only to reply (by email, or by phone or WhatsApp if you gave a number) and to
+                        handle the research, collaboration, Research Lab, consultancy or other matter you raise. We do not sell them, add you to marketing lists or publish
                         them. Please do not send confidential or sensitive information in a first enquiry.
                     </p>
 

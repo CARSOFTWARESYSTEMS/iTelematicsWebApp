@@ -8,7 +8,7 @@ import { ENQUIRY_OPTIONS, findEnquiry } from '@/lib/contact/enquiries';
 import { LIMITS, validateContact, type ContactEnquiry, type ContactField } from '@/lib/contact/validation';
 import { SITE } from '@/lib/site';
 
-/** Preselects the enquiry type from ?enquiry=… (e.g. links from "Join Satellite Engineering" or the Research Lab's "Discuss Research"). */
+/** Preselects the enquiry type from ?enquiry=… (e.g. links from "Join Space Station R&D", the Research Lab's "Discuss Research", or ?enquiry=internships). */
 function EnquiryFromUrl({ onChange }: { onChange: (value: string) => void }) {
     const value = useSearchParams().get('enquiry');
     useEffect(() => {
@@ -17,18 +17,43 @@ function EnquiryFromUrl({ onChange }: { onChange: (value: string) => void }) {
     return null;
 }
 
-export function buildEmail(e: ContactEnquiry) {
+/** How the domains this website runs on are named in enquiry emails; any other host appears as it is, without "www.". */
+const SITE_NAMES: Record<string, string> = {
+    'itelematics.com': 'iTelematics.com',
+    'ev.engineer': 'EV.ENGINEER',
+};
+
+export function siteName(hostname: string): string {
+    const host = hostname.trim().toLowerCase().replace(/^www\./, '');
+    return SITE_NAMES[host] ?? host;
+}
+
+/** Where the enquiry was written: the website's name and the page address (no query string). */
+export type EnquirySource = { site: string; page: string };
+
+export function currentSource(): EnquirySource {
+    return { site: siteName(window.location.hostname), page: `${window.location.origin}${window.location.pathname}` };
+}
+
+/**
+ * The email draft. The same form runs on several domains (itelematics.com, ev.engineer, …), so the
+ * subject starts with the website's name, e.g. "[EV.ENGINEER] Research Collaboration: Jane", and the body says
+ * which page the enquiry came from.
+ */
+export function buildEmail(e: ContactEnquiry, source?: EnquirySource) {
     const label = findEnquiry(e.enquiry)?.label ?? 'Enquiry';
-    const subject = `${label}: ${e.name}`;
+    const subject = `${source ? `[${source.site}] ` : ''}${label}: ${e.name}`;
     const body = [
         e.message,
         '',
         '—',
         `Name: ${e.name}`,
         `Email: ${e.email}`,
+        `Phone / WhatsApp: ${e.phone || '—'}`,
         `Organisation / University: ${e.organisation || '—'}`,
         `Country: ${e.country || '—'}`,
         `Enquiry type: ${label}`,
+        ...(source ? [`Website: ${source.site} (${source.page})`] : []),
     ].join('\n');
     const href = `mailto:${SITE.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     return { subject, body, href };
@@ -58,7 +83,7 @@ export default function ContactForm({ location = 'contact-page' }: { location?: 
             return;
         }
         setErrors({});
-        const email = buildEmail(result.data);
+        const email = buildEmail(result.data, currentSource());
         // Context and enquiry category only — never field values. This counts drafts opened, not emails sent.
         track('contact_submit', {
             section: 'contact',
@@ -111,9 +136,9 @@ export default function ContactForm({ location = 'contact-page' }: { location?: 
 
             <div className={styles.row}>
                 <div className={styles.field}>
-                    <label htmlFor={`${id}-organisation`}>Organisation / University <span className={styles.optional}>optional</span></label>
-                    <input {...fieldProps('organisation')} type="text" maxLength={LIMITS.organisation} autoComplete="organization" />
-                    {errorFor('organisation')}
+                    <label htmlFor={`${id}-phone`}>Phone / WhatsApp <span className={styles.optional}>optional</span></label>
+                    <input {...fieldProps('phone')} type="tel" inputMode="tel" maxLength={LIMITS.phone} autoComplete="tel" placeholder="+ country code and number" />
+                    {errorFor('phone')}
                 </div>
                 <div className={styles.field}>
                     <label htmlFor={`${id}-country`}>Country <span className={styles.optional}>optional</span></label>
@@ -122,15 +147,22 @@ export default function ContactForm({ location = 'contact-page' }: { location?: 
                 </div>
             </div>
 
-            <div className={styles.field}>
-                <label htmlFor={`${id}-enquiry`}>Enquiry type</label>
-                <select {...fieldProps('enquiry')} required value={enquiry} onChange={(e) => setEnquiry(e.target.value)}>
-                    <option value="" disabled>Choose one</option>
-                    {ENQUIRY_OPTIONS.map((o) => (
-                        <option key={o.value} value={o.value}>{o.label}</option>
-                    ))}
-                </select>
-                {errorFor('enquiry')}
+            <div className={styles.row}>
+                <div className={styles.field}>
+                    <label htmlFor={`${id}-organisation`}>Organisation / University <span className={styles.optional}>optional</span></label>
+                    <input {...fieldProps('organisation')} type="text" maxLength={LIMITS.organisation} autoComplete="organization" />
+                    {errorFor('organisation')}
+                </div>
+                <div className={styles.field}>
+                    <label htmlFor={`${id}-enquiry`}>Enquiry type</label>
+                    <select {...fieldProps('enquiry')} required value={enquiry} onChange={(e) => setEnquiry(e.target.value)}>
+                        <option value="" disabled>Choose one</option>
+                        {ENQUIRY_OPTIONS.map((o) => (
+                            <option key={o.value} value={o.value}>{o.label}</option>
+                        ))}
+                    </select>
+                    {errorFor('enquiry')}
+                </div>
             </div>
 
             <div className={styles.field}>

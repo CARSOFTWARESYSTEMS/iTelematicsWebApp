@@ -47,6 +47,7 @@ Visitors can change their choice with **Analytics preferences** in the footer.
 | `join_rnd_click` | The Join Space Station R&D / Discuss Research CTAs (event name unchanged) | `data-track="join_rnd_click"` |
 | `space_station_click` | Internal link to `/space-station…` from any page (hero, nav, footer, CTAs), plus any link on `/space-station` that no other event claims (on-page navigation, "See it", Explore Research Lab) | Destination rule; `data-track-fallback` on `/space-station` |
 | `station_model_interaction` | The `/space-station` station model: stage buttons (`Stage: Recovery`), subsystem buttons (`Subsystem: Solar power channels`), a part picked in the 3D scene (`Subsystem (3D): …`, sent by the viewer), Subsystem details link, play/pause/reset/replay (`Control: …`); and the homepage hero station's pause/play (`Hero animation: pause`) | `data-track`, `cta_name` from `data-track-name` |
+| `station_model_interaction` (EPS) | The fifth Space Digital Twin option, Station Power & Energy: its tab (`Space Digital Twin: 05 Station Power & Energy`), Start Investigation / Subsystems / Fault Investigation, each label (`EPS label: …`), fault (`EPS fault: …`) and control (`EPS control: next`, `pause`, `back`, `hide overlay`…) | `data-track` |
 | `station_explorer_select` | A system or competency pathway chosen in the `/space-station` explorers, by click or keyboard (`Space station systems: Thermal Control`) | `data-track` on clicks; sent by the explorer on arrow keys |
 | `space_station_view` | Landing on `/space-station` | Route view event |
 | `station_model_view` | The station model section scrolling into view on `/space-station` | `data-track-view` |
@@ -80,19 +81,22 @@ dropdown option, never from free text.
 
 ### `enquiry_type` vocabulary
 
-Allowed values: `internship`, `research`, `academic`, `industry`, `consultancy`, `investment`, `other`.
+Allowed values: `internship`, `internships`, `students`, `research`, `academic`, `industry`, `consultancy`, `investment`, `other`.
+(`internship` is the Research Lab's historical name; `internships` is the Internships option, added 2026-11-14.)
 `sanitizeParams` drops anything else. Form options map onto them in
 [`src/lib/contact/enquiries.ts`](../../src/lib/contact/enquiries.ts):
 
 | Form option | `enquiry_type` |
 |---|---|
-| Satellite Engineering Research Lab | `internship` |
+| Space Station Digital Twin (value `internship`) | `internship` |
+| Internships (value `internships`) | `internships` |
+| Student’s space playground (value `students`) | `students` |
 | Research Collaboration | `research` |
 | Academic Collaboration | `academic` |
 | Technical Review | `research` |
 | Industry Collaboration | `industry` |
 | Consultancy | `consultancy` |
-| Satellite Energy & Telemetry Intelligence (value `research-platform`) | `research` |
+| Satellite Energy Intelligence (value `research-platform`) | `research` |
 | Investment / Strategic Discussion | `investment` |
 | Other | `other` |
 

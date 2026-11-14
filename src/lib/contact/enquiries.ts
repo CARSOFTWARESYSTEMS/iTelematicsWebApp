@@ -2,13 +2,16 @@ import type { EnquiryType } from '@/lib/analytics/taxonomy';
 
 /** Enquiry options shown in the contact form, each mapped to the controlled analytics vocabulary. */
 export const ENQUIRY_OPTIONS = [
-    { value: 'internship', label: 'Space Station Digital Twin Research Lab', analytics: 'internship' },
+    // "internship" is the Research Lab's historical value (its links use ?enquiry=internship); Internships has its own.
+    { value: 'internship', label: 'Space Station Digital Twin', analytics: 'internship' },
+    { value: 'internships', label: 'Internships', analytics: 'internships' },
+    { value: 'students', label: 'Student’s space playground', analytics: 'students' },
     { value: 'research', label: 'Research Collaboration', analytics: 'research' },
     { value: 'academic', label: 'Academic Collaboration', analytics: 'academic' },
     { value: 'technical-review', label: 'Technical Review', analytics: 'research' },
     { value: 'industry', label: 'Industry Collaboration', analytics: 'industry' },
     { value: 'consultancy', label: 'Consultancy', analytics: 'consultancy' },
-    { value: 'research-platform', label: 'Satellite Energy & Telemetry Intelligence', analytics: 'research' },
+    { value: 'research-platform', label: 'Satellite Energy Intelligence', analytics: 'research' },
     { value: 'investment', label: 'Investment / Strategic Discussion', analytics: 'investment' },
     { value: 'other', label: 'Other', analytics: 'other' },
 ] as const satisfies readonly { value: string; label: string; analytics: EnquiryType }[];

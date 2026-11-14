@@ -25,31 +25,31 @@ type Textures = ReturnType<typeof useSpaceTextures>;
 type Tones = Partial<Record<SrcPartId | SrcAnchorId, Glow>>;
 
 /** β = 0°: the Sun lies close to the orbit plane, so the rotary joints alone keep the wings square to it. */
-const SUN: V3 = [-18, 66, 64];
-const ALPHA = -Math.atan2(SUN[1], SUN[2]);
-const EARTH_RADIUS = 1600;
-const EARTH_POSITION = earthBehind(SRC_HOME, 180, 3600, 36, -4);
+export const SUN: V3 = [-18, 66, 64];
+export const ALPHA = -Math.atan2(SUN[1], SUN[2]);
+export const EARTH_RADIUS = 1600;
+export const EARTH_POSITION = earthBehind(SRC_HOME, 180, 3600, 36, -4);
 
 const TRUSS_HALF = 50;
-const TRUSS_H = 1.6;
-const JOINT_X = 28;
+export const TRUSS_H = 1.6;
+export const JOINT_X = 28;
 const SECTION_X = 39;
 const PAIR_OFFSET = 6.5;
 const WING_L = 30;
 const WING_W = 11;
-const MODULE_Y = -6.6;
+export const MODULE_Y = -6.6;
 const R_MOD = 2.2;
 
 /** Channel numbering: 1 port outboard, 2 port inboard, 3 starboard inboard, 4 starboard outboard. */
-const CHANNEL_X = [-(SECTION_X + PAIR_OFFSET), -(SECTION_X - PAIR_OFFSET), SECTION_X - PAIR_OFFSET, SECTION_X + PAIR_OFFSET];
+export const CHANNEL_X = [-(SECTION_X + PAIR_OFFSET), -(SECTION_X - PAIR_OFFSET), SECTION_X - PAIR_OFFSET, SECTION_X + PAIR_OFFSET];
 
 /** A point on a wing (local x offset, distance along the wing) in station coordinates. */
-function onWing(x: number, along: number) {
+export function onWing(x: number, along: number) {
     return new Vector3(x, along * Math.cos(ALPHA), along * Math.sin(ALPHA));
 }
 
 /** A straight rod between two points (an arm boom, a strut). */
-function Rod({ from, to, r, ...mat }: { from: V3; to: V3; r: number } & Parameters<typeof Mat>[0]) {
+export function Rod({ from, to, r, ...mat }: { from: V3; to: V3; r: number } & Parameters<typeof Mat>[0]) {
     const { position, quaternion, length } = useMemo(() => {
         const a = new Vector3(...from);
         const b = new Vector3(...to);
@@ -261,7 +261,7 @@ function RoboticArm() {
     );
 }
 
-function StationModel({ tones, onSelect, faultMarker, reducedMotion }: { tones: Tones; onSelect?: (id: string) => void; faultMarker: boolean; reducedMotion: boolean }) {
+export function StationModel({ tones, onSelect, faultMarker, reducedMotion }: { tones: Tones; onSelect?: (id: string) => void; faultMarker: boolean; reducedMotion: boolean }) {
     const textures = useSpaceTextures();
     const arraysTip = onWing(SECTION_X, 26).toArray() as V3;
     const ch2Base = onWing(CHANNEL_X[SRC_FAULT.channel - 1], 4).toArray() as V3;
