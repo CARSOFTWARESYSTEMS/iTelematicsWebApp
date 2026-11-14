@@ -1,0 +1,78 @@
+/* Space Digital Twin band: the same treatment as the homepage cinema section,
+   built from the site tokens. Shared by the homepage and /research-lab. */
+
+.twin {
+    position: relative;
+    padding: var(--section) 0;
+    background:
+        radial-gradient(ellipse 60% 55% at 70% 62%, rgba(34, 211, 238, 0.05), transparent 70%),
+        linear-gradient(180deg, #050A10, #07101A 55%, #050A10);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+}
+
+.twinHead {
+    display: grid;
+    gap: 1.5rem 3rem;
+    margin-bottom: clamp(2rem, 1.5rem + 2vw, 3rem);
+}
+
+@media (min-width: 1024px) {
+    .twinHead {
+        grid-template-columns: 6fr 5fr;
+        align-items: end;
+    }
+}
+
+.brandCase {
+    text-transform: none;
+    letter-spacing: 0.04em;
+}
+
+.twinTitle {
+    margin-top: 1.25rem;
+    font-size: clamp(1.35rem, 1.1rem + 1.1vw, 2rem);
+    font-weight: 560;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    color: var(--text);
+}
+
+.twinSupport {
+    margin-top: 0.4rem;
+    font-size: clamp(1.05rem, 1rem + 0.4vw, 1.3rem);
+    font-weight: 500;
+    line-height: 1.35;
+    color: var(--telemetry);
+}
+
+.twinIntro {
+    display: grid;
+    gap: 1rem;
+}
+
+/* The description sits under the viewer, across the full container width. */
+.twinAfter {
+    max-width: none;
+    margin-top: clamp(1.75rem, 1.25rem + 1.5vw, 2.75rem);
+}
+
+/* What the experiences are built on. Planned items are dashed and muted, never shown as features. */
+.basis {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.planned {
+    border-style: dashed;
+    color: var(--text-3);
+}
+
+.plannedTag {
+    margin-left: 0.15rem;
+    padding-left: 0.5rem;
+    border-left: 1px solid var(--border-strong);
+    color: var(--text-2);
+}

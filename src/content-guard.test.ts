@@ -59,7 +59,15 @@ describe('site content rules', () => {
         expect(llms).not.toMatch(/internship|career-focused/i);
     });
 
-    it('names no other organisation inside the Space Station Digital Twin experiences', () => {
+    // About was retired and the Research Platform moved into the Research Lab (instruction, 2026-11-14);
+    // both old URLs redirect. ("research-platform" stays as the contact form's enquiry value.)
+    it('links no retired page', () => {
+        expect(offenders(/["'`]\/(about|research-platform)(?=["'`#?/])/)).toEqual([]);
+        const llms = readFileSync(path.resolve(SRC, '../public/llms.txt'), 'utf8');
+        expect(llms).not.toMatch(/itelematics\.com\/(about|research-platform)\b/);
+    });
+
+    it('names no other organisation inside the Space Digital Twin experiences', () => {
         const twin = files.filter(({ file }) => file.startsWith(path.join('components', 'space-twin')) || file.startsWith(path.join('lib', 'space-twin')));
         expect(twin.length).toBeGreaterThan(5);
         const brands = /ISHAVASYAM|Gamyaa|GAMYAA|APEX|UFlight|iFab|EV Society|EV\.ENGINEER|AutonomousEV|NASA|ESA\b|ISRO|SpaceX|Starlink|Boeing|Airbus|\bISS\b|International Space Station/;

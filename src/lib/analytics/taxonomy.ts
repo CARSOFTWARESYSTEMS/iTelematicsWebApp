@@ -199,7 +199,6 @@ const LINK_RULES: LinkRule[] = [
 
 // Pages whose landing is itself the meaningful action. Update if the redesign uses other slugs.
 const ROUTE_VIEWS: [string, ViewEvent][] = [
-    ['/research-platform', 'research_platform_view'],
     // The Research Lab keeps the internship_view event name, so reports stay continuous.
     ['/research-lab', 'internship_view'],
 ];

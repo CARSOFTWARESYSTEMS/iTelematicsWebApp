@@ -10,7 +10,7 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('@/lib/analytics/client', () => ({ track: vi.fn() }));
 
-const PRIMARY = ['Satellite Engineering', 'Research', 'Research Lab', 'Ecosystem', 'About'];
+const PRIMARY = ['Satellite Engineering', 'Research Lab', 'Ecosystem'];
 
 describe('Navbar', () => {
     beforeEach(() => {
@@ -18,7 +18,7 @@ describe('Navbar', () => {
         vi.mocked(track).mockClear();
     });
 
-    it('shows the six destinations, Contact and the Join Satellite Engineering CTA', () => {
+    it('shows the primary destinations, Contact and the Join Satellite Engineering CTA', () => {
         render(<Navbar />);
         const nav = screen.getByRole('navigation', { name: 'Main' });
         for (const name of PRIMARY) {
@@ -89,9 +89,9 @@ describe('Navbar', () => {
     });
 
     it('marks the current page', () => {
-        mockPathname = '/research-platform';
+        mockPathname = '/research-lab';
         render(<Navbar />);
-        const current = screen.getAllByRole('link', { name: /^Research$/ }).filter((l) => l.getAttribute('aria-current') === 'page');
+        const current = screen.getAllByRole('link', { name: /^Research Lab$/ }).filter((l) => l.getAttribute('aria-current') === 'page');
         expect(current.length).toBeGreaterThan(0);
     });
 

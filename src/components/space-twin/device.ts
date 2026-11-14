@@ -1,5 +1,5 @@
 "use client";
-// Device preferences, rendering quality and viewport presence for the Space Station Digital Twin
+// Device preferences, rendering quality and viewport presence for the Space Digital Twin
 // viewer. Decisions use measured capabilities and media queries, never the user-agent string.
 import { useEffect, useState, useSyncExternalStore, type RefObject } from 'react';
 

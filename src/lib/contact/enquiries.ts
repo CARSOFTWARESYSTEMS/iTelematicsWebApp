@@ -8,7 +8,7 @@ export const ENQUIRY_OPTIONS = [
     { value: 'technical-review', label: 'Technical Review', analytics: 'research' },
     { value: 'industry', label: 'Industry Collaboration', analytics: 'industry' },
     { value: 'consultancy', label: 'Consultancy', analytics: 'consultancy' },
-    { value: 'research-platform', label: 'Research Platform', analytics: 'research' },
+    { value: 'research-platform', label: 'Satellite Energy & Telemetry Intelligence', analytics: 'research' },
     { value: 'investment', label: 'Investment / Strategic Discussion', analytics: 'investment' },
     { value: 'other', label: 'Other', analytics: 'other' },
 ] as const satisfies readonly { value: string; label: string; analytics: EnquiryType }[];

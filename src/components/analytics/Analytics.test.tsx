@@ -70,10 +70,10 @@ describe('<Analytics />', () => {
         rerender(<Analytics />);
         expect(eventCalls('page_view')).toHaveLength(0);
 
-        mockPathname = '/research-platform';
+        mockPathname = '/research-lab';
         rerender(<Analytics />);
         expect(eventCalls('page_view')).toHaveLength(1);
-        expect(eventCalls('research_platform_view')).toHaveLength(1);
+        expect(eventCalls('internship_view')).toHaveLength(1);
     });
 
     it('tracks outbound partner clicks through the delegated listener', () => {

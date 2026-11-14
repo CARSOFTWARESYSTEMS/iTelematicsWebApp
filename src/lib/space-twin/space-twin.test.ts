@@ -340,3 +340,14 @@ describe('stories, clocks and time', () => {
         expect(scHud(2, 'reveal', 'payload')!.rows[0].label).toBe('Power draw');
     });
 });
+
+describe('section labels', () => {
+    it('marks AI and cybersecurity as planned, never as built in', async () => {
+        const { TWIN_BASIS } = await import('./experiences');
+        const planned = TWIN_BASIS.filter((b) => b.planned).map((b) => b.label);
+        expect(planned).toEqual(['AI health monitoring', 'Cybersecurity']);
+        for (const b of TWIN_BASIS) {
+            if (/\bAI\b|cyber/i.test(b.label)) expect(b.planned).toBe(true);
+        }
+    });
+});

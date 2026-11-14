@@ -7,11 +7,9 @@ Research results are labelled by maturity (Concept, Research, Simulation, Protot
 ## Main pages
 
 - [Satellite Engineering](https://itelematics.com/satellite-engineering): the spacecraft as one connected system: mission and orbit, power, avionics, ADCS, communications, payload, thermal and ground
-- [Research Platform](https://itelematics.com/research-platform): Satellite Energy & Telemetry Intelligence: orbit, energy, telemetry, fault scenarios, equations and engineering evidence with maturity labels
-- [Research Lab](https://itelematics.com/research-lab): Satellite Engineering Research Lab: practical research in satellite electrical power systems, battery energy storage, telemetry, spacecraft health, physics-based modelling and digital twin engineering
+- [Research Lab](https://itelematics.com/research-lab): Satellite Engineering Research Lab: practical research in satellite electrical power systems, battery energy storage, telemetry, spacecraft health, physics-based modelling and digital twin engineering; includes the Space Digital Twin (four interactive 3D experiences of a satellite, an orbital constellation, a spacecraft and a space station, built on physics-based and mathematical models driven by simulated data; AI health monitoring and cybersecurity are planned) and the flagship research, Satellite Energy & Telemetry Intelligence: orbit, energy, telemetry, fault scenarios, equations and engineering evidence with maturity labels
 - [Engineering Ecosystem](https://itelematics.com/partners): Gamyaa AeroSystems, APEX Rocket Systems (proposed, concept stage), UFlight™ (aerospace health and usage monitoring), iFab Innovations (engineering & innovation ecosystem; no partnership claimed), EV Society™ and EV.ENGINEER™, each relationship described as it stands
 - [Consultancy & Services](https://itelematics.com/consultancy): engineering consultancy, workshops and resources offered alongside the research
-- [About](https://itelematics.com/about): company, research direction and principles
 - [Contact](https://itelematics.com/contact): opens an email draft to info@iTelematics.com for Research Lab, research, academic, industry, consultancy and investment enquiries
 
 ## Engineering resources

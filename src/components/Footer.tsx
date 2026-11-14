@@ -17,7 +17,6 @@ export default function Footer() {
                     <p className={styles.heading}>Research</p>
                     <ul>
                         <li><Link href="/satellite-engineering">Satellite Engineering</Link></li>
-                        <li><Link href="/research-platform">Research Platform</Link></li>
                         <li><ExternalLink href={RESOURCES.interactive3d.href}>Interactive 3D</ExternalLink></li>
                         <li><Link href="/research-lab">Research Lab</Link></li>
                     </ul>
@@ -28,7 +27,6 @@ export default function Footer() {
                     <ul>
                         <li><Link href="/partners">Ecosystem</Link></li>
                         <li><Link href="/consultancy">Consultancy</Link></li>
-                        <li><Link href="/about">About</Link></li>
                         <li><Link href="/contact">Contact</Link></li>
                     </ul>
                 </nav>

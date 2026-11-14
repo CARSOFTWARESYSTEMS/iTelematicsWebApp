@@ -147,7 +147,6 @@ export const CONSULTANCY_MENU: NavGroup[] = [
 
 export const PRIMARY_NAV: PrimaryNavItem[] = [
     { name: 'Satellite Engineering', href: '/satellite-engineering' },
-    { name: 'Research', href: '/research-platform' },
     { name: 'Research Lab', href: '/research-lab' },
     { name: 'Ecosystem', href: '/partners' },
     {
@@ -156,7 +155,6 @@ export const PRIMARY_NAV: PrimaryNavItem[] = [
         groups: CONSULTANCY_MENU,
         track: 'consultancy_click',
     },
-    { name: 'About', href: '/about' },
 ];
 
 export const CONTACT_NAV: NavItem = { name: 'Contact', href: '/contact' };
@@ -254,11 +252,9 @@ export const EV_SITE = {
 export const SITE_ROUTES = [
     { path: '/', priority: 1 },
     { path: '/satellite-engineering', priority: 0.9 },
-    { path: '/research-platform', priority: 0.9 },
     { path: '/research-lab', priority: 0.9 },
     { path: '/partners', priority: 0.6 },
     { path: '/consultancy', priority: 0.5 },
-    { path: '/about', priority: 0.6 },
     { path: '/contact', priority: 0.7 },
     { path: '/ev-engineer', priority: 0.4 },
     { path: '/policies/privacy', priority: 0.2 },

@@ -37,7 +37,7 @@ Visitors can change their choice with **Analytics preferences** in the footer.
 | `page_view` | Each distinct path, including App Router (SPA) navigations | `usePathname()` in `<Analytics />`; de-duplicated per path |
 | `satellite_engineering_click` | Link to `aerospace.ev.engineer/space/satellite-engineering…` or internal `/satellite-engineering…` | Destination rule |
 | `interactive_3d_click` | Link to `…/space/satellite-engineering/interactive-3d` | Destination rule (checked first) |
-| `research_platform_view` | Landing on `/research-platform…`, or a `data-track-view="research_platform_view"` section scrolling into view | Route map / IntersectionObserver |
+| `research_platform_view` | A `data-track-view="research_platform_view"` section scrolling into view: the homepage flagship section and the flagship research on `/research-lab` (the `/research-platform` page was retired on 2026-11-14) | IntersectionObserver |
 | `internship_view` | Landing on `/research-lab…` (the former `/internships`; the event keeps its name), or a `data-track-view="internship_view"` section | Route map / IntersectionObserver |
 | `internship_apply_click` | An Apply CTA | `data-track="internship_apply_click"` |
 | `research_collaboration_click` | A "Discuss Research Collaboration" style CTA | `data-track="research_collaboration_click"` |
@@ -87,7 +87,7 @@ Allowed values: `internship`, `research`, `academic`, `industry`, `consultancy`,
 | Technical Review | `research` |
 | Industry Collaboration | `industry` |
 | Consultancy | `consultancy` |
-| Research Platform | `research` |
+| Satellite Energy & Telemetry Intelligence (value `research-platform`) | `research` |
 | Investment / Strategic Discussion | `investment` |
 | Other | `other` |
 
@@ -100,7 +100,7 @@ partners and consultancy. Explicit `data-track` is used only where the URL doesn
 |---|---|---|
 | Join Satellite Engineering (header and mobile menu) / Discuss Research (home hero) → `/contact?enquiry=research` (Research Collaboration preselected, changeable) | `join_rnd_click` | Header desktop + mobile, home hero |
 | Discuss Research (Research Lab) | `internship_apply_click` | Home, Research Lab |
-| Discuss R&D / Research Collaboration | `research_collaboration_click` | Home, Satellite Engineering, Research Platform |
+| Discuss R&D / Research Collaboration | `research_collaboration_click` | Home, Satellite Engineering, Research Lab (flagship research) |
 | Discuss Industry Collaboration | `research_collaboration_click` | Partners |
 | Discuss Consultancy | `consultancy_click` (section fallback) | Consultancy & Services page |
 | Explore Satellite Engineering (internal or course) | `satellite_engineering_click` | Hero, signposts, resource cards, CTA bands |
@@ -108,8 +108,8 @@ partners and consultancy. Explicit `data-track` is used only where the URL doesn
 | Ecosystem links | `partner_click` | Home (compact), Partners (list and ecosystem map) |
 | EV.ENGINEER™ and Prerequisites (autonomous.ev.engineer/internships) | `partner_click` (destination rule) | Research Lab hero and closing CTA |
 
-The homepage flagship section carries `data-track-view="research_platform_view"`; `/research-platform`
-and `/research-lab` fire their view events on landing.
+The homepage flagship section and the flagship research on `/research-lab` carry
+`data-track-view="research_platform_view"`; `/research-lab` also fires `internship_view` on landing.
 
 ### EV.ENGINEER™ page (`/ev-engineer`)
 
@@ -163,7 +163,7 @@ Build these as GA4 **Explore → Funnel exploration** reports (open funnel, step
 |---|---|---|---|
 | Home → Satellite Engineering → Research Lab | `page_view` path = `/` | `satellite_engineering_click` | `internship_view` or `internship_apply_click` |
 | Home → Satellite Engineering → Interactive 3D | `page_view` path = `/` | `satellite_engineering_click` | `interactive_3d_click` |
-| Home → Research Platform → Collaboration | `page_view` path = `/` | `research_platform_view` | `research_collaboration_click` |
+| Home → Flagship research → Collaboration | `page_view` path = `/` | `research_platform_view` | `research_collaboration_click` |
 | Home → Ecosystem → Partner | `page_view` path = `/` | `page_view` path = `/partners` | `partner_click` |
 | Home → Consultancy → Contact | `page_view` path = `/` | `consultancy_click` (nav menu or `/consultancy`) | `contact_submit` with `enquiry_type = consultancy` |
 
@@ -201,7 +201,7 @@ Questions this answers:
 
 1. Locally: `NEXT_PUBLIC_ANALYTICS_DEBUG=true npm run dev`. Allow analytics in the banner and watch the
    console as you navigate and click. Expect one `page_view` per route change and nothing for plain
-   links like About. Submitting a valid contact form opens an email draft and logs exactly one
+   links like Ecosystem. Submitting a valid contact form opens an email draft and logs exactly one
    `contact_submit`; an invalid form logs nothing.
 2. In production: open the site with the [Google Analytics Debugger](https://chromewebstore.google.com/detail/google-analytics-debugger/jnkmfdileelhofjcijamephohjechhna)
    extension, allow analytics, and use **Admin → DebugView**. Confirm no `page_view` arrives before

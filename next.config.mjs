@@ -21,6 +21,11 @@ const nextConfig = {
             // Internships became the Research Lab.
             { source: "/internships", destination: "/research-lab", statusCode: 301 },
             { source: "/internships/:path*", destination: "/research-lab", statusCode: 301 },
+            // The About page was retired; company details live on /contact and /policies/terms.
+            { source: "/about", destination: "/", statusCode: 301 },
+            // The Research Platform moved to the bottom of the Research Lab.
+            { source: "/research-platform", destination: "/research-lab#flagship-research", statusCode: 301 },
+            { source: "/research-platform/:path*", destination: "/research-lab#flagship-research", statusCode: 301 },
             { source: "/policies/refund", destination: "/policies/terms", statusCode: 301 },
             { source: "/policies/delivery", destination: "/policies/terms", statusCode: 301 },
             // Documents republished under neutral filenames (originals in archive/public-originals).

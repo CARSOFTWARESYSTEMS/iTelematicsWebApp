@@ -1,6 +1,11 @@
-# Space Station Digital Twin R&D Center
+# Space Digital Twin
 
-The homepage section between "Can the satellite complete its mission safely?" and Flagship research. It has four interactive 3D experiences behind one selector and one WebGL canvas: Satellite, Orbital Constellation, Spacecraft and Space Station.
+Four interactive 3D experiences behind one selector and one WebGL canvas: Satellite, Orbital Constellation, Spacecraft and Space Station. One component, `src/components/space-twin/SpaceTwinSection.tsx`, renders the whole section, heading included, in two places:
+
+- the homepage, between "Can the satellite complete its mission safely?" and Flagship research;
+- `/research-lab`, straight after the "Satellite Engineering Research Lab" hero.
+
+Under the heading, labels say what the experiences are built on (`TWIN_BASIS` in `experiences.ts`): Physics-based, Mathematical models and Data-driven, which are implemented, and AI health monitoring and Cybersecurity, which are marked Planned. "Data-driven" means every overlay value and the fault detection come from the simulated telemetry, not from flight data.
 
 ## Architecture
 
@@ -11,12 +16,13 @@ src/lib/energy-model.ts   src/lib/space-twin/*    StoryClock + scenes     SpaceT
 
 | Layer | Files |
 |---|---|
-| Energy balance (shared with the Research Platform) | `src/lib/energy-model.ts` (`energyStep`, `eclipseFraction`) |
+| Energy balance (shared with the flagship research workspace) | `src/lib/energy-model.ts` (`energyStep`, `eclipseFraction`) |
 | Orbits, visibility, coverage, shadow | `src/lib/space-twin/orbit.ts` |
 | Power traces, orbit timing, margin equation | `src/lib/space-twin/power.ts` |
 | One story per experience (stages, phases, camera path, HUD values) | `satellite.ts`, `constellation.ts`, `spacecraft.ts`, `station.ts` |
 | Registry the viewer renders (text alternatives, maturity, assumptions) | `src/lib/space-twin/experiences.ts` |
 | Story clock, camera path, HUD types | `src/lib/space-twin/story.ts` |
+| Section (heading + viewer), used on both pages | `src/components/space-twin/SpaceTwinSection.tsx` |
 | Viewer UI (selector, stages, parts, controls, HUD, poster) | `src/components/space-twin/SpaceTwinViewer.tsx` |
 | The one canvas (lazy, client only) | `src/components/space-twin/SpaceTwinCanvas.tsx` |
 | Scenes | `src/components/space-twin/scenes/*.tsx` |

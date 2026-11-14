@@ -1,5 +1,5 @@
 /**
- * Orbital geometry for the Space Station Digital Twin scenes: circular two-body (Keplerian)
+ * Orbital geometry for the Space Digital Twin scenes: circular two-body (Keplerian)
  * orbits around a spherical Earth, Walker-delta constellations, ground-station elevation and
  * line of sight, coverage footprints from a minimum elevation angle, and Earth's cylindrical
  * shadow. No perturbations (J2, drag), no ellipsoid, no refraction: a simplified engineering

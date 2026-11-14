@@ -4,9 +4,13 @@ import styles from './page.module.css';
 import { pageMetadata } from '@/lib/metadata';
 import JsonLd, { pageSchema } from '@/components/JsonLd';
 import ExternalLink from '@/components/site/ExternalLink';
+import EnergyFlow from '@/components/site/EnergyFlow';
+import ResearchWorkspace from '@/components/site/ResearchWorkspace';
 import StepFlow from '@/components/site/StepFlow';
-import { CtaBand, PageHero } from '@/components/site/blocks';
+import { CtaBand, MaturityBadge, PageHero } from '@/components/site/blocks';
+import SpaceTwinSection from '@/components/space-twin/SpaceTwinSection';
 import { RESEARCH_AREAS, RESEARCH_THEMES } from '@/lib/research-lab';
+import { FLAGSHIP } from '@/lib/site';
 
 const PATH = '/research-lab';
 const TITLE = 'Satellite Engineering Research Lab';
@@ -59,6 +63,8 @@ export default function ResearchLabPage() {
                 </div>
             </PageHero>
 
+            <SpaceTwinSection />
+
             <section className="section section-alt" data-analytics-section="themes">
                 <div className="container">
                     <ol className={styles.themes}>
@@ -80,6 +86,39 @@ export default function ResearchLabPage() {
                         Taking part does not imply employment, university affiliation, research funding or certification.
                         Scope, format and availability are confirmed when we discuss your research.
                     </p>
+                </div>
+            </section>
+
+            {/* Flagship research: the former /research-platform page (2026-11-14), now part of the Research Lab. */}
+            <section
+                id="flagship-research"
+                className={`section section-alt ${styles.flagship}`}
+                data-analytics-section="workspace"
+                data-track-view="research_platform_view"
+            >
+                <div className="container">
+                    <div className={styles.flagshipHead}>
+                        <div data-reveal>
+                            <p className="eyebrow">Flagship research</p>
+                            <h2>{FLAGSHIP}</h2>
+                            <p className="lead">How a spacecraft generates, stores, consumes and reports energy through every orbit.</p>
+                            <div className={styles.meta}>
+                                <MaturityBadge level="Research" />
+                                <MaturityBadge level="Simulation" />
+                            </div>
+                        </div>
+                        <EnergyFlow />
+                    </div>
+                    <ResearchWorkspace />
+                    <div className={styles.collab} data-reveal>
+                        <div>
+                            <h3>Review, guide or contribute.</h3>
+                            <p>Research and collaboration enquiries are welcome from academia, industry and the global space ecosystem.</p>
+                        </div>
+                        <Link href="/contact?enquiry=research" className="btn btn-primary" data-track="research_collaboration_click">
+                            Discuss Research Collaboration
+                        </Link>
+                    </div>
                 </div>
             </section>
 

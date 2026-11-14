@@ -6,7 +6,7 @@ import ExternalLink from '@/components/site/ExternalLink';
 import OrbitInstrument from '@/components/site/OrbitInstrument';
 import PosterDialog from '@/components/site/PosterDialog';
 import Satellite3D from '@/components/site/Satellite3D';
-import SpaceTwinViewer from '@/components/space-twin/SpaceTwinViewer';
+import SpaceTwinSection from '@/components/space-twin/SpaceTwinSection';
 import { EcosystemList } from '@/components/site/blocks';
 import { RESEARCH_THEMES } from '@/lib/research-lab';
 import { FLAGSHIP, JOIN_HREF, RESOURCES, SITE } from '@/lib/site';
@@ -39,7 +39,7 @@ export default function Home() {
                             Practical satellite engineering research, digital twin development and collaborative R&amp;D addressing real industry challenges.
                         </p>
                         <div className="actions hero-actions">
-                            <Link href="/research-platform" className="btn btn-primary">Explore Research</Link>
+                            <Link href="/research-lab#flagship-research" className="btn btn-primary">Explore Research</Link>
                             <Link href={JOIN_HREF} className="btn btn-secondary" data-track="join_rnd_click">Discuss Research</Link>
                         </div>
                     </div>
@@ -69,30 +69,8 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* 3 — Space Station Digital Twin R&D Center: four interactive 3D experiences */}
-            <section id="space-digital-twin" className={styles.twin} data-analytics-section="space-digital-twin">
-                <div className="container">
-                    <div className={styles.twinHead} data-reveal>
-                        <div>
-                            <p className="eyebrow">
-                                <span className={styles.brandCase}>{SITE.name}</span> · Space Research
-                            </p>
-                            <h2>Space Station Digital Twin R&amp;D Center</h2>
-                            <p className={styles.twinTitle}>Learn to Protect Missions.</p>
-                            <p className={styles.twinSupport}>Build Systems That Protect Spacecraft.</p>
-                        </div>
-                        <div className={styles.twinIntro}>
-                            <p className="lead">
-                                Explore satellites, spacecraft, orbital constellations and space stations through realistic 3D engineering
-                                experiences. Discover how electrical power, energy storage, telemetry, physics, cybersecurity and intelligent
-                                health monitoring support space missions.
-                            </p>
-                            <p className="label">Explore. Experiment. Understand.</p>
-                        </div>
-                    </div>
-                    <SpaceTwinViewer />
-                </div>
-            </section>
+            {/* 3 — Space Digital Twin: four interactive 3D experiences */}
+            <SpaceTwinSection />
 
             {/* 4 — Flagship research */}
             <section className="section" data-analytics-section="home-research-platform" data-track-view="research_platform_view">
@@ -104,7 +82,7 @@ export default function Home() {
                     </div>
                     <OrbitInstrument idPrefix="home-orbit" />
                     <div className="actions hero-actions">
-                        <Link href="/research-platform" className="btn btn-secondary">Explore Research Platform</Link>
+                        <Link href="/research-lab#flagship-research" className="btn btn-secondary">Run Mission Scenario</Link>
                     </div>
                 </div>
             </section>

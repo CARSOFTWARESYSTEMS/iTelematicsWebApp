@@ -1,5 +1,5 @@
 /**
- * Story infrastructure shared by the four Space Station Digital Twin experiences, generalised
+ * Story infrastructure shared by the four Space Digital Twin experiences, generalised
  * from the "Learn to Protect Missions" showcase: a looping clock split into four stages and finer
  * phases, a smooth periodic camera path through keyframes, and the heads-up model the overlay
  * renders. Pure data and functions, so the scenes (inside the canvas), the overlays (outside it)

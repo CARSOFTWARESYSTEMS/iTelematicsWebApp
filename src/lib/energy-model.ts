@@ -3,7 +3,7 @@
  * 550 km sun-synchronous orbit at β ≈ 20°. One model drives every number on the site (homepage
  * orbit, research instrument, fault scenarios, telemetry table), so they always agree.
  *
- * Simplifications are deliberate and published on /research-platform: circular orbit, fixed β,
+ * Simplifications are deliberate and published on /research-lab (flagship research): circular orbit, fixed β,
  * orbit-average array power while sunlit, constant loads per phase, linear charge taper above 95 %.
  * Simulated values for learning and research — not flight data.
  */

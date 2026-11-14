@@ -1,5 +1,5 @@
 "use client";
-// The Space Station Digital Twin viewer: four experiences behind one selector and one shared 3D
+// The Space Digital Twin viewer: four experiences behind one selector and one shared 3D
 // canvas. A still poster is always there (and is the fallback without WebGL); the canvas mounts
 // when the section nears the screen and animates only while it is visible, the tab is shown and
 // the visitor has not paused it. Reduced motion: nothing moves until the visitor presses Play.

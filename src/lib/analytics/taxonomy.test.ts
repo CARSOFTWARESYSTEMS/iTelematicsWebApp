@@ -153,8 +153,8 @@ describe('sanitizeParams', () => {
 });
 
 describe('routeViewEvent / stripQuery', () => {
-    it('maps research platform and internship routes', () => {
-        expect(routeViewEvent('/research-platform')).toBe('research_platform_view');
+    it('maps the Research Lab route', () => {
+        expect(routeViewEvent('/research-platform')).toBeNull();
         expect(routeViewEvent('/research-lab/satellite-energy')).toBe('internship_view');
         expect(routeViewEvent('/research-lab-old')).toBeNull();
         expect(routeViewEvent('/')).toBeNull();

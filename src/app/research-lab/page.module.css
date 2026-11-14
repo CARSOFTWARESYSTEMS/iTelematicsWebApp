@@ -57,3 +57,55 @@
     font-size: 0.92rem;
     color: var(--text-3);
 }
+
+/* ---------- Flagship research (formerly /research-platform) ---------- */
+
+.flagship {
+    border-top: 1px solid var(--border);
+}
+
+.flagshipHead {
+    display: grid;
+    gap: clamp(2rem, 1.5rem + 2vw, 3rem);
+    align-items: center;
+    margin-bottom: clamp(2.5rem, 1.5rem + 3vw, 4.5rem);
+}
+
+@media (min-width: 1024px) {
+    .flagshipHead {
+        grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+        gap: clamp(3rem, 2rem + 3vw, 5rem);
+    }
+}
+
+.flagshipHead h2 + p {
+    margin-top: 1.25rem;
+}
+
+.meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1.75rem;
+}
+
+.collab {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem 2rem;
+    margin-top: clamp(2.5rem, 1.5rem + 3vw, 4rem);
+    padding-top: clamp(1.5rem, 1rem + 1.5vw, 2.25rem);
+    border-top: 1px solid var(--border-strong);
+}
+
+.collab h3 {
+    font-size: clamp(1.25rem, 1.1rem + 0.6vw, 1.6rem);
+}
+
+.collab p {
+    margin-top: 0.5rem;
+    max-width: 56ch;
+    color: var(--text-2);
+}
