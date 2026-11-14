@@ -174,6 +174,7 @@ const PARTNER_HOSTS = new Set([
     'evsociety.org',
     'thasmaiinfotech.com',
     'ishavasyam.org',
+    'stellrspace.com',
     'autonomous.ev.engineer',
     'ev.engineer',
 ]);

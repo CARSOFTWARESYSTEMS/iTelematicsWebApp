@@ -5,16 +5,17 @@ import { ExternalOrgIcon } from './ExternalOrgMark';
 import { ECOSYSTEM } from '@/lib/site';
 
 // Node positions (% of the drawing) on a ring around the central iTelematics® node, in ECOSYSTEM order.
-// The two longest names sit along the top; shorter ones down the sides and along the bottom.
+// The two longest names sit along the top; shorter ones down the sides and three along the bottom.
 const POSITIONS = [
     { x: 25, y: 11 },
     { x: 75, y: 11 },
     { x: 87, y: 37 },
     { x: 87, y: 64 },
-    { x: 72, y: 90 },
-    { x: 28, y: 90 },
+    { x: 79, y: 90 },
+    { x: 21, y: 90 },
     { x: 13, y: 64 },
     { x: 13, y: 37 },
+    { x: 50, y: 90 },
 ];
 
 /** Relationship map: iTelematics® at the centre; each organisation around it links to its own site. */

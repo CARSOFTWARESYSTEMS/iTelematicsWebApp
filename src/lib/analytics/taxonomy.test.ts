@@ -84,6 +84,7 @@ describe('describeClick destination rules', () => {
             'https://evsociety.org/',
             'https://www.thasmaiinfotech.com/space-research',
             'https://ishavasyam.org/',
+            'https://stellrspace.com',
             'https://autonomous.ev.engineer/',
             'https://ev.engineer',
         ]) {

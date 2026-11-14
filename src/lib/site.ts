@@ -268,6 +268,12 @@ export const ECOSYSTEM: EcosystemOrg[] = [
         status: 'Space station research initiative',
         links: [{ label: 'Visit', href: 'https://ishavasyam.org/', kind: 'official' }],
     },
+    {
+        name: 'STELLR SPACE',
+        line: 'Space education.',
+        status: 'Space Education',
+        links: [{ label: 'Visit', href: 'https://stellrspace.com', kind: 'official' }],
+    },
 ];
 
 /**
