@@ -109,6 +109,9 @@ export default function EpsExperience() {
     const title = mode.kind === 'overview' ? OVERVIEW_STAGES[overviewStage] : scene.title;
     const caption = mode.kind === 'guided' ? `${mode.i + 1} / ${GUIDED.length} · ${GUIDED[mode.i].caption}` : mode.kind === 'label' ? `${String(mode.i + 1).padStart(2, '0')} / ${LABELS.length}` : mode.kind === 'fault' ? 'Fault investigation' : 'Overview';
     const live = near && quality !== null && !noWebGL;
+    // The highlighted button follows the visitor's choice: an open list first, otherwise what is showing.
+    // In the overview nothing is chosen yet, so no button is highlighted.
+    const chosen = menu ?? (mode.kind === 'guided' ? 'guided' : mode.kind === 'label' ? 'subsystems' : mode.kind === 'fault' ? 'faults' : null);
 
     return (
         <div className={styles.eps}>
@@ -173,13 +176,13 @@ export default function EpsExperience() {
             <aside className={styles.side} aria-label="Investigation">
                 <div className={styles.sideScroll}>
                 <div className={styles.primary}>
-                    <button type="button" className={`btn btn-primary ${styles.primaryBtn}`} onClick={start} data-track="station_model_interaction" data-track-name="EPS: start investigation">
+                    <button type="button" className={`btn ${chosen === 'guided' ? 'btn-primary' : 'btn-secondary'} ${styles.primaryBtn}`} aria-current={chosen === 'guided' || undefined} onClick={start} data-track="station_model_interaction" data-track-name="EPS: start investigation">
                         Start Investigation
                     </button>
-                    <button type="button" className={`btn btn-secondary ${styles.primaryBtn}`} aria-expanded={menu === 'subsystems'} onClick={() => setMenu(menu === 'subsystems' ? null : 'subsystems')} data-track="station_model_interaction" data-track-name="EPS: subsystems">
+                    <button type="button" className={`btn ${chosen === 'subsystems' ? 'btn-primary' : 'btn-secondary'} ${styles.primaryBtn}`} aria-current={chosen === 'subsystems' || undefined} aria-expanded={menu === 'subsystems'} onClick={() => setMenu(menu === 'subsystems' ? null : 'subsystems')} data-track="station_model_interaction" data-track-name="EPS: subsystems">
                         Subsystems
                     </button>
-                    <button type="button" className={`btn btn-secondary ${styles.primaryBtn}`} aria-expanded={menu === 'faults'} onClick={() => setMenu(menu === 'faults' ? null : 'faults')} data-track="station_model_interaction" data-track-name="EPS: fault investigation">
+                    <button type="button" className={`btn ${chosen === 'faults' ? 'btn-primary' : 'btn-secondary'} ${styles.primaryBtn}`} aria-current={chosen === 'faults' || undefined} aria-expanded={menu === 'faults'} onClick={() => setMenu(menu === 'faults' ? null : 'faults')} data-track="station_model_interaction" data-track-name="EPS: fault investigation">
                         Fault Investigation
                     </button>
                 </div>

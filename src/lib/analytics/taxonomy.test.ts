@@ -82,6 +82,8 @@ describe('describeClick destination rules', () => {
             'https://ifab.tech/',
             'https://uflight.in',
             'https://evsociety.org/',
+            'https://www.thasmaiinfotech.com/space-research',
+            'https://ishavasyam.org/',
             'https://autonomous.ev.engineer/',
             'https://ev.engineer',
         ]) {

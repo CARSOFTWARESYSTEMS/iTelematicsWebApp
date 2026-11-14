@@ -27,6 +27,8 @@ function offenders(pattern: RegExp, except: string[] = []) {
 // "Training & Internship" programme (instruction, 2026-10-25). Both live in this one content file.
 const EV_ENGINEER_CONTENT = path.join('lib', 'ev-engineer.ts');
 const PERSONAL_NAME = /sudarshan|karkala/i;
+// The Terms page credits third-party imagery (NASA, Solar System Scope) as its licences require.
+const IMAGE_CREDITS = path.join('app', 'policies', 'terms', 'page.tsx');
 
 describe('site content rules', () => {
     it('names an individual only in the EV.ENGINEER™ page content', () => {
@@ -116,6 +118,19 @@ describe('site content rules', () => {
     });
 
     it('does not name agencies or institutions that have no documented relationship', () => {
-        expect(offenders(/\b(NASA|SpaceX|ISRO|IN-SPACe|IISc|IIST|IITs?|JAXA|ESA)\b/)).toEqual([]);
+        expect(offenders(/\b(NASA|SpaceX|ISRO|IN-SPACe|IISc|IIST|IITs?|JAXA|ESA)\b/, [IMAGE_CREDITS])).toEqual([]);
+    });
+
+    it('names NASA only as an image source, in the Terms image credits, without implying endorsement', () => {
+        // Crediting public-domain imagery is required by NASA's media guidelines (docs/ASSET_SOURCES.md);
+        // it is the only place an agency may be named, and it must say there is no endorsement.
+        const terms = files.find(({ file }) => file === IMAGE_CREDITS)!.text;
+        const start = terms.indexOf('id="image-credits"');
+        const end = terms.indexOf('<h2', start);
+        expect(start).toBeGreaterThan(0);
+        const credits = terms.slice(start, end);
+        expect(terms.slice(0, start) + terms.slice(end)).not.toMatch(/\bNASA\b/);
+        expect(credits).toMatch(/does not imply endorsement by NASA/);
+        expect(credits).not.toMatch(/\b(partner|collaborat|approved|certified)/i);
     });
 });

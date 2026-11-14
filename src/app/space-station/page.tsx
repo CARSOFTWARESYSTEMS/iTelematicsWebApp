@@ -271,7 +271,7 @@ export default function SpaceStationPage() {
                         {DOMAINS.map((d, i) => (
                             <details key={d.title} className="disclosure">
                                 <summary>
-                                    <span>
+                                    <span className={styles.domainTitle}>
                                         <span className={styles.domainNum}>{String(i + 1).padStart(2, '0')}</span>
                                         {d.title}
                                     </span>
@@ -357,23 +357,24 @@ export default function SpaceStationPage() {
                         ))}
                     </ul>
                     <div className={styles.tableWrap} data-reveal>
-                        <table className="data-table">
+                        {/* Explicit roles keep the table semantics when phones restack the rows (CSS display changes drop them in Safari). */}
+                        <table className="data-table" role="table">
                             <caption className="visually-hidden">Engineering deliverables and their status</caption>
-                            <thead>
-                                <tr>
-                                    <th scope="col">Deliverable</th>
-                                    <th scope="col">Status</th>
-                                    <th scope="col">Where it stands</th>
+                            <thead role="rowgroup">
+                                <tr role="row">
+                                    <th scope="col" role="columnheader">Deliverable</th>
+                                    <th scope="col" role="columnheader">Status</th>
+                                    <th scope="col" role="columnheader">Where it stands</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody role="rowgroup">
                                 {DELIVERABLES.map((d) => (
-                                    <tr key={d.title}>
-                                        <th scope="row">{d.title}</th>
-                                        <td>
+                                    <tr key={d.title} role="row">
+                                        <th scope="row" role="rowheader">{d.title}</th>
+                                        <td role="cell">
                                             <span className={`badge ${d.status === 'Started' ? 'state-telemetry' : ''}`}>{d.status}</span>
                                         </td>
-                                        <td>{d.note}</td>
+                                        <td role="cell">{d.note}</td>
                                     </tr>
                                 ))}
                             </tbody>

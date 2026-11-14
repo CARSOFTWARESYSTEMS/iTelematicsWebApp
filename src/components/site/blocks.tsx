@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import styles from './blocks.module.css';
 import ExternalLink from './ExternalLink';
 import { ECOSYSTEM } from '@/lib/site';
+import ExternalOrgMark from './ExternalOrgMark';
 
 /* ---------- Shared inner-page hero: text 45 % / contextual visual 55 % ---------- */
 
@@ -80,7 +81,15 @@ export function EcosystemList({ compact = false }: { compact?: boolean }) {
             {ECOSYSTEM.map((org) => (
                 <li key={org.name} className={styles.org}>
                     <div>
-                        <h3 className={styles.orgName}>{org.name}</h3>
+                        <h3 className={styles.orgName}>
+                            {org.name}
+                            {org.external && (
+                                <>
+                                    {' '}
+                                    <ExternalOrgMark />
+                                </>
+                            )}
+                        </h3>
                         {!compact && <p className={styles.orgLine}>{org.line}</p>}
                     </div>
                     <p className={styles.orgStatus}>{org.status}</p>

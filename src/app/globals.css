@@ -467,6 +467,11 @@ h2 + .lead,
   top: 0.75rem;
 }
 
+/* Keeps a label and its value (an identifier, a phone number) together when a line wraps. */
+.nowrap {
+  white-space: nowrap;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;

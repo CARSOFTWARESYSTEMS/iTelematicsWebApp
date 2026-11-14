@@ -1,3 +1,7 @@
+.wrap {
+    width: 100%;
+}
+
 .network {
     position: relative;
     width: 100%;
@@ -37,6 +41,7 @@
 .link {
     display: inline-flex;
     align-items: center;
+    gap: 0.4rem;
     min-height: 40px;
     transition: border-color 0.2s var(--ease), color 0.2s var(--ease), background-color 0.2s var(--ease);
 }
@@ -45,6 +50,36 @@
     border-color: rgba(34, 211, 238, 0.55);
     background: var(--surface);
     color: var(--text);
+}
+
+/* Organisations outside the iTelematics® group: dashed outline and the external icon. */
+.external {
+    border-style: dashed;
+}
+
+.lineExternal {
+    stroke-dasharray: 1 5;
+}
+
+.legend {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    margin-top: 0.9rem;
+    font-size: 0.74rem;
+    /* A quiet note: the site's slate tone at low opacity, just above the background. */
+    color: rgba(148, 163, 184, 0.34);
+}
+
+.legendKey {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 18px;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-sm);
 }
 
 .center {

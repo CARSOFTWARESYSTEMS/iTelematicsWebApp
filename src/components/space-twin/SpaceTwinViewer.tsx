@@ -22,6 +22,21 @@ const EPS_TAB = { number: '05', label: 'Station Power & Energy', title: 'Space S
 const POSTER = (id: ExperienceId) => `/images/space-twin/poster-${id}.jpg`;
 const SWITCH_MS = 320;
 
+// Full screen (added 2026-11-14, for presenting): the whole viewer covers the screen with the 3D on top and
+// only the predefined controls in a bar along the bottom. It uses the browser's Fullscreen API where it
+// exists; elsewhere (iPhone Safari) the viewer simply fills the browser window. Esc or Exit leaves.
+type FullscreenElement = HTMLElement & { webkitRequestFullscreen?: () => void };
+type FullscreenDocument = Document & { webkitFullscreenElement?: Element | null; webkitExitFullscreen?: () => void };
+const fullscreenElement = () => document.fullscreenElement ?? (document as FullscreenDocument).webkitFullscreenElement ?? null;
+
+function FullscreenIcon({ exit }: { exit: boolean }) {
+    return (
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true">
+            {exit ? <path d="M6 1.5V6H1.5M10 1.5V6h4.5M6 14.5V10H1.5M10 14.5V10h4.5" /> : <path d="M1.5 5.5v-4h4M10.5 1.5h4v4M1.5 10.5v4h4M14.5 10.5v4h-4" />}
+        </svg>
+    );
+}
+
 function HudCard({ hud, steps }: { hud: Hud; steps?: string[] }) {
     return (
         <div className={styles.hudCard} data-alert={hud.alert || undefined}>
@@ -80,6 +95,7 @@ export default function SpaceTwinViewer() {
     const compact = useMedia('(max-width: 1024px)');
     const pageVisible = usePageVisible();
     const frameRef = useRef<HTMLDivElement>(null);
+    const viewerRef = useRef<HTMLElement>(null);
     const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
     const { near, onScreen } = usePresence(frameRef);
 
@@ -97,6 +113,7 @@ export default function SpaceTwinViewer() {
     // Restarts the stage progress bar when the visitor jumps to a stage.
     const [run, setRun] = useState(0);
     const [eps, setEps] = useState(false);
+    const [present, setPresent] = useState(false);
 
     useEffect(() => {
         setPhaseIndex(clock.phase);
@@ -197,8 +214,56 @@ export default function SpaceTwinViewer() {
 
     const fallback = noWebGL && near;
 
+    const enterPresent = () => {
+        setPresent(true);
+        const el = viewerRef.current as FullscreenElement | null;
+        try {
+            if (el?.requestFullscreen) el.requestFullscreen({ navigationUI: 'hide' }).catch(() => {});
+            else el?.webkitRequestFullscreen?.();
+        } catch {
+            // No Fullscreen API: the viewer still fills the browser window.
+        }
+    };
+
+    const exitPresent = useCallback(() => {
+        setPresent(false);
+        const doc = document as FullscreenDocument;
+        if (!fullscreenElement()) return;
+        try {
+            if (doc.exitFullscreen) doc.exitFullscreen().catch(() => {});
+            else doc.webkitExitFullscreen?.();
+        } catch {
+            // Already left.
+        }
+    }, []);
+
+    useEffect(() => {
+        if (!present) return;
+        // Leaving the browser's full screen (Esc, or the system gesture) also leaves presentation.
+        let entered = false;
+        const onChange = () => {
+            if (fullscreenElement()) entered = true;
+            else if (entered) setPresent(false);
+        };
+        const onKey = (e: globalThis.KeyboardEvent) => {
+            if (e.key === 'Escape') exitPresent();
+        };
+        document.addEventListener('fullscreenchange', onChange);
+        document.addEventListener('webkitfullscreenchange', onChange);
+        document.addEventListener('keydown', onKey);
+        const overflow = document.documentElement.style.overflow;
+        document.documentElement.style.overflow = 'hidden';
+        return () => {
+            document.removeEventListener('fullscreenchange', onChange);
+            document.removeEventListener('webkitfullscreenchange', onChange);
+            document.removeEventListener('keydown', onKey);
+            document.documentElement.style.overflow = overflow;
+        };
+    }, [present, exitPresent]);
+
     return (
-        <figure className={styles.viewer} aria-labelledby="space-twin-caption">
+        <figure ref={viewerRef} className={styles.viewer} aria-labelledby="space-twin-caption" data-present={present || undefined}>
+            <div className={styles.selectorRow}>
             <div role="tablist" aria-label="Space experiences" className={styles.selector}>
                 {EXPERIENCES.map((e, i) => (
                     <button
@@ -244,6 +309,19 @@ export default function SpaceTwinViewer() {
                     </span>
                     {EPS_TAB.label}
                 </button>
+            </div>
+            <button
+                type="button"
+                className={styles.presentBtn}
+                onClick={present ? exitPresent : enterPresent}
+                aria-label={present ? 'Exit full screen' : 'Full screen'}
+                title={present ? 'Exit full screen (Esc)' : 'Full screen, for presenting'}
+                data-track="station_model_interaction"
+                data-track-name={present ? 'Space Digital Twin: exit full screen' : 'Space Digital Twin: full screen'}
+            >
+                <FullscreenIcon exit={present} />
+                <span className={styles.presentLabel}>{present ? 'Exit full screen' : 'Full screen'}</span>
+            </button>
             </div>
 
             <div id="twin-stage" role="tabpanel" aria-labelledby={eps ? 'twin-tab-eps' : `twin-tab-${experienceId}`} className={styles.stagePanel}>

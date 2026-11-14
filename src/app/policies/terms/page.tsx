@@ -4,6 +4,7 @@ import { pageMetadata } from '@/lib/metadata';
 import JsonLd, { pageSchema } from '@/components/JsonLd';
 import { PageHero } from '@/components/site/blocks';
 import { SITE } from '@/lib/site';
+import ExternalLink from '@/components/site/ExternalLink';
 
 const PATH = '/policies/terms';
 const TITLE = 'Terms of Use';
@@ -90,6 +91,32 @@ export default function TermsPage() {
                         shown on the site belong to their respective owners.
                     </p>
 
+                    <h2 id="image-credits">Image credits</h2>
+                    <p>Third-party imagery and typefaces keep their own terms:</p>
+                    <ul>
+                        <li>
+                            Earth imagery in the interactive 3D models (daytime surface, night lights and clouds): NASA Visible Earth and NASA
+                            Earth Observatory, public domain. Some map layers are as distributed by{' '}
+                            <ExternalLink href="https://www.solarsystemscope.com/textures/" trackName="Image credits: Solar System Scope">
+                                Solar System Scope
+                            </ExternalLink>{' '}
+                            under{' '}
+                            <ExternalLink href="https://creativecommons.org/licenses/by/4.0/" trackName="Image credits: CC BY 4.0">
+                                CC BY 4.0
+                            </ExternalLink>
+                            . Use of NASA imagery follows the{' '}
+                            <ExternalLink href="https://www.nasa.gov/nasa-brand-center/images-and-media/" trackName="Image credits: NASA media guidelines">
+                                NASA media guidelines
+                            </ExternalLink>{' '}
+                            and does not imply endorsement by NASA.
+                        </li>
+                        <li>Typefaces: Inter and JetBrains Mono, under the SIL Open Font License.</li>
+                    </ul>
+                    <p>
+                        Still images of the 3D models (previews and share images) are rendered by iTelematics® from those models. Posters
+                        and documents published for ecosystem organisations are supplied by those organisations.
+                    </p>
+
                     <h2>Acceptable use</h2>
                     <p>
                         Do not attempt to disrupt the website, gain unauthorised access to it or misrepresent your affiliation with
@@ -121,11 +148,12 @@ export default function TermsPage() {
                     <p>
                         {SITE.legalName}
                         <br />
-                        CIN {SITE.cin} · GSTIN {SITE.gstin} · MSME {SITE.msme}
+                        <span className="nowrap">CIN {SITE.cin}</span> · <span className="nowrap">GSTIN {SITE.gstin}</span> ·{' '}
+                        <span className="nowrap">MSME {SITE.msme}</span>
                         <br />
                         {SITE.address.display}
                         <br />
-                        Email: <a href={`mailto:${SITE.email}`}>{SITE.email}</a> · Phone: <a href={SITE.phoneHref}>{SITE.phone}</a>
+                        Email: <a href={`mailto:${SITE.email}`}>{SITE.email}</a> · Phone: <a href={SITE.phoneHref} className="nowrap">{SITE.phone}</a>
                     </p>
                 </div>
             </section>

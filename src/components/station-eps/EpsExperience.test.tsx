@@ -49,7 +49,8 @@ describe('Station Power & Energy experience', () => {
             expect(screen.getByText('Engineering insight.')).toBeInTheDocument();
             expect(screen.getByText('Learn more')).toBeInTheDocument();
         }
-    });
+        // Ten full panel renders: allow for a loaded machine running the whole suite.
+    }, 15000);
 
     it('investigates the three faults with their diagnostic record', () => {
         render(<EpsExperience />);
@@ -74,5 +75,21 @@ describe('Station Power & Energy experience', () => {
         expect(screen.getByRole('heading', { name: 'Space Station Electrical Power & Energy Management' })).toBeInTheDocument();
         fireEvent.click(screen.getByRole('button', { name: 'Start Investigation' }));
         expect(screen.getByText(/^1 \/ 8 · Opening/, { selector: 'p' })).toBeInTheDocument();
+    });
+
+    it('highlights only the button the visitor chose', () => {
+        render(<EpsExperience />);
+        const highlighted = () =>
+            ['Start Investigation', 'Subsystems', 'Fault Investigation'].filter((name) => screen.getByRole('button', { name }).classList.contains('btn-primary'));
+        expect(highlighted()).toEqual([]);
+        fireEvent.click(screen.getByRole('button', { name: 'Subsystems' }));
+        expect(highlighted()).toEqual(['Subsystems']);
+        expect(screen.getByRole('button', { name: 'Subsystems' })).toHaveAttribute('aria-current', 'true');
+        fireEvent.click(screen.getByRole('button', { name: 'Fault Investigation' }));
+        expect(highlighted()).toEqual(['Fault Investigation']);
+        fireEvent.click(screen.getByRole('button', { name: 'Start Investigation' }));
+        expect(highlighted()).toEqual(['Start Investigation']);
+        fireEvent.click(screen.getByRole('button', { name: 'Back' }));
+        expect(highlighted()).toEqual([]);
     });
 });

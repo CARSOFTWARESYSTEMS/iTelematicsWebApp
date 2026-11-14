@@ -114,6 +114,27 @@ describe('SpaceTwinViewer', () => {
         }
     });
 
+    it('goes full screen for presenting and leaves with Exit or Esc, keeping the predefined controls', () => {
+        render(<SpaceTwinViewer />);
+        const viewer = screen.getByRole('figure');
+        expect(viewer).not.toHaveAttribute('data-present');
+        // jsdom has no Fullscreen API: the viewer still covers the window.
+        fireEvent.click(screen.getByRole('button', { name: 'Full screen' }));
+        expect(viewer).toHaveAttribute('data-present');
+        expect(document.documentElement.style.overflow).toBe('hidden');
+        expect(screen.getByRole('group', { name: 'Satellite stages' })).toBeInTheDocument();
+        expect(screen.getAllByRole('tab')).toHaveLength(5);
+        fireEvent.click(screen.getByRole('button', { name: 'Exit full screen' }));
+        expect(viewer).not.toHaveAttribute('data-present');
+        expect(document.documentElement.style.overflow).toBe('');
+
+        fireEvent.click(screen.getByRole('button', { name: 'Full screen' }));
+        fireEvent.click(screen.getByRole('tab', { name: /Station Power & Energy/ }));
+        expect(viewer).toHaveAttribute('data-present');
+        fireEvent.keyDown(document, { key: 'Escape' });
+        expect(viewer).not.toHaveAttribute('data-present');
+    });
+
     it('shows a still image and says so where WebGL is missing', async () => {
         render(<SpaceTwinViewer />);
         await act(async () => {});

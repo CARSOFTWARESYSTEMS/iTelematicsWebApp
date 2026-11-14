@@ -172,6 +172,8 @@ const PARTNER_HOSTS = new Set([
     'ifab.tech',
     'uflight.in',
     'evsociety.org',
+    'thasmaiinfotech.com',
+    'ishavasyam.org',
     'autonomous.ev.engineer',
     'ev.engineer',
 ]);

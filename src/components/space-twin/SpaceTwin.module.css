@@ -73,6 +73,58 @@
     color: var(--telemetry);
 }
 
+/* The selector and the Full screen button share one row; the selector scrolls, the button stays. */
+.selectorRow {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.selectorRow .selector {
+    min-width: 0;
+}
+
+.presentBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    flex-shrink: 0;
+    margin-left: auto;
+    min-height: 44px;
+    padding: 0 1rem;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-control);
+    background: transparent;
+    color: var(--text-2);
+    font-size: 0.92rem;
+    font-weight: 560;
+    cursor: pointer;
+    transition: color 0.2s var(--ease), border-color 0.2s var(--ease);
+}
+
+.presentBtn:hover {
+    color: var(--text);
+    border-color: rgba(148, 163, 184, 0.4);
+}
+
+@media (max-width: 640px) {
+    .presentBtn {
+        width: 44px;
+        padding: 0;
+    }
+
+    .presentLabel {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+    }
+}
+
 /* ---------- The 3D frame ---------- */
 
 .stagePanel {
@@ -637,7 +689,135 @@
     }
 }
 
+/* ---------- Full screen (presenting) ----------
+   The viewer covers the screen: the 3D fills the space and the predefined controls (stages, parts,
+   experiences, Exit) sit in a bar along the bottom. Page text (caption, assumptions, hints) is hidden. */
+
+.viewer[data-present] {
+    position: fixed;
+    inset: 0;
+    z-index: 1500;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    background: #03050a;
+    overflow: hidden;
+}
+
+.viewer[data-present] .stagePanel {
+    order: 1;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    border: 0;
+    border-radius: 0;
+}
+
+.viewer[data-present] .frameWrap {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.viewer[data-present] .frame {
+    height: 100%;
+    aspect-ratio: auto;
+    max-height: none;
+}
+
+.viewer[data-present] .panel {
+    flex: 0 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem 1rem;
+    padding: 0.75rem 1.25rem;
+}
+
+.viewer[data-present] .stages {
+    flex: 1 1 520px;
+}
+
+.viewer[data-present] .parts {
+    flex: 1 1 320px;
+}
+
+.viewer[data-present] .explainArea {
+    flex: 1 1 100%;
+    min-height: 0;
+}
+
+.viewer[data-present] .explainArea:not(:has(.explain)),
+.viewer[data-present] .caption,
+.viewer[data-present] .assumptions {
+    display: none;
+}
+
+.viewer[data-present] .selectorRow {
+    order: 2;
+    padding: 0.6rem 1.25rem calc(0.6rem + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+}
+
+/* Short screens (phones held sideways): keep the 3D large; the parts stay on the model itself. */
+@media (max-height: 560px) {
+    .viewer[data-present] .parts,
+    .viewer[data-present] .explainArea {
+        display: none;
+    }
+
+    .viewer[data-present] .panel {
+        padding: 0.5rem 1rem;
+    }
+
+    .viewer[data-present] .stages {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    /* The telemetry card keeps its first four readings, as on phones, so it does not cover the model. */
+    .viewer[data-present] .readings > div:nth-child(n + 5),
+    .viewer[data-present] .readingNote,
+    .viewer[data-present] .health {
+        display: none;
+    }
+
+    .viewer[data-present] .selectorRow {
+        padding-top: 0.4rem;
+        padding-bottom: calc(0.4rem + env(safe-area-inset-bottom));
+    }
+}
+
+@media (max-width: 640px) {
+    .viewer[data-present] .panel {
+        padding: 0.6rem 0.75rem;
+    }
+
+    .viewer[data-present] .parts {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .viewer[data-present] .parts::-webkit-scrollbar {
+        display: none;
+    }
+
+    .viewer[data-present] .partBtn {
+        flex-shrink: 0;
+    }
+
+    .viewer[data-present] .selectorRow {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
+    .presentBtn,
     .canvas,
     .veil,
     .tab,

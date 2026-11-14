@@ -71,7 +71,11 @@ export default function ContactPage() {
                     <p>
                         {SITE.legalName} · {SITE.address.display}
                         <br />
-                        <span className="mono">CIN {SITE.cin} · GSTIN {SITE.gstin} · MSME {SITE.msme}</span>
+                        <span className="mono">
+                            {/* Each identifier stays on one line with its label on narrow screens. */}
+                            <span className="nowrap">CIN {SITE.cin}</span> · <span className="nowrap">GSTIN {SITE.gstin}</span> ·{' '}
+                            <span className="nowrap">MSME {SITE.msme}</span>
+                        </span>
                     </p>
                 </div>
             </section>

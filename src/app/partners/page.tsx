@@ -9,7 +9,7 @@ import { CtaBand, EcosystemList, PageHero } from '@/components/site/blocks';
 const PATH = '/partners';
 const TITLE = 'Engineering Ecosystem';
 const DESCRIPTION =
-    'Engineering collaboration for Space Station Digital Twin R&D with Gamyaa AeroSystems, APEX Rocket Systems, UFlight™, iFab, EV Society™ and EV.ENGINEER™.';
+    'Space Station Digital Twin R&D collaboration with Gamyaa AeroSystems, APEX Rocket Systems, UFlight™, iFab, Thasmai Infotech, ISHAVASYAM.ORG and EV Society™.';
 
 export const metadata: Metadata = pageMetadata({ path: PATH, title: TITLE, description: DESCRIPTION });
 

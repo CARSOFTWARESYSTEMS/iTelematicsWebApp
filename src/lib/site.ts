@@ -202,8 +202,12 @@ export type EcosystemLink = { label: string; href: string; kind: 'official' | 'c
 
 export type EcosystemOrg = {
     name: string;
+    /** A shorter name for the relationship map, where the full name would not fit. */
+    short?: string;
     line: string;
     status: string;
+    /** An independent organisation outside the iTelematics® group, marked "External" wherever it is listed. */
+    external?: boolean;
     links: EcosystemLink[];
 };
 
@@ -219,6 +223,7 @@ export const ECOSYSTEM: EcosystemOrg[] = [
         name: 'APEX Rocket Systems',
         line: 'Rocket propulsion and launch systems.',
         status: 'Proposed · concept stage',
+        external: true,
         links: [
             { label: 'Official Website', href: 'https://www.apexrocketsystems.com/', kind: 'official' },
             { label: 'Partnership', href: 'https://aerospace.ev.engineer/space/partners/apexrocketsystems', kind: 'context' },
@@ -234,6 +239,7 @@ export const ECOSYSTEM: EcosystemOrg[] = [
         name: 'iFab Innovations',
         line: 'Bengaluru engineering solutions. No formal partnership claimed.',
         status: 'Engineering & Innovation Ecosystem',
+        external: true,
         links: [{ label: 'Visit', href: 'https://ifab.tech/', kind: 'official' }],
     },
     {
@@ -247,6 +253,20 @@ export const ECOSYSTEM: EcosystemOrg[] = [
         line: 'Engineering platform hosting Satellite Engineering resources.',
         status: 'Operated by iTelematics®',
         links: [{ label: 'Visit', href: '/ev-engineer', kind: 'internal' }],
+    },
+    {
+        // Name as on the company's own site (brand "Thasmai Infotech"; legal name THASMAI INFOTECH PRIVATE LIMITED).
+        name: 'Thasmai Infotech Private Limited',
+        short: 'Thasmai Infotech',
+        line: 'CanSat and model rocketry engineering research programme: avionics, telemetry, simulation and validation.',
+        status: 'CanSat & Model Rocketry',
+        links: [{ label: 'Visit', href: 'https://www.thasmaiinfotech.com/space-research', kind: 'official' }],
+    },
+    {
+        name: 'ISHAVASYAM.ORG',
+        line: 'One Universe. Two Ways of Knowing.',
+        status: 'Space station research initiative',
+        links: [{ label: 'Visit', href: 'https://ishavasyam.org/', kind: 'official' }],
     },
 ];
 

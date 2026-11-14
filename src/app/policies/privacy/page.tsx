@@ -128,7 +128,7 @@ export default function PrivacyPolicyPage() {
                         <br />
                         {SITE.address.display}
                         <br />
-                        Email: <a href={`mailto:${SITE.email}`}>{SITE.email}</a> · Phone: <a href={SITE.phoneHref}>{SITE.phone}</a>
+                        Email: <a href={`mailto:${SITE.email}`}>{SITE.email}</a> · Phone: <a href={SITE.phoneHref} className="nowrap">{SITE.phone}</a>
                     </p>
                 </div>
             </section>

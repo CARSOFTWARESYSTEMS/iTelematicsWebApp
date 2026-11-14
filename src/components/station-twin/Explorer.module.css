@@ -63,6 +63,15 @@
     }
 }
 
+/* Phones and tablets: long names wrap inside the tab instead of running past the edge, and the next
+   tab stays partly visible as a cue that the row scrolls. */
+@media (max-width: 959px) {
+    .tab {
+        max-width: min(20rem, 82%);
+        white-space: normal;
+    }
+}
+
 .tab:hover {
     color: var(--text);
 }
