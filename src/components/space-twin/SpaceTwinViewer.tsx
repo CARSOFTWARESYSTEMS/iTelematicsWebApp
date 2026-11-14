@@ -17,7 +17,14 @@ const SpaceTwinCanvas = dynamic(() => import('./SpaceTwinCanvas'), { ssr: false 
 // Fifth option (added 2026-11-14): Space Station Electrical Power & Energy Management, a separate experience
 // loaded only when its tab is chosen. The four experiences above are unchanged.
 const StationPowerExperience = dynamic(() => import('@/components/station-eps/EpsExperience'), { ssr: false });
-const EPS_TAB = { number: '05', label: 'Station Power & Energy', title: 'Space Station Electrical Power & Energy Management Digital Twin' } as const;
+// Sixth option (added 2026-11-14): Solar System — From Earth Launch to Deep Space Exploration, also a
+// separate experience with its own scene, state and resources, loaded only when its tab is chosen.
+const SolarSystemExperience = dynamic(() => import('@/components/solar-system/SolarSystemExperience'), { ssr: false });
+type Extra = 'eps' | 'solar';
+const EXTRA_TABS: readonly { id: Extra; number: string; label: string; title: string }[] = [
+    { id: 'eps', number: '05', label: 'Station Power & Energy', title: 'Space Station Electrical Power & Energy Management Digital Twin' },
+    { id: 'solar', number: '06', label: 'Solar System', title: 'Solar System — From Earth Launch to Deep Space Exploration' },
+];
 
 const POSTER = (id: ExperienceId) => `/images/space-twin/poster-${id}.jpg`;
 const SWITCH_MS = 320;
@@ -112,7 +119,9 @@ export default function SpaceTwinViewer() {
     const [ready, setReady] = useState(false);
     // Restarts the stage progress bar when the visitor jumps to a stage.
     const [run, setRun] = useState(0);
-    const [eps, setEps] = useState(false);
+    // The fifth or sixth option, when one is open (they replace the standard frame).
+    const [extra, setExtra] = useState<Extra | null>(null);
+    const extraOpen = extra !== null;
     const [present, setPresent] = useState(false);
 
     useEffect(() => {
@@ -145,7 +154,7 @@ export default function SpaceTwinViewer() {
 
     const switchTo = (id: ExperienceId, i: number) => {
         tabRefs.current[i]?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-        if (eps) setEps(false);
+        if (extra) setExtra(null);
         if (id === experienceId) return;
         const apply = () => {
             setExperienceId(id);
@@ -165,21 +174,21 @@ export default function SpaceTwinViewer() {
         }, SWITCH_MS);
     };
 
-    const openEps = () => {
-        tabRefs.current[EXPERIENCES.length]?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-        setEps(true);
+    const openExtra = (id: Extra) => {
+        tabRefs.current[EXPERIENCES.length + EXTRA_TABS.findIndex((t) => t.id === id)]?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+        setExtra(id);
         // The shared canvas unmounts; show the poster again until it is recreated on return.
         setReady(false);
     };
 
     const onTabKey = (e: KeyboardEvent<HTMLButtonElement>, i: number) => {
-        const count = EXPERIENCES.length + 1; // the four experiences and Station Power & Energy
+        const count = EXPERIENCES.length + EXTRA_TABS.length; // the four experiences, Station Power & Energy and Solar System
         const delta = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
         const jump = e.key === 'Home' ? 0 : e.key === 'End' ? count - 1 : null;
         if (!delta && jump === null) return;
         e.preventDefault();
         const next = jump ?? (i + delta + count) % count;
-        if (next === EXPERIENCES.length) openEps();
+        if (next >= EXPERIENCES.length) openExtra(EXTRA_TABS[next - EXPERIENCES.length].id);
         else switchTo(EXPERIENCES[next].id, next);
         tabRefs.current[next]?.focus();
     };
@@ -274,9 +283,9 @@ export default function SpaceTwinViewer() {
                         type="button"
                         role="tab"
                         id={`twin-tab-${e.id}`}
-                        aria-selected={e.id === experienceId && !eps}
+                        aria-selected={e.id === experienceId && !extraOpen}
                         aria-controls="twin-stage"
-                        tabIndex={e.id === experienceId && !eps ? 0 : -1}
+                        tabIndex={e.id === experienceId && !extraOpen ? 0 : -1}
                         className={styles.tab}
                         onClick={() => switchTo(e.id, i)}
                         onKeyDown={(ev) => onTabKey(ev, i)}
@@ -287,28 +296,31 @@ export default function SpaceTwinViewer() {
                         {e.label}
                     </button>
                 ))}
-                <button
-                    ref={(el) => {
-                        tabRefs.current[EXPERIENCES.length] = el;
-                    }}
-                    type="button"
-                    role="tab"
-                    id="twin-tab-eps"
-                    aria-selected={eps}
-                    aria-controls="twin-stage"
-                    title={EPS_TAB.title}
-                    tabIndex={eps ? 0 : -1}
-                    className={styles.tab}
-                    onClick={openEps}
-                    onKeyDown={(ev) => onTabKey(ev, EXPERIENCES.length)}
-                    data-track="station_model_interaction"
-                    data-track-name={`Space Digital Twin: ${EPS_TAB.number} ${EPS_TAB.label}`}
-                >
-                    <span className={styles.tabNum} aria-hidden="true">
-                        {EPS_TAB.number}
-                    </span>
-                    {EPS_TAB.label}
-                </button>
+                {EXTRA_TABS.map((t, k) => (
+                    <button
+                        key={t.id}
+                        ref={(el) => {
+                            tabRefs.current[EXPERIENCES.length + k] = el;
+                        }}
+                        type="button"
+                        role="tab"
+                        id={`twin-tab-${t.id}`}
+                        aria-selected={extra === t.id}
+                        aria-controls="twin-stage"
+                        title={t.title}
+                        tabIndex={extra === t.id ? 0 : -1}
+                        className={styles.tab}
+                        onClick={() => openExtra(t.id)}
+                        onKeyDown={(ev) => onTabKey(ev, EXPERIENCES.length + k)}
+                        data-track="station_model_interaction"
+                        data-track-name={`Space Digital Twin: ${t.number} ${t.label}`}
+                    >
+                        <span className={styles.tabNum} aria-hidden="true">
+                            {t.number}
+                        </span>
+                        {t.label}
+                    </button>
+                ))}
             </div>
             <button
                 type="button"
@@ -324,11 +336,12 @@ export default function SpaceTwinViewer() {
             </button>
             </div>
 
-            <div id="twin-stage" role="tabpanel" aria-labelledby={eps ? 'twin-tab-eps' : `twin-tab-${experienceId}`} className={styles.stagePanel}>
-                {eps && <StationPowerExperience />}
-                {/* Hidden (not unmounted) while the fifth option is open, so the presence observer keeps
+            <div id="twin-stage" role="tabpanel" aria-labelledby={extra ? `twin-tab-${extra}` : `twin-tab-${experienceId}`} className={styles.stagePanel}>
+                {extra === 'eps' && <StationPowerExperience />}
+                {extra === 'solar' && <SolarSystemExperience />}
+                {/* Hidden (not unmounted) while the fifth or sixth option is open, so the presence observer keeps
                     tracking the frame: it reports it off-screen, which releases the 3D canvas. */}
-                <div style={{ display: eps ? 'none' : 'contents' }}>
+                <div style={{ display: extraOpen ? 'none' : 'contents' }}>
                 <div className={styles.frameWrap}>
                     <div
                         ref={frameRef}
@@ -427,7 +440,7 @@ export default function SpaceTwinViewer() {
                 </div>
             </div>
 
-            {!eps && (
+            {!extraOpen && (
             <>
             <figcaption id="space-twin-caption" className={styles.caption}>
                 <span className={styles.captionHead}>

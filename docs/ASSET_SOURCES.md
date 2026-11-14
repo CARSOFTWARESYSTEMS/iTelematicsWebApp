@@ -38,18 +38,24 @@ Last reviewed: 14 November 2026.
 | `public/images/space-twin/earth-day-2k.jpg` | NASA Visible Earth, Blue Marble (via the AutonomousEV project, `docs/satellite-explorer.md`) | Public domain (NASA) | NASA Visible Earth | 2048×1024. No source metadata in the file. Not the Solar System Scope day map (correlation 0.68 on 14 Nov 2026). NASA's server could not be reached from the build machine to compare byte-for-byte. |
 | `public/images/space-twin/earth-night-2k.jpg` | NASA Earth Observatory city lights (via AutonomousEV) | Public domain (NASA) | NASA Earth Observatory | Similar to, but not the same file as, the Solar System Scope night map (correlation 0.87). |
 | `public/images/space-twin/earth-clouds-2k.jpg` | NASA cloud composite, near-identical to Solar System Scope's `2k_earth_clouds.jpg` (correlation 0.985) | Public domain (NASA) / CC BY 4.0 (Solar System Scope) | Both credited on `/policies/terms` | Credited to both sources because the exact origin of this copy is unconfirmed. |
+| `public/images/solar-system/terrain-grass-rock.jpg`, `terrain-grass-rock-normal.jpg` | Poly Haven "Aerial Grass Rock": https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/aerial_grass_rock/aerial_grass_rock_diff_1k.jpg and `…_nor_gl_1k.jpg` (14 Nov 2026) | CC0 (https://polyhaven.com/license) | Poly Haven (credit not required, given on Terms) | Recompressed (JPEG q78/q86). Original SHA-256 57b8041b…e1b5d / 1aa3e23b…bda78; published c2c1eb96…/58bb270a… (file names as listed) |
+| `public/images/solar-system/terrain-beach.jpg`, `terrain-beach-normal.jpg` | Poly Haven "Aerial Beach 01" (`aerial_beach_01_diff_1k.jpg`, `…_nor_gl_1k.jpg`) | CC0 | Poly Haven | Recompressed. Original 5b849983…, 01337121… |
+| `public/images/solar-system/concrete.jpg`, `concrete-normal.jpg` | Poly Haven "Concrete Floor 02" (`concrete_floor_02_diff_1k.jpg`, `…_nor_gl_1k.jpg`) | CC0 | Poly Haven | Recompressed. Original 6db84a6d…, fcda391b… |
+| `public/images/solar-system/corrugated.jpg`, `corrugated-normal.jpg` | Poly Haven "Corrugated Iron 02" (`corrugated_iron_02_diff_1k.jpg`, `…_nor_gl_1k.jpg`) | CC0 | Poly Haven | Recompressed. Original 7a7b4309…, 9743c936… |
+| `public/images/solar-system/sun-2k.jpg` | Solar System Scope `2k_sun.jpg`: https://www.solarsystemscope.com/textures/download/2k_sun.jpg (14 Nov 2026) | CC BY 4.0 | "Solar System Scope, CC BY 4.0" on Terms | Recompressed (q80). Original ff0f076b…a0c8816, published 1341d139…dc9e34 |
+| `public/images/solar-system/jupiter-2k.jpg` | Solar System Scope `2k_jupiter.jpg` (14 Nov 2026) | CC BY 4.0 | "Solar System Scope, CC BY 4.0" on Terms | Recompressed (q82). Original b0f04d00…f2ab33baf, published 40dcc223…b2262b1c |
 | Inter, JetBrains Mono (via `next/font/google`, self-hosted at build) | Google Fonts | SIL Open Font License 1.1 | `/policies/terms` | |
 | npm runtime dependencies: next, react, react-dom, three, @react-three/fiber, @react-three/drei | npm | MIT | Licence files ship in `node_modules` | Checked 14 Nov 2026. |
 
 ## Project-owned or supplied assets
 
 - **Rendered by iTelematics® from its own 3D scenes:**
-  - `public/images/space-twin/poster-*.jpg`
+  - `public/images/space-twin/poster-*.jpg` (including `poster-solar-system.jpg`, 14 Nov 2026)
   - `public/images/station-twin/*.jpg`
   - `public/images/og/*.jpg`
 
   These contain the Earth imagery above, so they carry its credits.
-- **Drawn in code at runtime:** the solar cell, insulation and radiator textures (`src/components/space-twin/textures.ts`). No files.
+- **Drawn in code at runtime:** the solar cell, insulation and radiator textures (`src/components/space-twin/textures.ts`), and the Solar System experience's launch vehicle, spacecraft, launch site, plumes, smoke and sky (`src/components/solar-system/`). No files.
 - **Supplied by the organisations concerned:**
   - `public/images/gamyaa-digital-twin-research.webp` (Gamyaa AeroSystems poster)
   - `public/images/ev-engineer-fai-card.webp` (EV.ENGINEER™ card)

@@ -1,0 +1,798 @@
+/* Solar System — From Earth Launch to Deep Space Exploration (sixth Space Digital Twin option).
+   Site tokens only; the same layout and look as the fifth option, kept in its own module so the two
+   experiences stay independent. */
+
+.solar {
+    display: grid;
+}
+
+@media (min-width: 1100px) {
+    .solar {
+        grid-template-columns: minmax(0, 1fr) 360px;
+    }
+}
+
+.stage {
+    position: relative;
+    display: grid;
+    align-content: start;
+    min-width: 0;
+}
+
+/* ---------- 3D viewport ---------- */
+
+.viewport {
+    position: relative;
+    aspect-ratio: 16 / 11;
+    max-height: min(78vh, 700px);
+    width: 100%;
+    overflow: hidden;
+    background: radial-gradient(80% 60% at 70% 20%, rgba(34, 211, 238, 0.05), transparent 70%), #03050a;
+}
+
+.poster {
+    object-fit: cover;
+}
+
+.canvas {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.6s var(--ease);
+}
+
+.viewport[data-ready] .canvas {
+    opacity: 1;
+}
+
+.canvasInner {
+    position: absolute;
+    inset: 0;
+}
+
+.hud {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.titleChip {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    display: grid;
+    gap: 2px;
+    max-width: calc(100% - 32px);
+    padding: 8px 14px 10px;
+    border-radius: var(--radius-control);
+    background: rgba(5, 10, 16, 0.72);
+    border: 1px solid var(--border-strong);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.titleNum {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    color: var(--telemetry);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.titleText {
+    font-size: 0.86rem;
+    font-weight: 560;
+    color: var(--text);
+}
+
+.bar {
+    display: block;
+    height: 2px;
+    margin-top: 6px;
+    border-radius: 2px;
+    background: rgba(148, 163, 184, 0.16);
+    overflow: hidden;
+}
+
+.fill {
+    display: block;
+    height: 100%;
+    background: var(--telemetry);
+    transform-origin: left;
+}
+
+.dataLabel {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border-strong);
+    background: rgba(5, 10, 16, 0.72);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    color: var(--text-2);
+}
+
+.message {
+    position: absolute;
+    left: 20px;
+    bottom: 20px;
+    max-width: min(520px, calc(100% - 40px));
+    padding: 16px 18px;
+    border-radius: var(--radius-card);
+    background: rgba(5, 10, 16, 0.72);
+    border: 1px solid var(--border-strong);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.messageTitle {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--telemetry);
+}
+
+.messageText {
+    margin-top: 8px;
+    font-size: 0.98rem;
+    line-height: 1.5;
+    color: var(--text);
+}
+
+.messageSecondary {
+    margin-top: 6px;
+    font-size: 0.86rem;
+    color: var(--text-2);
+}
+
+.chip {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(5, 10, 16, 0.78);
+    border: 1px solid rgba(34, 211, 238, 0.45);
+    color: var(--text);
+    font-size: 0.72rem;
+    font-weight: 560;
+    white-space: nowrap;
+}
+
+.chipAlert {
+    border-color: rgba(248, 113, 113, 0.7);
+}
+
+.fallback {
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    background: rgba(5, 10, 16, 0.8);
+    color: var(--text-2);
+    font-size: 0.8rem;
+}
+
+/* ---------- Navigation under the viewport ---------- */
+
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.tool,
+.toolWide {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    border: 1px solid var(--border-strong);
+    background: transparent;
+    color: var(--text-2);
+    cursor: pointer;
+    transition: color 0.2s var(--ease), border-color 0.2s var(--ease);
+}
+
+.tool {
+    width: 40px;
+    border-radius: 50%;
+    font-size: 0.95rem;
+}
+
+.toolWide {
+    padding: 0 0.9rem;
+    border-radius: 999px;
+    font-size: 0.84rem;
+    font-weight: 500;
+}
+
+.tool:hover,
+.toolWide:hover {
+    color: var(--text);
+    border-color: rgba(148, 163, 184, 0.4);
+}
+
+.tool[aria-pressed='true'],
+.toolWide[aria-pressed='true'] {
+    color: var(--telemetry);
+}
+
+.toolWide:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+/* ---------- Side panel ---------- */
+
+.side {
+    border-top: 1px solid var(--border);
+    min-width: 0;
+}
+
+.sideScroll {
+    display: grid;
+    align-content: start;
+    gap: 1rem;
+    padding: 1rem 1.1rem 1.2rem;
+}
+
+@media (min-width: 1100px) {
+    /* The panel takes the height of the 3D view and its controls, and scrolls inside it. */
+    .side {
+        position: relative;
+        border-top: 0;
+        border-left: 1px solid var(--border);
+    }
+
+    .sideScroll {
+        position: absolute;
+        inset: 0;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+    }
+}
+
+.primary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.primaryBtn {
+    flex: 1 1 auto;
+    min-height: 40px;
+    padding: 0 0.9rem;
+    font-size: 0.86rem;
+}
+
+.list {
+    list-style: none;
+    display: grid;
+    gap: 0.25rem;
+}
+
+@media (max-width: 1099px) {
+    /* A compact horizontal selector on tablets and phones. */
+    .list {
+        display: flex;
+        overflow-x: auto;
+        scrollbar-width: none;
+        gap: 0.4rem;
+        padding-bottom: 0.25rem;
+    }
+
+    .list::-webkit-scrollbar {
+        display: none;
+    }
+
+    .list li {
+        flex-shrink: 0;
+    }
+}
+
+.item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    width: 100%;
+    min-height: 40px;
+    padding: 0.4rem 0.75rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-control);
+    background: transparent;
+    color: var(--text-2);
+    font-size: 0.88rem;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    transition: color 0.2s var(--ease), background-color 0.2s var(--ease), border-color 0.2s var(--ease);
+}
+
+@media (max-width: 1099px) {
+    .item {
+        border-color: var(--border);
+        border-radius: 999px;
+        white-space: nowrap;
+    }
+}
+
+.item:hover {
+    color: var(--text);
+}
+
+.item[aria-pressed='true'] {
+    color: var(--text);
+    background: var(--surface-2);
+    border-color: rgba(34, 211, 238, 0.45);
+}
+
+.itemNum {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text-3);
+}
+
+.item[aria-pressed='true'] .itemNum {
+    color: var(--telemetry);
+}
+
+.info {
+    display: grid;
+    gap: 0.85rem;
+}
+
+.kicker {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--telemetry);
+}
+
+.infoTitle {
+    font-size: 1.15rem;
+    line-height: 1.3;
+}
+
+.text,
+.note {
+    font-size: 0.9rem;
+    line-height: 1.55;
+}
+
+.note {
+    color: var(--text-3);
+    font-size: 0.82rem;
+}
+
+.story {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+}
+
+.story li {
+    padding: 0.2rem 0.55rem;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    font-size: 0.76rem;
+    color: var(--text-2);
+}
+
+.story li + li::before {
+    content: '→ ';
+    color: var(--text-3);
+}
+
+.facts {
+    display: grid;
+    gap: 0.6rem;
+}
+
+.facts dt,
+.telemetry dt,
+.outcome dt {
+    font-size: 0.78rem;
+    color: var(--text-3);
+}
+
+.facts dd {
+    margin-top: 0.15rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--text-2);
+}
+
+.telemetry,
+.outcome {
+    padding: 0.75rem 0.85rem;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-card);
+    background: rgba(5, 10, 16, 0.4);
+}
+
+.telemetryHead {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--telemetry);
+}
+
+.dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.telemetry dl,
+.outcome dl {
+    display: grid;
+    gap: 4px;
+}
+
+.telemetry dl > div,
+.outcome dl > div {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+}
+
+.telemetry dd,
+.outcome dd {
+    font-size: 0.84rem;
+    font-weight: 560;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    color: var(--text);
+}
+
+.outcome dd {
+    font-weight: 500;
+    max-width: 62%;
+}
+
+.health {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.82rem;
+    color: var(--text-3);
+}
+
+.insight {
+    padding: 0.6rem 0.8rem;
+    border-left: 2px solid var(--telemetry);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    background: var(--accent-soft);
+    font-size: 0.88rem;
+    line-height: 1.55;
+    color: var(--text-2);
+}
+
+.insight strong {
+    color: var(--text);
+    font-weight: 600;
+}
+
+.question {
+    font-size: 0.86rem;
+    font-style: italic;
+    color: var(--text-2);
+}
+
+.more summary {
+    min-height: 44px;
+    font-size: 0.9rem;
+}
+
+.formulas,
+.notes {
+    display: grid;
+    gap: 0.4rem;
+    padding-left: 1rem;
+    font-size: 0.84rem;
+    color: var(--text-2);
+}
+
+.formulas code {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--text);
+}
+
+.notes {
+    margin-top: 0.6rem;
+}
+
+/* ---------- Phones ---------- */
+
+@media (max-width: 640px) {
+    .viewport {
+        aspect-ratio: 1 / 1;
+        max-height: none;
+    }
+
+    .titleChip {
+        top: 10px;
+        left: 10px;
+        max-width: calc(100% - 20px);
+    }
+
+    .dataLabel {
+        top: auto;
+        bottom: 10px;
+        right: 10px;
+    }
+
+    .message {
+        left: 10px;
+        right: 10px;
+        bottom: 44px;
+        max-width: none;
+        padding: 12px 14px;
+    }
+
+    /* On phones the sentence is in the panel below; keep the station visible. */
+    .messageText {
+        display: none;
+    }
+
+    .controls {
+        padding: 0.65rem 0.85rem;
+    }
+}
+
+/* ---------- Full screen (presenting) ----------
+   When the Space Digital Twin viewer is in full screen (data-present on the viewer), the 3D view fills
+   the height, its controls stay along the bottom, and the investigation panel keeps its place beside
+   it on wide screens (below it, scrolling, on narrow ones). */
+
+:global([data-present]) .solar {
+    flex: 1 1 auto;
+    min-height: 0;
+    grid-template-rows: minmax(0, 1fr) auto;
+}
+
+:global([data-present]) .stage {
+    grid-template-rows: minmax(0, 1fr) auto;
+    min-height: 0;
+}
+
+:global([data-present]) .viewport {
+    height: 100%;
+    aspect-ratio: auto;
+    max-height: none;
+}
+
+:global([data-present]) .side {
+    max-height: 34vh;
+    overflow-y: auto;
+}
+
+@media (min-width: 1100px) {
+    :global([data-present]) .solar {
+        grid-template-rows: minmax(0, 1fr);
+    }
+
+    :global([data-present]) .side {
+        max-height: none;
+        overflow: visible;
+    }
+}
+
+/* Phones held sideways: the panel moves beside the 3D view and scrolls, so its buttons stay reachable. */
+@media (max-height: 560px) and (min-width: 640px) and (max-width: 1099px) {
+    :global([data-present]) .solar {
+        grid-template-columns: minmax(0, 1fr) 300px;
+        grid-template-rows: minmax(0, 1fr);
+    }
+
+    :global([data-present]) .side {
+        max-height: none;
+        border-top: 0;
+        border-left: 1px solid var(--border);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .canvas,
+    .tool,
+    .toolWide,
+    .item {
+        transition: none;
+    }
+}
+
+/* ---------- Solar System additions ---------- */
+
+.scaleLabel,
+.metChip {
+    position: absolute;
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border-strong);
+    background: rgba(5, 10, 16, 0.72);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    color: var(--text-2);
+    white-space: nowrap;
+}
+
+.scaleLabel {
+    right: 16px;
+    bottom: 16px;
+    max-width: calc(100% - 32px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.metChip {
+    top: 52px;
+    right: 16px;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+}
+
+/* The opening title over the 3D view. */
+.hero {
+    position: absolute;
+    left: 24px;
+    bottom: 24px;
+    max-width: min(560px, calc(100% - 48px));
+    pointer-events: none;
+}
+
+.heroTitle {
+    font-size: clamp(2rem, 1.4rem + 2.4vw, 3.4rem);
+    font-weight: 650;
+    letter-spacing: 0.02em;
+    line-height: 1;
+    text-transform: uppercase;
+    color: var(--text);
+    text-shadow: 0 2px 18px rgba(0, 0, 0, 0.55);
+}
+
+.heroSubtitle {
+    margin-top: 10px;
+    font-family: var(--font-mono);
+    font-size: clamp(0.72rem, 0.66rem + 0.3vw, 0.9rem);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--telemetry);
+    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.6);
+}
+
+.heroLine {
+    margin-top: 12px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--text-2);
+    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.6);
+}
+
+.chapters {
+    list-style: none;
+    display: grid;
+    gap: 0.25rem;
+}
+
+.labels {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.label {
+    min-height: 36px;
+    padding: 0.3rem 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-2);
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.2s var(--ease), background-color 0.2s var(--ease), border-color 0.2s var(--ease);
+}
+
+.label:hover {
+    color: var(--text);
+}
+
+.label[aria-pressed='true'] {
+    color: var(--text);
+    background: var(--surface-2);
+    border-color: rgba(34, 211, 238, 0.45);
+}
+
+.answers {
+    display: grid;
+    gap: 0.55rem;
+}
+
+.answers dt {
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-3);
+}
+
+.answers dd {
+    margin-top: 0.15rem;
+    font-size: 0.88rem;
+    line-height: 1.55;
+    color: var(--text-2);
+}
+
+.next {
+    font-size: 0.84rem;
+    color: var(--text-3);
+}
+
+.next button {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--telemetry);
+    font: inherit;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+@media (max-width: 640px) {
+    /* Phones: title chip and mission time on top, scale above the simulated-data label at the bottom. */
+    .titleChip {
+        max-width: calc(100% - 112px);
+    }
+
+    .metChip {
+        top: 10px;
+        right: 10px;
+    }
+
+    .scaleLabel {
+        right: auto;
+        left: 10px;
+        bottom: 38px;
+        max-width: calc(100% - 20px);
+    }
+
+    .dataLabel {
+        left: 10px;
+        right: auto;
+        max-width: calc(100% - 20px);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .hero {
+        left: 14px;
+        bottom: 74px;
+        max-width: calc(100% - 28px);
+    }
+
+    .heroLine {
+        display: none;
+    }
+}

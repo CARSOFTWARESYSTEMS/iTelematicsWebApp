@@ -110,6 +110,17 @@ export default function TermsPage() {
                             </ExternalLink>{' '}
                             and does not imply endorsement by NASA.
                         </li>
+                        <li>
+                            Sun and Jupiter maps in the Solar System experience:{' '}
+                            <ExternalLink href="https://www.solarsystemscope.com/textures/" trackName="Image credits: Solar System Scope planets">
+                                Solar System Scope
+                            </ExternalLink>
+                            , CC BY 4.0, recompressed. Ground, concrete and metal surfaces at the launch site:{' '}
+                            <ExternalLink href="https://polyhaven.com/" trackName="Image credits: Poly Haven">
+                                Poly Haven
+                            </ExternalLink>
+                            , CC0.
+                        </li>
                         <li>Typefaces: Inter and JetBrains Mono, under the SIL Open Font License.</li>
                     </ul>
                     <p>

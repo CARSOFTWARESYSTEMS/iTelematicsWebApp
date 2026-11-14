@@ -459,7 +459,7 @@ export const DELIVERABLES: readonly { title: string; status: DeliverableStatus; 
 /** Existing foundations, each with its real maturity and where to see it. */
 export const FOUNDATIONS: readonly { title: string; text: string; maturity: Maturity[]; href: string }[] = [
     { title: 'Satellite Energy & Telemetry Intelligence', text: 'The foundational 6U spacecraft energy and telemetry reference case, with published equations and fault experiments.', maturity: ['Research', 'Simulation'], href: '/research-lab#flagship-research' },
-    { title: 'Space Digital Twin', text: 'Five interactive 3D experiences: a satellite, a constellation, a spacecraft, a space station and a guided investigation of station power and energy management, all driven by simulated data.', maturity: ['Simulation'], href: '/research-lab#space-digital-twin' },
+    { title: 'Space Digital Twin', text: 'Six interactive 3D experiences: a satellite, a constellation, a spacecraft, a space station, a guided investigation of station power and energy management, and a mission from launch to Earth departure, all driven by simulated data.', maturity: ['Simulation'], href: '/research-lab#space-digital-twin' },
     { title: SRC_NAME, text: 'The station model on this page: a conceptual station with a deterministic energy and health simulation.', maturity: ['Concept', 'Simulation'], href: '#station-model' },
 ];
 

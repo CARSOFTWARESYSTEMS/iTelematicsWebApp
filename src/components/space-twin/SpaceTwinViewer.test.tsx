@@ -34,10 +34,10 @@ beforeAll(() => {
 });
 
 describe('SpaceTwinViewer', () => {
-    it('offers the four experiences and Station Power & Energy as keyboard-operable tabs', () => {
+    it('offers the four experiences, Station Power & Energy and Solar System as keyboard-operable tabs', () => {
         render(<SpaceTwinViewer />);
         const tabs = screen.getAllByRole('tab');
-        expect(tabs.map((t) => t.textContent)).toEqual(['01Satellite', '02Orbital Constellation', '03Spacecraft', '04Space Station', '05Station Power & Energy']);
+        expect(tabs.map((t) => t.textContent)).toEqual(['01Satellite', '02Orbital Constellation', '03Spacecraft', '04Space Station', '05Station Power & Energy', '06Solar System']);
         expect(tabs[0]).toHaveAttribute('aria-selected', 'true');
         expect(tabs[1]).toHaveAttribute('tabindex', '-1');
 
@@ -45,6 +45,9 @@ describe('SpaceTwinViewer', () => {
         fireEvent.keyDown(tabs[0], { key: 'ArrowRight' });
         expect(screen.getByRole('tab', { name: /Orbital Constellation/ })).toHaveAttribute('aria-selected', 'true');
         fireEvent.keyDown(screen.getByRole('tab', { name: /Orbital Constellation/ }), { key: 'End' });
+        expect(screen.getByRole('tab', { name: /Solar System/ })).toHaveAttribute('aria-selected', 'true');
+        expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-labelledby', 'twin-tab-solar');
+        fireEvent.keyDown(screen.getByRole('tab', { name: /Solar System/ }), { key: 'ArrowLeft' });
         expect(screen.getByRole('tab', { name: /Station Power & Energy/ })).toHaveAttribute('aria-selected', 'true');
         expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-labelledby', 'twin-tab-eps');
         fireEvent.keyDown(screen.getByRole('tab', { name: /Station Power & Energy/ }), { key: 'ArrowLeft' });
@@ -62,6 +65,17 @@ describe('SpaceTwinViewer', () => {
         expect(screen.getByRole('tab', { name: /Satellite/ })).toHaveAttribute('aria-selected', 'true');
         expect(screen.getByRole('group', { name: 'Satellite stages' })).toBeInTheDocument();
         expect(screen.getByText('Model assumptions and limits')).toBeInTheDocument();
+    });
+
+    it('opens the sixth option, Solar System, and returns to the standard frame', () => {
+        render(<SpaceTwinViewer />);
+        fireEvent.click(screen.getByRole('tab', { name: /Solar System/ }));
+        expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-labelledby', 'twin-tab-solar');
+        expect(screen.queryByRole('group', { name: 'Satellite stages' })).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole('tab', { name: /Station Power & Energy/ }));
+        expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-labelledby', 'twin-tab-eps');
+        fireEvent.click(screen.getByRole('tab', { name: /Spacecraft/ }));
+        expect(screen.getByRole('group', { name: 'Spacecraft stages' })).toBeInTheDocument();
     });
 
     it('describes the scene in words and states its maturity and assumptions', () => {
@@ -123,7 +137,7 @@ describe('SpaceTwinViewer', () => {
         expect(viewer).toHaveAttribute('data-present');
         expect(document.documentElement.style.overflow).toBe('hidden');
         expect(screen.getByRole('group', { name: 'Satellite stages' })).toBeInTheDocument();
-        expect(screen.getAllByRole('tab')).toHaveLength(5);
+        expect(screen.getAllByRole('tab')).toHaveLength(6);
         fireEvent.click(screen.getByRole('button', { name: 'Exit full screen' }));
         expect(viewer).not.toHaveAttribute('data-present');
         expect(document.documentElement.style.overflow).toBe('');
