@@ -10,7 +10,7 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('@/lib/analytics/client', () => ({ track: vi.fn() }));
 
-const PRIMARY = ['Satellite Engineering', 'Research', 'Internships', 'Ecosystem', 'About'];
+const PRIMARY = ['Satellite Engineering', 'Research', 'Research Lab', 'Ecosystem', 'About'];
 
 describe('Navbar', () => {
     beforeEach(() => {

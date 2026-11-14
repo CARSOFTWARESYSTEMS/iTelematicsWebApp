@@ -26,7 +26,7 @@ export default function PrivacyPolicyPage() {
                         optionally your organisation and country).
                     </p>
                     <p>
-                        We use those details only to reply and to handle the internship, research, collaboration or
+                        We use those details only to reply and to handle the Research Lab, research, collaboration or
                         consultancy matter you raise. We do not sell them, add you to marketing lists or publish them.
                     </p>
 

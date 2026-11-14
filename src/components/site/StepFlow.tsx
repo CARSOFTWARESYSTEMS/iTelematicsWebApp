@@ -3,7 +3,7 @@ import styles from './StepFlow.module.css';
 type Step = { name: string; tone?: 'orbit' | 'solar' | 'telemetry' | 'nominal' };
 
 /**
- * Animated step visual. "path": a vertical journey with a travelling light (Internships).
+ * Animated step visual. "path": a vertical journey with a travelling light (Research Lab).
  * "ladder": ascending steps toward evidence (About). CSS-only motion; static under reduced motion.
  */
 export default function StepFlow({ steps, variant, label }: { steps: Step[]; variant: 'path' | 'ladder'; label: string }) {

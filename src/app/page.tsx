@@ -6,14 +6,15 @@ import ExternalLink from '@/components/site/ExternalLink';
 import OrbitInstrument from '@/components/site/OrbitInstrument';
 import PosterDialog from '@/components/site/PosterDialog';
 import Satellite3D from '@/components/site/Satellite3D';
+import SpaceTwinViewer from '@/components/space-twin/SpaceTwinViewer';
 import { EcosystemList } from '@/components/site/blocks';
-import { INTERNSHIP_THEMES } from '@/lib/internships';
+import { RESEARCH_THEMES } from '@/lib/research-lab';
 import { FLAGSHIP, JOIN_HREF, RESOURCES, SITE } from '@/lib/site';
 
 export default function Home() {
     return (
         <>
-            <JsonLd data={pageSchema({ path: '/', name: 'iTelematics® | Satellite Engineering & Internships', description: SITE.description })} />
+            <JsonLd data={pageSchema({ path: '/', name: 'iTelematics® | Satellite Engineering & Research Lab', description: SITE.description })} />
             <PosterDialog
                 id="gamyaa-digital-twin"
                 src="/images/gamyaa-digital-twin-research.webp"
@@ -35,7 +36,7 @@ export default function Home() {
                         <p className="eyebrow">{SITE.legalName}</p>
                         <h1 className={styles.display}>Satellite Engineering</h1>
                         <p className={`lead ${styles.heroLead}`}>
-                            Practical projects for startups, industry requirements and career-focused engineering internships.
+                            Practical satellite engineering research, digital twin development and collaborative R&amp;D addressing real industry challenges.
                         </p>
                         <div className="actions hero-actions">
                             <Link href="/research-platform" className="btn btn-primary">Explore Research</Link>
@@ -50,7 +51,7 @@ export default function Home() {
                     </div>
                     <div className={styles.heroMeta}>
                         <p className="mono">Solar · EPS · Battery · Sensors · Telemetry · Health</p>
-                        <Link href="/internships" className="text-link">Satellite Engineering Internships →</Link>
+                        <Link href="/research-lab" className="text-link">Satellite Engineering Research Lab →</Link>
                     </div>
                 </div>
             </section>
@@ -68,7 +69,32 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* 3 — Flagship research */}
+            {/* 3 — Space Station Digital Twin R&D Center: four interactive 3D experiences */}
+            <section id="space-digital-twin" className={styles.twin} data-analytics-section="space-digital-twin">
+                <div className="container">
+                    <div className={styles.twinHead} data-reveal>
+                        <div>
+                            <p className="eyebrow">
+                                <span className={styles.brandCase}>{SITE.name}</span> · Space Research
+                            </p>
+                            <h2>Space Station Digital Twin R&amp;D Center</h2>
+                            <p className={styles.twinTitle}>Learn to Protect Missions.</p>
+                            <p className={styles.twinSupport}>Build Systems That Protect Spacecraft.</p>
+                        </div>
+                        <div className={styles.twinIntro}>
+                            <p className="lead">
+                                Explore satellites, spacecraft, orbital constellations and space stations through realistic 3D engineering
+                                experiences. Discover how electrical power, energy storage, telemetry, physics, cybersecurity and intelligent
+                                health monitoring support space missions.
+                            </p>
+                            <p className="label">Explore. Experiment. Understand.</p>
+                        </div>
+                    </div>
+                    <SpaceTwinViewer />
+                </div>
+            </section>
+
+            {/* 4 — Flagship research */}
             <section className="section" data-analytics-section="home-research-platform" data-track-view="research_platform_view">
                 <div className="container">
                     <div className="section-head" data-reveal>
@@ -83,7 +109,7 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* 4 — Interactive satellite */}
+            {/* 5 — Interactive satellite */}
             <section className={styles.cinema} data-analytics-section="interactive-3d">
                 <div className={`container ${styles.cinemaGrid}`}>
                     <div className={styles.cinemaCopy} data-reveal>
@@ -105,24 +131,24 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* 5 — Internships */}
+            {/* 6 — Research Lab */}
             <section className="section section-alt" data-analytics-section="internship-cta">
                 <div className={`container ${styles.split}`}>
                     <div data-reveal>
-                        <h2>Satellite Engineering Internships</h2>
+                        <h2>Satellite Engineering Research Lab</h2>
                         <p className="lead">
-                            Work on practical projects inspired by startup ideas, industry requirements and real engineering
-                            problems in the space sector.
+                            Practical research inspired by startup ideas, industry requirements and real engineering problems
+                            in the space sector.
                         </p>
                         <div className="actions hero-actions">
-                            <Link href="/internships" className="btn btn-primary">Explore Internships</Link>
+                            <Link href="/research-lab" className="btn btn-primary">Explore Research Lab</Link>
                             <Link href="/contact?enquiry=internship" className="btn btn-secondary" data-track="internship_apply_click">
-                                Apply / Discuss
+                                Discuss Research
                             </Link>
                         </div>
                     </div>
                     <ol className={styles.themes} data-reveal>
-                        {INTERNSHIP_THEMES.map((theme, i) => (
+                        {RESEARCH_THEMES.map((theme, i) => (
                             <li key={theme.title}>
                                 <span className="mono">0{i + 1}</span>
                                 {theme.title}
@@ -132,7 +158,7 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* 6 — Ecosystem and final call to action */}
+            {/* 7 — Ecosystem and final call to action */}
             <section className="section" data-analytics-section="partners">
                 <div className="container">
                     <div className={styles.ecoHead} data-reveal>
@@ -143,7 +169,7 @@ export default function Home() {
 
                     <div className={styles.final} data-reveal>
                         <h2>Start a Satellite Engineering discussion.</h2>
-                        <p className="lead">Research, internships, technical reviews, collaboration or consultancy.</p>
+                        <p className="lead">Research, engineering projects, technical reviews, collaboration or consultancy.</p>
                         <div className="actions hero-actions">
                             <Link href="/contact" className="btn btn-primary">Start a Discussion</Link>
                             <Link href="/satellite-engineering" className="btn btn-secondary">Explore Satellite Engineering</Link>

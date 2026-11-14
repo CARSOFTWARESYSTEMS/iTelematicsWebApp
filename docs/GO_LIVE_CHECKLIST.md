@@ -42,7 +42,7 @@ history setting still on, showed a duplicate `page_view` for every in-app naviga
 | Consultancy menu (click and keyboard) | ☐ | ☐ | ☐ | ☐ |
 | Explore Satellite Engineering → `satellite_engineering_click` | ☐ | ☐ | ☐ | ☐ |
 | Explore Interactive 3D → `interactive_3d_click` | ☐ | ☐ | ☐ | ☐ |
-| Apply for Internship → `internship_apply_click` | ☐ | ☐ | ☐ | ☐ |
+| Discuss Research (Research Lab) → `internship_apply_click` | ☐ | ☐ | ☐ | ☐ |
 | Join Satellite Engineering → `/contact?enquiry=research`, Research Collaboration preselected, `join_rnd_click` | ☐ | ☐ | ☐ | ☐ |
 | Partner outbound links → `partner_click` | ☐ | ☐ | ☐ | ☐ |
 | Contact form opens an email draft | ☐ | ☐ | ☐ | ☐ |

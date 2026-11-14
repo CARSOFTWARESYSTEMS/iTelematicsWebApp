@@ -2,7 +2,7 @@ import type { EnquiryType } from '@/lib/analytics/taxonomy';
 
 /** Enquiry options shown in the contact form, each mapped to the controlled analytics vocabulary. */
 export const ENQUIRY_OPTIONS = [
-    { value: 'internship', label: 'Satellite Engineering Internship', analytics: 'internship' },
+    { value: 'internship', label: 'Satellite Engineering Research Lab', analytics: 'internship' },
     { value: 'research', label: 'Research Collaboration', analytics: 'research' },
     { value: 'academic', label: 'Academic Collaboration', analytics: 'academic' },
     { value: 'technical-review', label: 'Technical Review', analytics: 'research' },

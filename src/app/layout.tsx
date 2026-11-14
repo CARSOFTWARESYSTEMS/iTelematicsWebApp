@@ -21,7 +21,7 @@ const mono = JetBrains_Mono({
     weight: ['400', '500'],
 });
 
-const DEFAULT_TITLE = 'iTelematics® | Satellite Engineering & Internships';
+const DEFAULT_TITLE = 'iTelematics® | Satellite Engineering & Research Lab';
 
 export const metadata: Metadata = {
     metadataBase: new URL(SITE.url),

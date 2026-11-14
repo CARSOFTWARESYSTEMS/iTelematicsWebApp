@@ -38,7 +38,7 @@ Visitors can change their choice with **Analytics preferences** in the footer.
 | `satellite_engineering_click` | Link to `aerospace.ev.engineer/space/satellite-engineering…` or internal `/satellite-engineering…` | Destination rule |
 | `interactive_3d_click` | Link to `…/space/satellite-engineering/interactive-3d` | Destination rule (checked first) |
 | `research_platform_view` | Landing on `/research-platform…`, or a `data-track-view="research_platform_view"` section scrolling into view | Route map / IntersectionObserver |
-| `internship_view` | Landing on `/internships…`, or a `data-track-view="internship_view"` section | Route map / IntersectionObserver |
+| `internship_view` | Landing on `/research-lab…` (the former `/internships`; the event keeps its name), or a `data-track-view="internship_view"` section | Route map / IntersectionObserver |
 | `internship_apply_click` | An Apply CTA | `data-track="internship_apply_click"` |
 | `research_collaboration_click` | A "Discuss Research Collaboration" style CTA | `data-track="research_collaboration_click"` |
 | `consultancy_click` | Any link inside the Consultancy & Services menu, or to internal `/consultancy…` | `data-track-fallback` / destination rule |
@@ -57,7 +57,7 @@ Only these keys can be sent. Anything else is dropped by `sanitizeParams`.
 
 | Parameter | Example | Notes |
 |---|---|---|
-| `page_path` | `/internships` | Never includes the query string. GA4 treats `page_path` as a reserved field and folds it into the page location, so report on the built-in **Page path** dimension rather than a custom one. Debug logs show it as-is |
+| `page_path` | `/research-lab` | Never includes the query string. GA4 treats `page_path` as a reserved field and folds it into the page location, so report on the built-in **Page path** dimension rather than a custom one. Debug logs show it as-is |
 | `section` | `Space Research & Workshops` | Nearest `data-analytics-section` |
 | `cta_name` | `Explore Interactive 3D` | `data-track-name`, else `aria-label`, else link text |
 | `cta_location` | `header-mobile`, `footer`, `hero` | Nearest `data-analytics-location`, else section |
@@ -81,7 +81,7 @@ Allowed values: `internship`, `research`, `academic`, `industry`, `consultancy`,
 
 | Form option | `enquiry_type` |
 |---|---|
-| Satellite Engineering Internship | `internship` |
+| Satellite Engineering Research Lab | `internship` |
 | Research Collaboration | `research` |
 | Academic Collaboration | `academic` |
 | Technical Review | `research` |
@@ -99,17 +99,17 @@ partners and consultancy. Explicit `data-track` is used only where the URL doesn
 | CTA | Event | Where |
 |---|---|---|
 | Join Satellite Engineering (header and mobile menu) / Discuss Research (home hero) → `/contact?enquiry=research` (Research Collaboration preselected, changeable) | `join_rnd_click` | Header desktop + mobile, home hero |
-| Apply for Internship | `internship_apply_click` | Home, Internships, Satellite Engineering, Research Platform |
+| Discuss Research (Research Lab) | `internship_apply_click` | Home, Research Lab |
 | Discuss R&D / Research Collaboration | `research_collaboration_click` | Home, Satellite Engineering, Research Platform |
 | Discuss Industry Collaboration | `research_collaboration_click` | Partners |
 | Discuss Consultancy | `consultancy_click` (section fallback) | Consultancy & Services page |
 | Explore Satellite Engineering (internal or course) | `satellite_engineering_click` | Hero, signposts, resource cards, CTA bands |
 | Explore Interactive 3D | `interactive_3d_click` | Signposts, resource cards, footer |
 | Ecosystem links | `partner_click` | Home (compact), Partners (list and ecosystem map) |
-| EV.ENGINEER™ and Prerequisites (autonomous.ev.engineer/internships) | `partner_click` (destination rule) | Internships hero and closing CTA |
+| EV.ENGINEER™ and Prerequisites (autonomous.ev.engineer/internships) | `partner_click` (destination rule) | Research Lab hero and closing CTA |
 
 The homepage flagship section carries `data-track-view="research_platform_view"`; `/research-platform`
-and `/internships` fire their view events on landing.
+and `/research-lab` fire their view events on landing.
 
 ### EV.ENGINEER™ page (`/ev-engineer`)
 
@@ -161,7 +161,7 @@ Build these as GA4 **Explore → Funnel exploration** reports (open funnel, step
 
 | Journey | Step 1 | Step 2 | Step 3 |
 |---|---|---|---|
-| Home → Satellite Engineering → Internship | `page_view` path = `/` | `satellite_engineering_click` | `internship_view` or `internship_apply_click` |
+| Home → Satellite Engineering → Research Lab | `page_view` path = `/` | `satellite_engineering_click` | `internship_view` or `internship_apply_click` |
 | Home → Satellite Engineering → Interactive 3D | `page_view` path = `/` | `satellite_engineering_click` | `interactive_3d_click` |
 | Home → Research Platform → Collaboration | `page_view` path = `/` | `research_platform_view` | `research_collaboration_click` |
 | Home → Ecosystem → Partner | `page_view` path = `/` | `page_view` path = `/partners` | `partner_click` |
@@ -170,7 +170,7 @@ Build these as GA4 **Explore → Funnel exploration** reports (open funnel, step
 Questions this answers:
 
 - **Most-used Satellite Engineering pages**: Reports → Pages and screens, plus `satellite_engineering_click` by `destination`.
-- **Internship interest**: `internship_view` users, and the share that reach `internship_apply_click`.
+- **Research Lab interest**: `internship_view` users, and the share that reach `internship_apply_click`.
 - **Interactive 3D opens**: `interactive_3d_click` count, compared with `satellite_engineering_click`.
 - **Countries showing research interest**: `research_collaboration_click` / `research_platform_view` by Country.
 - **Best-performing collaboration CTAs**: `research_collaboration_click` by `cta_name` × `cta_location`.

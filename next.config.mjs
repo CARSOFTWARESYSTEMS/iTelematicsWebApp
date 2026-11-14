@@ -17,7 +17,10 @@ const nextConfig = {
             // Retired sections: keep old links and search results working with 301s.
             { source: "/events", destination: "/", statusCode: 301 },
             { source: "/events/:path*", destination: "/", statusCode: 301 },
-            { source: "/academy", destination: "/internships", statusCode: 301 },
+            { source: "/academy", destination: "/research-lab", statusCode: 301 },
+            // Internships became the Research Lab.
+            { source: "/internships", destination: "/research-lab", statusCode: 301 },
+            { source: "/internships/:path*", destination: "/research-lab", statusCode: 301 },
             { source: "/policies/refund", destination: "/policies/terms", statusCode: 301 },
             { source: "/policies/delivery", destination: "/policies/terms", statusCode: 301 },
             // Documents republished under neutral filenames (originals in archive/public-originals).

@@ -19,7 +19,7 @@ export default function Footer() {
                         <li><Link href="/satellite-engineering">Satellite Engineering</Link></li>
                         <li><Link href="/research-platform">Research Platform</Link></li>
                         <li><ExternalLink href={RESOURCES.interactive3d.href}>Interactive 3D</ExternalLink></li>
-                        <li><Link href="/internships">Internships</Link></li>
+                        <li><Link href="/research-lab">Research Lab</Link></li>
                     </ul>
                 </nav>
 

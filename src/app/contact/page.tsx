@@ -10,13 +10,13 @@ import { SITE } from '@/lib/site';
 const PATH = '/contact';
 const TITLE = 'Start a Satellite Engineering Discussion';
 const DESCRIPTION =
-    'Contact iTelematics® about Satellite Engineering internships, research or academic collaboration, technical reviews, industry projects, consultancy or investment.';
+    'Contact iTelematics® about the Satellite Engineering Research Lab, research or academic collaboration, technical reviews, industry projects, consultancy or investment.';
 
 export const metadata: Metadata = pageMetadata({ path: PATH, title: TITLE, description: DESCRIPTION });
 
 const DISCUSS = [
     'Research Collaboration',
-    'Satellite Engineering Internship',
+    'Satellite Engineering Research Lab',
     'Academic Collaboration',
     'Industry R&D',
     'Technical Review',
@@ -30,7 +30,7 @@ export default function ContactPage() {
             <JsonLd data={pageSchema({ path: PATH, name: TITLE, description: DESCRIPTION, type: 'ContactPage', breadcrumbs: [{ name: 'Contact', path: PATH }] })} />
             <PageHero
                 title="Start a Satellite Engineering Discussion"
-                lead="Research, internships, technical reviews, collaboration or consultancy."
+                lead="Research, engineering projects, technical reviews, collaboration or consultancy."
                 breadcrumbs={[{ name: 'Contact', path: PATH }]}
                 visual={<SignalWave />}
             />

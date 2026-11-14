@@ -49,6 +49,23 @@ describe('site content rules', () => {
         expect(offenders(/Join (Satellite )?R&amp;D|Join Research|Explore R&amp;D/)).toEqual([]);
     });
 
+    // Internships became the Satellite Engineering Research Lab (instruction, 2026-11-14). Technical
+    // identifiers (the "internship" enquiry value, internship_* analytics events) keep their names;
+    // EV.ENGINEER™'s own programme names on /ev-engineer are its destinations and stay as they are.
+    it('presents the Research Lab, not internships', () => {
+        expect(offenders(/\bInternships?\b|Career-Focused|Apply \/ Discuss|Explore Internships/, [EV_ENGINEER_CONTENT])).toEqual([]);
+        expect(offenders(/href=["'{`]\/internships/)).toEqual([]);
+        const llms = readFileSync(path.resolve(SRC, '../public/llms.txt'), 'utf8');
+        expect(llms).not.toMatch(/internship|career-focused/i);
+    });
+
+    it('names no other organisation inside the Space Station Digital Twin experiences', () => {
+        const twin = files.filter(({ file }) => file.startsWith(path.join('components', 'space-twin')) || file.startsWith(path.join('lib', 'space-twin')));
+        expect(twin.length).toBeGreaterThan(5);
+        const brands = /ISHAVASYAM|Gamyaa|GAMYAA|APEX|UFlight|iFab|EV Society|EV\.ENGINEER|AutonomousEV|NASA|ESA\b|ISRO|SpaceX|Starlink|Boeing|Airbus|\bISS\b|International Space Station/;
+        expect(twin.filter(({ text }) => brands.test(text)).map(({ file }) => file)).toEqual([]);
+    });
+
     it('never links the retired APEX ecosystem URL', () => {
         expect(offenders(/apexrocketsystems\/ecosystem/)).toEqual([]);
     });

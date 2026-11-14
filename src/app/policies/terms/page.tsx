@@ -21,7 +21,7 @@ export default function TermsPage() {
                     <h2>About this website</h2>
                     <p>
                         This website is published by {SITE.legalName} (“iTelematics®”, “we”, “us”) to describe its Satellite
-                        Engineering research, internships, consultancy and engineering ecosystem.
+                        Engineering research, Research Lab, consultancy and engineering ecosystem.
                     </p>
 
                     <h2>Technical content</h2>

@@ -148,7 +148,7 @@ export const CONSULTANCY_MENU: NavGroup[] = [
 export const PRIMARY_NAV: PrimaryNavItem[] = [
     { name: 'Satellite Engineering', href: '/satellite-engineering' },
     { name: 'Research', href: '/research-platform' },
-    { name: 'Internships', href: '/internships' },
+    { name: 'Research Lab', href: '/research-lab' },
     { name: 'Ecosystem', href: '/partners' },
     {
         name: 'Consultancy',
@@ -255,7 +255,7 @@ export const SITE_ROUTES = [
     { path: '/', priority: 1 },
     { path: '/satellite-engineering', priority: 0.9 },
     { path: '/research-platform', priority: 0.9 },
-    { path: '/internships', priority: 0.9 },
+    { path: '/research-lab', priority: 0.9 },
     { path: '/partners', priority: 0.6 },
     { path: '/consultancy', priority: 0.5 },
     { path: '/about', priority: 0.6 },

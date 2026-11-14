@@ -45,7 +45,7 @@ export default function ResearchPlatformPage() {
                 <Link href="/contact?enquiry=research" className="btn btn-primary" data-track="research_collaboration_click">
                     Discuss Research Collaboration
                 </Link>
-                <Link href="/internships" className="btn btn-secondary">Satellite Engineering Internships</Link>
+                <Link href="/research-lab" className="btn btn-secondary">Satellite Engineering Research Lab</Link>
             </CtaBand>
         </>
     );

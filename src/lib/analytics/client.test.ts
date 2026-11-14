@@ -145,11 +145,11 @@ describe('analytics client', () => {
             expect(pageViews()).toHaveLength(1);
             expect(pageViews()[0][2]).toMatchObject({ page_location: 'http://localhost:3000/', page_path: '/' });
 
-            trackPageView('/internships');
+            trackPageView('/research-lab');
             expect(pageViews()).toHaveLength(2);
             expect(pageViews()[1][2]).toMatchObject({ page_referrer: 'http://localhost:3000/' });
-            expect(gtag).toHaveBeenCalledWith('event', 'internship_view', expect.objectContaining({ page_path: '/internships' }));
-            expect(gtag).toHaveBeenCalledWith('set', { page_location: 'http://localhost:3000/internships', page_referrer: 'http://localhost:3000/' });
+            expect(gtag).toHaveBeenCalledWith('event', 'internship_view', expect.objectContaining({ page_path: '/research-lab' }));
+            expect(gtag).toHaveBeenCalledWith('set', { page_location: 'http://localhost:3000/research-lab', page_referrer: 'http://localhost:3000/' });
         });
     });
 });

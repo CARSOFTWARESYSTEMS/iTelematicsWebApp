@@ -74,8 +74,8 @@ export function orbitPeriodMin(): number {
 }
 
 /** Fraction of a circular orbit spent in Earth's shadow (cylindrical shadow model). */
-export function eclipseFraction(betaDeg: number = ORBIT.betaDeg): number {
-    const h = ORBIT.altitudeKm;
+export function eclipseFraction(betaDeg: number = ORBIT.betaDeg, altitudeKm: number = ORBIT.altitudeKm): number {
+    const h = altitudeKm;
     const r = ORBIT.earthRadiusKm;
     const betaStar = Math.asin(r / (r + h));
     if (Math.abs(betaDeg * deg) >= betaStar) return 0;
@@ -119,23 +119,40 @@ export type Sample = {
     soc: number;
 };
 
-function step(phase: number, soc: number, spec: ScenarioSpec, dtH: number) {
-    const eclipse = isEclipse(phase);
-    const arrayW = eclipse ? 0 : POWER.arrayW * spec.arrayFactor;
-    const loadW = (eclipse ? POWER.loadEclipseW : POWER.loadSunW) + spec.extraLoadW;
-    const busW = arrayW * POWER.etaEps;
+/** Battery and EPS parameters of an energy-balance step; the reference case passes POWER. */
+export type EnergyParams = {
+    etaEps: number;
+    etaCharge: number;
+    batteryWh: number;
+    taperFrom: number;
+};
+
+/**
+ * One explicit energy-balance step: array power through the EPS, minus the load, charges or
+ * discharges the battery. The single step shared by the reference case and the Space Station
+ * Digital Twin scenes, so every scene obeys the same published equations.
+ */
+export function energyStep(p: EnergyParams, arrayW: number, loadW: number, soc: number, dtH: number) {
+    const busW = arrayW * p.etaEps;
     const marginW = busW - loadW;
 
     let batteryW: number;
     if (marginW >= 0) {
-        const taper = soc > POWER.taperFrom ? Math.max(0, (1 - soc) / (1 - POWER.taperFrom)) : 1;
+        const taper = soc > p.taperFrom ? Math.max(0, (1 - soc) / (1 - p.taperFrom)) : 1;
         batteryW = marginW * taper;
-        soc += (batteryW * POWER.etaCharge * dtH) / POWER.batteryWh;
+        soc += (batteryW * p.etaCharge * dtH) / p.batteryWh;
     } else {
-        batteryW = marginW / POWER.etaEps; // the battery path also passes through the EPS converter
-        soc += (batteryW * dtH) / POWER.batteryWh;
+        batteryW = marginW / p.etaEps; // the battery path also passes through the EPS converter
+        soc += (batteryW * dtH) / p.batteryWh;
     }
-    return { eclipse, arrayW, loadW, marginW, batteryW, soc: Math.min(1, Math.max(0, soc)) };
+    return { marginW, batteryW, soc: Math.min(1, Math.max(0, soc)) };
+}
+
+function step(phase: number, soc: number, spec: ScenarioSpec, dtH: number) {
+    const eclipse = isEclipse(phase);
+    const arrayW = eclipse ? 0 : POWER.arrayW * spec.arrayFactor;
+    const loadW = (eclipse ? POWER.loadEclipseW : POWER.loadSunW) + spec.extraLoadW;
+    return { eclipse, arrayW, loadW, ...energyStep(POWER, arrayW, loadW, soc, dtH) };
 }
 
 /** Nominal SOC at phase 0 once the orbit-to-orbit cycle has settled. */

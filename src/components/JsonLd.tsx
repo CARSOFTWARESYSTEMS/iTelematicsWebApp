@@ -34,7 +34,7 @@ export function organizationSchema(): Schema {
         },
         contactPoint: {
             '@type': 'ContactPoint',
-            contactType: 'research and internship enquiries',
+            contactType: 'research and Research Lab enquiries',
             email: SITE.email,
             telephone: SITE.phone,
             availableLanguage: ['English'],
