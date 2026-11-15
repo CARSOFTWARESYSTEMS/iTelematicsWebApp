@@ -17,11 +17,12 @@ import {
     Scene,
     ShaderMaterial,
     SphereGeometry,
+    ImageBitmapLoader,
     SRGBColorSpace,
+    Texture,
     TextureLoader,
     Vector3,
     type Quaternion,
-    type Texture,
 } from 'three';
 
 const BASE = '/images/space-twin/';
@@ -66,8 +67,21 @@ export function GlobeTextures({ children, hd = false }: { children: ReactNode; h
             .then(([day, night, clouds]) => {
                 set([day, night, clouds], { day, night, clouds });
                 if (!hd || !alive) return;
+                // Large maps: decoded off the main thread (ImageBitmap) and uploaded to the GPU as soon as they
+                // arrive, during the opening, so the first view of the globe never stalls on them.
                 const HD = '/images/solar-system/';
-                return Promise.all([load(HD + 'earth-day-8k.jpg', true), load(HD + 'earth-night-4k.jpg', true), load(HD + 'earth-clouds-8k.jpg', false)]).then(([d8, n4, c8]) => set([d8, n4, c8], { day: d8, night: n4, clouds: c8 }));
+                const bitmaps = new ImageBitmapLoader().setOptions({ imageOrientation: 'flipY' });
+                const loadHD = (file: string, srgb: boolean) =>
+                    bitmaps.loadAsync(HD + file).then((bmp) => {
+                        const t = new Texture(bmp as unknown as HTMLImageElement);
+                        if (srgb) t.colorSpace = SRGBColorSpace;
+                        t.anisotropy = aniso;
+                        t.flipY = false;
+                        t.needsUpdate = true;
+                        gl.initTexture(t);
+                        return t;
+                    });
+                return Promise.all([loadHD('earth-day-8k.jpg', true), loadHD('earth-night-4k.jpg', true), loadHD('earth-clouds-8k.jpg', false)]).then(([d8, n4, c8]) => set([d8, n4, c8], { day: d8, night: n4, clouds: c8 }));
             })
             .catch(() => {});
         return () => {

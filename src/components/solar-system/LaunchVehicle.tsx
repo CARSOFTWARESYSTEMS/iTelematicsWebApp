@@ -40,6 +40,7 @@ import SpacecraftModel from './Spacecraft';
 import { LOGDEPTH } from './environment';
 import { carbonShell, foamInsulation, lettering, nozzleSkin, paintedBarrel, repeated, rollPattern, sprayFoam, type SurfaceSet } from './textures';
 import { VolumePlume } from './exhaust';
+import { perfOff } from './render';
 
 export type CutPart = 'fairing' | 'interstage' | 'tanks';
 
@@ -644,7 +645,7 @@ export default function LaunchVehicle({
             ))}
             {/* Both engines' exhaust, one volume: twin cores merging downstream; length and width follow
                 the ambient pressure (tight and opaque at the pad, wide and faint near vacuum). */}
-            <group position={[0, 0.2 - 2.25, 0]}>
+            <group position={[0, 0.2 - 2.25, 0]} visible={!perfOff('noPlume')}>
                 <VolumePlume
                     kind="kerosene"
                     quality={quality}

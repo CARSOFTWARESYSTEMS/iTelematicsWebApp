@@ -29,11 +29,59 @@
     object-fit: cover;
 }
 
+.posterTablet,
+.posterPhone {
+    display: none;
+}
+
+@media (min-width: 641px) and (max-width: 899px) {
+    .posterWide {
+        display: none;
+    }
+
+    .posterTablet {
+        display: block;
+    }
+}
+
+@media (max-width: 640px) {
+    .posterWide {
+        display: none;
+    }
+
+    .posterPhone {
+        display: block;
+    }
+}
+
 .canvas {
     position: absolute;
     inset: 0;
     opacity: 0;
-    transition: opacity 0.8s var(--ease);
+    /* The opening fades in from black, like the first shot of a film. */
+    transition: opacity 1.6s var(--ease);
+}
+
+.loading {
+    position: absolute;
+    right: 20px;
+    bottom: 16px;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    color: var(--text-3);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .loading {
+        animation: breathe 1.8s var(--ease) infinite;
+    }
+}
+
+@keyframes breathe {
+    50% {
+        opacity: 0.35;
+    }
 }
 
 .viewport[data-ready] .canvas {
@@ -50,15 +98,16 @@
     position: absolute;
     inset: 0;
     pointer-events: none;
+    /* Only where text sits: a thin band under the status line and the lower-left corner. */
     background:
-        linear-gradient(to bottom, rgba(3, 6, 12, 0.5), rgba(3, 6, 12, 0) 18%),
-        linear-gradient(to top, rgba(3, 6, 12, 0.45), rgba(3, 6, 12, 0) 22%);
+        linear-gradient(to bottom, rgba(3, 6, 12, 0.42), rgba(3, 6, 12, 0) 12%),
+        radial-gradient(ellipse 60% 55% at 0% 100%, rgba(3, 6, 12, 0.55), rgba(3, 6, 12, 0) 70%);
 }
 
 .solar[data-mode='intro'] .shade {
     background:
-        linear-gradient(to bottom, rgba(3, 6, 12, 0.5), rgba(3, 6, 12, 0) 18%),
-        linear-gradient(to right, rgba(3, 6, 12, 0.62), rgba(3, 6, 12, 0.18) 42%, rgba(3, 6, 12, 0) 60%);
+        linear-gradient(to bottom, rgba(3, 6, 12, 0.42), rgba(3, 6, 12, 0) 12%),
+        radial-gradient(ellipse 70% 75% at 0% 100%, rgba(3, 6, 12, 0.72), rgba(3, 6, 12, 0.25) 45%, rgba(3, 6, 12, 0) 72%);
 }
 
 /* ---------- Top status line ---------- */
@@ -193,24 +242,83 @@
     margin-top: 22px;
 }
 
-.cta {
-    min-height: 44px;
+/* Start Mission: a glass pill with a play disc; Explore Mission Stages: a quiet text action. */
+.startBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 52px;
+    padding: 6px 24px 6px 6px;
+    border: 1px solid rgba(255, 255, 255, 0.34);
+    border-radius: 999px;
+    background: rgba(8, 14, 22, 0.32);
+    backdrop-filter: blur(14px) saturate(1.2);
+    -webkit-backdrop-filter: blur(14px) saturate(1.2);
+    color: var(--text);
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    transition: background-color 0.25s var(--ease), border-color 0.25s var(--ease);
 }
 
-/* Shot 05, mission ready: the Start Mission call to action is drawn to the eye. */
-.heroActions[data-ready] .cta:first-child {
-    box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.18), 0 8px 30px rgba(34, 211, 238, 0.25);
+.startBtn:hover {
+    border-color: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.1);
 }
 
+.startIcon {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--accent-ink);
+    box-shadow: 0 0 22px rgba(34, 211, 238, 0.45);
+    transition: transform 0.25s var(--ease);
+}
+
+.startIcon svg {
+    margin-left: 2px;
+}
+
+.startBtn:hover .startIcon {
+    transform: scale(1.06);
+}
+
+.stagesBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 52px;
+    padding: 6px 12px;
+    border: 0;
+    background: transparent;
+    color: rgba(241, 245, 249, 0.88);
+    font-size: 0.98rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.6);
+}
+
+.stagesBtn:hover {
+    color: var(--text);
+    text-decoration: underline;
+    text-underline-offset: 6px;
+    text-decoration-thickness: 1px;
+}
+
+/* Mission ready: the play disc pulses gently. */
 @media (prefers-reduced-motion: no-preference) {
-    .heroActions[data-ready] .cta:first-child {
+    .heroActions[data-ready] .startIcon {
         animation: ready 2.4s var(--ease) infinite;
     }
 }
 
 @keyframes ready {
     50% {
-        box-shadow: 0 0 0 8px rgba(34, 211, 238, 0.06), 0 8px 30px rgba(34, 211, 238, 0.32);
+        box-shadow: 0 0 0 9px rgba(34, 211, 238, 0.12), 0 0 26px rgba(34, 211, 238, 0.55);
     }
 }
 
@@ -750,8 +858,9 @@
         font-size: 0.95rem;
     }
 
-    .heroActions .cta {
+    .startBtn {
         flex: 1 1 auto;
+        justify-content: center;
     }
 
     .solar[data-mode='intro'] .shade {
@@ -849,7 +958,9 @@
     .tool,
     .topic,
     .primaryBtn,
-    .investigateBtn {
+    .investigateBtn,
+    .startBtn,
+    .startIcon {
         transition: none;
     }
 }

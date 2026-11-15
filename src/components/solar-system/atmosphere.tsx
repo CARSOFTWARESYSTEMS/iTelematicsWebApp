@@ -131,7 +131,7 @@ function skyMaterial(steps: number, lightSteps: number) {
  * The sky around the camera. `origin()` is the camera position in metres from the Earth's centre,
  * `sun` the direction towards the Sun (both in the scene frame).
  */
-export function AtmosphereSky({ origin, sun, quality }: { origin: () => Vector3; sun: Vector3; quality: 'high' | 'low' }) {
+export function AtmosphereSky({ origin, sun, quality, hidden }: { origin: () => Vector3; sun: Vector3; quality: 'high' | 'low'; hidden?: () => boolean }) {
     const camera = useThree((s) => s.camera);
     const ref = useRef<Mesh>(null);
     const material = useMemo(() => {
@@ -145,6 +145,8 @@ export function AtmosphereSky({ origin, sun, quality }: { origin: () => Vector3;
         (material.uniforms.uOrigin.value as Vector3).copy(origin());
         (material.uniforms.uSun.value as Vector3).copy(sun);
         if (ref.current) {
+            // Fully covered by the photographed sky near the ground: skip the scattering integral.
+            ref.current.visible = !hidden?.();
             ref.current.position.copy(camera.position);
             ref.current.scale.setScalar(Math.min(camera.far * 0.5, 1e6));
         }
@@ -168,7 +170,9 @@ export function skyEnvironmentTarget(gl: WebGLRenderer, sun: Vector3) {
     material.uniforms.uExposure.value = 1.6;
     const geometry = new SphereGeometry(100, 64, 32);
     scene.add(new Mesh(geometry, material));
-    const rt = pmrem.fromScene(scene, 0, 0.1, 1000);
+    // Same cube size as the photographed-sky environment (128), so switching between them does not
+    // change shader constants and recompile every material mid-flight.
+    const rt = pmrem.fromScene(scene, 0, 0.1, 1000, { size: 128 });
     geometry.dispose();
     material.dispose();
     pmrem.dispose();

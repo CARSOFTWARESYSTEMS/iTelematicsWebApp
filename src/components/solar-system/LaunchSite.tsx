@@ -24,7 +24,6 @@ import {
     DoubleSide,
     Float32BufferAttribute,
     FogExp2,
-    IcosahedronGeometry,
     InstancedMesh,
     Line,
     LineBasicMaterial,
@@ -41,8 +40,8 @@ import {
 } from 'three';
 import { R_EARTH } from '@/lib/solar-system/constants';
 import { flight, sampleAt } from '@/lib/solar-system/flight';
-import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { ExhaustClouds, VolumePlume } from './exhaust';
+import { perfOff } from './render';
 import { SUN } from './sun';
 import { LOGDEPTH } from './environment';
 import { cladding, paintedSteel, repeated, type SurfaceSet } from './textures';
@@ -64,7 +63,16 @@ const COAST_GLSL = /* glsl */ `float coastAt(float z) { return 720.0 + 170.0 * s
 
 // ── Licensed surfaces ─────────────────────────────────────────────────────
 
-type SiteMaps = { grass: Texture; grassN: Texture; beach: Texture; beachN: Texture; concrete: Texture; concreteN: Texture; metal: Texture; metalN: Texture };
+type SiteMaps = {
+    grass: Texture;
+    grassN: Texture;
+    beach: Texture;
+    beachN: Texture;
+    concrete: Texture;
+    concreteN: Texture;
+    metal: Texture;
+    metalN: Texture;
+};
 const MapsContext = createContext<SiteMaps | null>(null);
 const BASE = '/images/solar-system/';
 
@@ -94,7 +102,16 @@ export function SiteTextures({ children }: { children: ReactNode }) {
             load('corrugated-normal.jpg', false),
         ])
             .then(([grass, grassN, beach, beachN, concrete, concreteN, metal, metalN]) => {
-                const m = { grass, grassN, beach, beachN, concrete, concreteN, metal, metalN };
+                const m = {
+                    grass,
+                    grassN,
+                    beach,
+                    beachN,
+                    concrete,
+                    concreteN,
+                    metal,
+                    metalN,
+                };
                 if (!alive) return Object.values(m).forEach((t) => t.dispose());
                 setMaps(m);
                 invalidate();
@@ -107,6 +124,9 @@ export function SiteTextures({ children }: { children: ReactNode }) {
     useEffect(() => () => Object.values(maps ?? {}).forEach((t) => (t as Texture).dispose()), [maps]);
     return <MapsContext.Provider value={maps}>{children}</MapsContext.Provider>;
 }
+
+/** True once the site's photographic surfaces have loaded (the opening waits for them). */
+export const useSiteMapsReady = () => useContext(MapsContext) !== null;
 
 /** A copy of a texture with its own repeat (the image is shared, not duplicated). */
 function useRepeat(t: Texture | undefined, x: number, y: number) {
@@ -146,6 +166,8 @@ const NOISE_GLSL = /* glsl */ `
     float vnoise(vec2 p) { vec2 i = floor(p); vec2 f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);
         return mix(mix(h21(i), h21(i + vec2(1, 0)), u.x), mix(h21(i + vec2(0, 1)), h21(i + vec2(1, 1)), u.x), u.y); }
     float fbm(vec2 p) { float a = 0.5; float s = 0.0; for (int i = 0; i < 5; i++) { s += a * vnoise(p); p *= 2.03; a *= 0.5; } return s; }
+    // Three octaves, for the broad patterns (as good as five at those scales, at 60% of the cost).
+    float fbm3(vec2 p) { return 0.5 * vnoise(p) + 0.25 * vnoise(p * 2.03) + 0.125 * vnoise(p * 4.12) + 0.0625; }
     ${COAST_GLSL}
 `;
 
@@ -210,7 +232,13 @@ function Land({ opacity }: { opacity: () => number }) {
     const geometry = useMemo(() => terrainGeometry(), []);
     useEffect(() => () => geometry.dispose(), [geometry]);
     const material = useMemo(() => {
-        const m = new MeshStandardMaterial({ color: '#ffffff', roughness: 0.97, metalness: 0, map: maps?.grass ?? null, transparent: true });
+        const m = new MeshStandardMaterial({
+            color: '#ffffff',
+            roughness: 0.97,
+            metalness: 0,
+            map: maps?.grass ?? null,
+            transparent: true,
+        });
         m.onBeforeCompile = (shader) => {
             shader.uniforms.uBeach = { value: maps?.beach ?? null };
             shader.uniforms.uOpacity = { value: 1 };
@@ -224,7 +252,7 @@ function Land({ opacity }: { opacity: () => number }) {
                     if (wp.x > coast + 2.0) discard;
                     float camDist = length(cameraPosition - vWorldP);
                     // Anti-tiling: two samples at different rotations and scales, blended by low-frequency noise.
-                    float w = smoothstep(0.3, 0.7, fbm(wp * 0.012));
+                    float w = smoothstep(0.3, 0.7, fbm3(wp * 0.012));
                     vec2 r1 = mat2(0.8, -0.6, 0.6, 0.8) * wp;
                     #ifdef USE_MAP
                     vec3 gA = texture2D(map, wp / 16.0).rgb;
@@ -239,24 +267,32 @@ function Land({ opacity }: { opacity: () => number }) {
                     vec3 sand = vec3(0.62, 0.57, 0.45);
                     #endif
                     float beach = smoothstep(coast - 200.0, coast - 25.0, wp.x);
-                    float patches = smoothstep(0.66, 0.86, fbm(wp * 0.0035 + 7.0)) * 0.3;
+                    float patches = smoothstep(0.66, 0.86, fbm3(wp * 0.0035 + 7.0)) * 0.3;
                     // Low coastal scrub (saw palmetto, wax myrtle): dark olive cover broken by sandy grass,
                     // at two scales so it reads as vegetation from the pad and from a kilometre away.
-                    float scrub = smoothstep(0.32, 0.62, fbm(wp * 0.006 + 3.0) * 0.65 + fbm(wp * 0.045 + 11.0) * 0.35) * (1.0 - beach);
+                    float scrub = smoothstep(0.32, 0.62, fbm3(wp * 0.006 + 3.0) * 0.65 + fbm3(wp * 0.045 + 11.0) * 0.35) * (1.0 - beach);
                     vec3 col = mix(grass, sand, max(beach, patches));
                     col = mix(col, col * vec3(0.42, 0.55, 0.3), scrub * 0.85);
                     // Crushed-stone apron inside the perimeter road, kept clear of vegetation.
                     float r = length(wp);
-                    float apron = 1.0 - smoothstep(128.0, 150.0, r + (fbm(wp * 0.08) - 0.5) * 14.0);
-                    vec3 gravel = sand * vec3(0.86, 0.86, 0.88) * (0.85 + 0.3 * fbm(wp * 0.4));
+                    // Only near the pad: the apron's ragged edge and gravel grain.
+                    float apron = 0.0;
+                    vec3 gravel = sand;
+                    if (r < 165.0) {
+                        apron = 1.0 - smoothstep(128.0, 150.0, r + (fbm3(wp * 0.08) - 0.5) * 14.0);
+                        gravel = sand * vec3(0.86, 0.86, 0.88) * (0.85 + 0.3 * fbm(wp * 0.4));
+                    }
+                    // Coastal scrubland beyond the pad area: olive and darker than straw (albedo ~0.12).
+                    col *= mix(vec3(1.0), vec3(0.42, 0.5, 0.32), (1.0 - beach) * smoothstep(150.0, 260.0, r));
                     col = mix(col, gravel, apron);
                     scrub *= 1.0 - apron;
                     // From afar the texture's repeat would show: fade to its average colour, varied by large-scale noise.
                     vec3 avg = mix(vec3(0.25, 0.26, 0.15), vec3(0.62, 0.57, 0.45), max(beach, patches));
                     avg = mix(avg, avg * vec3(0.48, 0.6, 0.36), scrub * 0.85);
+                    avg *= mix(vec3(1.0), vec3(0.42, 0.5, 0.32), (1.0 - beach) * smoothstep(150.0, 260.0, r));
                     avg = mix(avg, vec3(0.55, 0.52, 0.47), apron);
                     col = mix(col, avg, smoothstep(350.0, 2600.0, camDist));
-                    col *= (0.8 + 0.42 * fbm(wp * 0.0009)) * 0.9;
+                    col *= (0.8 + 0.42 * fbm3(wp * 0.0009)) * 0.9;
                     // Wet sand darkens at the waterline.
                     col *= 1.0 - 0.35 * smoothstep(coast - 12.0, coast, wp.x);
                     diffuseColor.rgb *= col;
@@ -284,7 +320,13 @@ function Ocean({ opacity }: { opacity: () => number }) {
     const material = useMemo(
         () =>
             new ShaderMaterial({
-                uniforms: { uSun: { value: SUN_SITE.clone() }, uTime: { value: 0 }, uFog: { value: new Color('#aebfd2') }, uFogDensity: { value: 0 }, uOpacity: { value: 1 } },
+                uniforms: {
+                    uSun: { value: SUN_SITE.clone() },
+                    uTime: { value: 0 },
+                    uFog: { value: new Color('#aebfd2') },
+                    uFogDensity: { value: 0 },
+                    uOpacity: { value: 1 },
+                },
                 vertexShader: /* glsl */ `${LOGDEPTH.vPars}
                     varying vec3 vPos;
                     void main() { vec4 wp = modelMatrix * vec4(position, 1.0); vPos = wp.xyz; gl_Position = projectionMatrix * viewMatrix * wp; ${LOGDEPTH.v} }`,
@@ -352,7 +394,11 @@ function Ocean({ opacity }: { opacity: () => number }) {
 
 // ── Structural helpers ────────────────────────────────────────────────────
 
-type Beam = { from: [number, number, number]; to: [number, number, number]; w: number };
+type Beam = {
+    from: [number, number, number];
+    to: [number, number, number];
+    w: number;
+};
 
 /** Many straight members (columns, girts, braces) as one instanced mesh of unit boxes. */
 function Members({ beams, material, cast = true }: { beams: Beam[]; material: MeshStandardMaterial; cast?: boolean }) {
@@ -483,7 +529,16 @@ function SurfaceBox({
     const ry = Math.max(1, Math.max(size[1], size[2]) / tile);
     const m = useRepeat(map, rx, ry);
     const nm = useRepeat(normal, rx, ry);
-    const material = useMat({ color, roughness, metalness, map: m ?? undefined, normalMap: nm ?? undefined }, [m, nm, color, roughness, metalness]);
+    const material = useMat(
+        {
+            color,
+            roughness,
+            metalness,
+            map: m ?? undefined,
+            normalMap: nm ?? undefined,
+        },
+        [m, nm, color, roughness, metalness],
+    );
     return (
         <mesh position={at} rotation={rotation} material={material} castShadow={castShadow} receiveShadow>
             <boxGeometry args={size} />
@@ -493,27 +548,93 @@ function SurfaceBox({
 
 // ── Vegetation ────────────────────────────────────────────────────────────
 
-/** A low-poly shrub (an icosphere pushed out by smooth noise): `variant` changes the noise. */
-function shrubGeometry(variant: number, detail: number) {
-    // Shared vertices, so the noise displacement keeps the surface continuous and shading is smooth.
-    const base = new IcosahedronGeometry(1, detail);
-    base.deleteAttribute('normal');
-    base.deleteAttribute('uv');
-    const g = mergeVertices(base);
-    base.dispose();
-    const p = g.getAttribute('position');
-    const v = new Vector3();
-    for (let i = 0; i < p.count; i++) {
-        v.fromBufferAttribute(p, i);
-        const n = Math.sin(v.x * 3.1 + variant) * Math.sin(v.y * 2.7 + variant * 1.7) * Math.sin(v.z * 3.3 + variant * 0.6);
-        const r = 1 + 0.28 * n + 0.1 * Math.sin(v.x * 7 + v.z * 5 + variant);
-        // Flat-bottomed: shrubs sit on the ground.
-        v.multiplyScalar(r);
-        if (v.y < -0.2) v.y = -0.2 + (v.y + 0.2) * 0.25;
-        p.setXYZ(i, v.x, v.y, v.z);
+/**
+ * A shrub as three crossed vertical cards and a low top card (base at y = 0, about 2 × 1.3 units), with
+ * dome-shaped normals so it shades as a rounded mass, as real-time vegetation is usually drawn.
+ */
+function shrubCards() {
+    const pos: number[] = [];
+    const uv: number[] = [];
+    const nrm: number[] = [];
+    const idx: number[] = [];
+    const card = (corners: [number, number, number][]) => {
+        const base = pos.length / 3;
+        const uvs = [0, 0, 1, 0, 1, 1, 0, 1];
+        corners.forEach(([x, y, z], i) => {
+            pos.push(x, y, z);
+            uv.push(uvs[i * 2], uvs[i * 2 + 1]);
+            const n = new Vector3(x, y - 0.25, z)
+                .normalize()
+                .add(new Vector3(0, 0.6, 0))
+                .normalize();
+            nrm.push(n.x, n.y, n.z);
+        });
+        idx.push(base, base + 1, base + 2, base, base + 2, base + 3);
+    };
+    for (let k = 0; k < 3; k++) {
+        const a = (k / 3) * Math.PI;
+        const cx = Math.cos(a);
+        const cz = Math.sin(a);
+        card([
+            [-cx, 0, -cz],
+            [cx, 0, cz],
+            [cx, 1.3, cz],
+            [-cx, 1.3, -cz],
+        ]);
     }
-    g.computeVertexNormals();
+    card([
+        [-0.75, 0.75, -0.75],
+        [0.75, 0.75, -0.75],
+        [0.75, 0.75, 0.75],
+        [-0.75, 0.75, 0.75],
+    ]);
+    const g = new BufferGeometry();
+    g.setAttribute('position', new Float32BufferAttribute(pos, 3));
+    g.setAttribute('normal', new Float32BufferAttribute(nrm, 3));
+    g.setAttribute('uv', new Float32BufferAttribute(uv, 2));
+    g.setIndex(idx);
     return g;
+}
+
+/** Leaf-cluster texture for the shrub cards: a ragged dome of small leaves in olive greens (alpha-tested). */
+function foliageTexture() {
+    if (typeof document === 'undefined') return null;
+    const N = 512;
+    const c = document.createElement('canvas');
+    c.width = c.height = N;
+    const g = c.getContext('2d')!;
+    let seed = 5;
+    const rnd = () => {
+        seed = (seed * 1664525 + 1013904223) >>> 0;
+        return seed / 4294967296;
+    };
+    g.clearRect(0, 0, N, N);
+    // Three or four overlapping lumps make an irregular crown.
+    const lumps = Array.from({ length: 5 }, (_, i) => ({
+        x: 0.14 + i * 0.18 + (rnd() - 0.5) * 0.08,
+        w: 0.16 + rnd() * 0.12,
+        h: 0.5 + rnd() * 0.3,
+    }));
+    // Low and broad, like saw palmetto and wax myrtle: a flat top of several lumps, rounded at the ends.
+    const crown = (x: number) => Math.pow(Math.max(0, 1 - ((x - 0.5) / 0.5) ** 2), 0.25) * lumps.reduce((m, l) => Math.max(m, l.h * Math.sqrt(Math.max(0, 1 - ((x - l.x) / l.w) ** 2))), 0.45);
+    for (let i = 0; i < 9000; i++) {
+        const x = 0.03 + rnd() * 0.94;
+        const y = rnd();
+        const dome = crown(x);
+        if (y > dome * (0.8 + 0.3 * rnd())) continue;
+        const shade = 0.5 + (0.5 * y) / Math.max(dome, 0.05) + (rnd() - 0.5) * 0.4;
+        const r = 30 + 25 * shade + rnd() * 10;
+        const gg = 48 + 40 * shade + rnd() * 14;
+        const b = 22 + 18 * shade;
+        g.fillStyle = `rgb(${r | 0},${gg | 0},${b | 0})`;
+        const s = 3 + rnd() * 7;
+        g.beginPath();
+        g.ellipse(x * N, (1 - y) * N, s, s * (0.5 + rnd() * 0.5), rnd() * Math.PI, 0, Math.PI * 2);
+        g.fill();
+    }
+    const t = new CanvasTexture(c);
+    t.colorSpace = SRGBColorSpace;
+    return t;
 }
 
 /**
@@ -522,7 +643,7 @@ function shrubGeometry(variant: number, detail: number) {
  * camera positions it forms the dark vegetation band in front of the launch complex.
  */
 function Scrub({ quality }: { quality: 'high' | 'low' }) {
-    const count = quality === 'high' ? 9000 : 2600;
+    const count = quality === 'high' ? 14000 : 4000;
     const sets = useMemo(() => {
         let seed = 77;
         const rnd = () => {
@@ -541,6 +662,8 @@ function Scrub({ quality }: { quality: 'high' | 'low' }) {
             [-1, 95],
             [70, 262],
             [-700, 2600],
+            [-40, 226],
+            [-52, 224],
         ];
         const nearSegment = (x: number, z: number, ax: number, az: number, w: number) => {
             const t = Math.max(0, Math.min(1, (x * ax + z * az) / (ax * ax + az * az)));
@@ -548,40 +671,84 @@ function Scrub({ quality }: { quality: 'high' | 'low' }) {
         };
         const blocked = (x: number, z: number) => {
             const r = Math.hypot(x, z);
-            if (r < 175 || r > 1900) return true;
+            if (r < 175 || r > 3300) return true;
             if (coastX(z) - x < 60) return true;
             if (x < -140 && Math.abs(z - 14) < 14) return true; // access road
             if (Math.abs(x + 720) < 95 && Math.abs(z - 230) < 65) return true; // integration hangar
             if (Math.hypot(x + 205, z + 40) < 45) return true;
             if (Math.hypot(x + 52, z + 178) < 22) return true;
             for (const [cx, cz] of cams) if (Math.hypot(x - cx, z - cz) < 80) return true;
+            // Wherever the long-lens camera stands for the layout (it backs off on narrow screens).
+            const bearing = (Math.atan2(-x, z) * 180) / Math.PI;
+            if (r > 600 && r < 1150 && Math.abs(bearing - 15) < 5.5) return true;
             if (nearSegment(x, z, -174, 699, 18) || nearSegment(x, z, -700, 1212, 22)) return true;
             return false;
         };
         // More clumps south-south-west of the pad, the side the long-lens cameras look across from.
-        const centres = Array.from({ length: 420 }, () => {
-            const sector = rnd() < 0.55;
-            const a = sector ? ((80 + rnd() * 75) * Math.PI) / 180 : rnd() * Math.PI * 2;
-            const r = 185 + Math.sqrt(rnd()) * (sector ? 1500 : 1650);
-            return [Math.cos(a) * r, Math.sin(a) * r, 30 + rnd() * 80] as const;
+        const centres: (readonly [number, number, number])[] = Array.from({ length: 520 }, () => {
+            const sector = rnd() < 0.68;
+            const a = sector ? ((78 + rnd() * 80) * Math.PI) / 180 : rnd() * Math.PI * 2;
+            const r = 185 + Math.sqrt(rnd()) * (sector ? 1450 : 1650);
+            return [Math.cos(a) * r, Math.sin(a) * r, 40 + rnd() * 90] as const;
         });
-        const out: { x: number; z: number; s: number; h: number; rot: number; tone: number; tree: boolean }[] = [];
+        // Extra clumps across the long-lens view (bearing 15° ± 25°, 190–1,100 m), so the middle distance
+        // in front of the pad reads as scrub rather than open grass.
+        for (let i = 0; i < 160; i++) {
+            const a = ((105 + (rnd() - 0.5) * 50) * Math.PI) / 180;
+            const r = 190 + rnd() * 910;
+            centres.push([Math.cos(a) * r, Math.sin(a) * r, 30 + rnd() * 60] as const);
+        }
+        // A band of low trees 1.9–3.2 km out: the wooded skyline of the coastal plain.
+        const band = Array.from({ length: 90 }, () => {
+            const a = rnd() * Math.PI * 2;
+            const r = 1950 + rnd() * 1200;
+            return [Math.cos(a) * r, Math.sin(a) * r, 120 + rnd() * 160] as const;
+        });
+        const out: {
+            x: number;
+            z: number;
+            s: number;
+            h: number;
+            rot: number;
+            tone: number;
+            tree: boolean;
+        }[] = [];
         let guard = 0;
         while (out.length < count && guard++ < count * 20) {
-            const c = centres[Math.floor(rnd() * centres.length)];
+            const c = rnd() < 0.2 ? band[Math.floor(rnd() * band.length)] : centres[Math.floor(rnd() * centres.length)];
             const a = rnd() * Math.PI * 2;
             const d = Math.sqrt(rnd()) * c[2];
             const x = c[0] + Math.cos(a) * d;
             const z = c[1] + Math.sin(a) * d;
             if (blocked(x, z)) continue;
             const r = Math.hypot(x, z);
-            const tree = r > 650 && rnd() < 0.04;
-            out.push({ x, z, s: tree ? 2.2 + rnd() * 1.2 : 0.9 + rnd() * 1.4, h: tree ? 1.6 + rnd() * 0.8 : 0.55 + rnd() * 0.45, rot: rnd() * Math.PI * 2, tone: rnd(), tree });
+            const tree = r > 1850 || (r > 650 && rnd() < 0.05);
+            out.push({
+                x,
+                z,
+                s: tree ? 3 + rnd() * 2.5 : 1.6 + rnd() * 2.2,
+                h: tree ? 1.4 + rnd() * 0.9 : 0.55 + rnd() * 0.4,
+                rot: rnd() * Math.PI * 2,
+                tone: rnd(),
+                tree,
+            });
         }
         return out;
     }, [count]);
-    const geos = useMemo(() => [0, 1, 2].map((k) => shrubGeometry(k * 2.3 + 0.4, 1)), []);
-    const material = useMemo(() => new MeshStandardMaterial({ roughness: 0.95, metalness: 0, vertexColors: false }), []);
+    const leaves = useMemo(() => foliageTexture(), []);
+    const geos = useMemo(() => [0, 1, 2].map(() => shrubCards()), []);
+    const material = useMemo(
+        () =>
+            new MeshStandardMaterial({
+                roughness: 0.92,
+                metalness: 0,
+                map: leaves ?? undefined,
+                alphaTest: 0.4,
+                alphaToCoverage: true,
+                side: DoubleSide,
+            }),
+        [leaves],
+    );
     const refs = [useRef<InstancedMesh>(null), useRef<InstancedMesh>(null), useRef<InstancedMesh>(null)];
     useEffect(() => {
         const o = new Object3D();
@@ -591,14 +758,14 @@ function Scrub({ quality }: { quality: 'high' | 'low' }) {
             const k = i % 3;
             const mesh = refs[k].current;
             if (!mesh) return;
-            o.position.set(b.x, terrainHeight(b.x, b.z) + b.s * b.h * 0.55, b.z);
+            o.position.set(b.x, terrainHeight(b.x, b.z) - 0.15, b.z);
             o.rotation.set(0, b.rot, 0);
-            o.scale.set(b.s, b.s * b.h, b.s * (0.85 + 0.3 * b.tone));
+            o.scale.set(b.s, b.tree ? b.s * b.h * 1.5 : b.s * b.h * 0.85, b.s * (0.85 + 0.3 * b.tone));
             o.updateMatrix();
             mesh.setMatrixAt(counts[k], o.matrix);
-            // Olive, sage and dark green, sun-bleached at random.
-            col.setRGB(0.09 + 0.05 * b.tone, 0.12 + 0.05 * b.tone, 0.05 + 0.02 * b.tone);
-            if (b.tree) col.multiplyScalar(0.8);
+            // Olive, sage and dark green variation over the leaf texture.
+            col.setRGB(0.5 + 0.25 * b.tone, 0.55 + 0.2 * b.tone, 0.45 + 0.15 * b.tone);
+            if (b.tree) col.multiplyScalar(0.7);
             mesh.setColorAt(counts[k], col);
             counts[k]++;
         });
@@ -614,14 +781,15 @@ function Scrub({ quality }: { quality: 'high' | 'low' }) {
         () => () => {
             geos.forEach((g) => g.dispose());
             material.dispose();
+            leaves?.dispose();
         },
-        [geos, material],
+        [geos, material, leaves],
     );
     const per = Math.ceil(count / 3) + 1;
     return (
         <>
             {geos.map((g, k) => (
-                <instancedMesh key={k} ref={refs[k]} args={[g, material, per]} castShadow={false} receiveShadow />
+                <instancedMesh key={k} ref={refs[k]} args={[g, material, per]} castShadow={false} receiveShadow={false} />
             ))}
         </>
     );
@@ -682,7 +850,11 @@ function ExhaustTrail({ met, head }: { met: () => number; head: () => Vector3 })
     const material = useMemo(
         () =>
             new ShaderMaterial({
-                uniforms: { uMet: { value: 0 }, uHead: { value: new Vector3() }, uSun: { value: SUN_SITE.clone() } },
+                uniforms: {
+                    uMet: { value: 0 },
+                    uHead: { value: new Vector3() },
+                    uSun: { value: SUN_SITE.clone() },
+                },
                 vertexShader: /* glsl */ `${LOGDEPTH.vPars}
                     attribute vec3 aDir; attribute float aTime; attribute float aAlt; uniform float uMet; uniform vec3 uHead;
                     varying float vAge; varying float vAlt; varying vec3 vN; varying vec3 vPos;
@@ -735,11 +907,12 @@ function TrenchJet({ met, quality }: { met: () => number; quality: 'high' | 'low
     const power = () => {
         const s = sampleAt(met());
         if (s.phase !== 'ignition' && s.phase !== 'stage1') return 0;
-        return s.throttle * Math.max(0, 1 - Math.max(0, s.altitude) / 55);
+        // Down in the trench: only its glow and the exit show, as on a real pad.
+        return 0.7 * s.throttle * Math.max(0, 1 - Math.max(0, s.altitude) / 55);
     };
     // Deflected exhaust running north along the trench floor, flattened by the trench walls.
     return (
-        <group position={[0, 1.6, -4]} rotation={[-Math.PI / 2, 0, 0]} scale={[1, 1, 0.55]}>
+        <group position={[0, -0.8, -4]} rotation={[-Math.PI / 2, 0, 0]} scale={[1, 1, 0.55]}>
             <VolumePlume kind="kerosene" power={power} length={() => 56} radius={() => 7.5} nozzle={3.2} pressure={() => 1} quality={quality} />
         </group>
     );
@@ -764,7 +937,18 @@ function Scorch() {
         t.colorSpace = SRGBColorSpace;
         return t;
     }, []);
-    const material = useMemo(() => new MeshStandardMaterial({ map: texture, transparent: true, depthWrite: false, roughness: 1, polygonOffset: true, polygonOffsetFactor: -4 }), [texture]);
+    const material = useMemo(
+        () =>
+            new MeshStandardMaterial({
+                map: texture,
+                transparent: true,
+                depthWrite: false,
+                roughness: 1,
+                polygonOffset: true,
+                polygonOffsetFactor: -4,
+            }),
+        [texture],
+    );
     useEffect(
         () => () => {
             material.dispose();
@@ -898,10 +1082,19 @@ function UmbilicalTower({ met, steel, dark, hose }: { met: () => number; steel: 
                 for (let k = 0; k < 5; k++) {
                     const x0 = (k / 5) * (L - 0.6);
                     const x1 = ((k + 1) / 5) * (L - 0.6);
-                    out.push({ from: [x0, k % 2 ? 1.6 : 0, z], to: [x1, k % 2 ? 0 : 1.6, z], w: 0.12 });
+                    out.push({
+                        from: [x0, k % 2 ? 1.6 : 0, z],
+                        to: [x1, k % 2 ? 0 : 1.6, z],
+                        w: 0.12,
+                    });
                 }
             }
-            for (let k = 0; k <= 5; k++) out.push({ from: [(k / 5) * (L - 0.6), 0, -0.7], to: [(k / 5) * (L - 0.6), 0, 0.7], w: 0.12 });
+            for (let k = 0; k <= 5; k++)
+                out.push({
+                    from: [(k / 5) * (L - 0.6), 0, -0.7],
+                    to: [(k / 5) * (L - 0.6), 0, 0.7],
+                    w: 0.12,
+                });
             return out;
         });
     }, []);
@@ -1022,7 +1215,21 @@ function PipeRack({ a, b, steel, pipe }: { a: [number, number]; b: [number, numb
 /** A building with clad walls, a roof cap and a parapet. */
 function Building({ at, size, clad, roof, rotation = 0 }: { at: [number, number]; size: [number, number, number]; clad: SurfaceSet | null; roof: MeshStandardMaterial; rotation?: number }) {
     const [w, h, d] = size;
-    const material = useMat({ color: '#ffffff', roughness: 1, metalness: 0.2, ...(clad ? { map: clad.map, normalMap: clad.normalMap, roughnessMap: clad.roughnessMap } : {}) }, [clad]);
+    const material = useMat(
+        {
+            color: '#ffffff',
+            roughness: 1,
+            metalness: 0.2,
+            ...(clad
+                ? {
+                      map: clad.map,
+                      normalMap: clad.normalMap,
+                      roughnessMap: clad.roughnessMap,
+                  }
+                : {}),
+        },
+        [clad],
+    );
     return (
         <group position={[at[0], 0, at[1]]} rotation={[0, rotation, 0]}>
             <mesh position={[0, h / 2, 0]} material={material} castShadow receiveShadow>
@@ -1039,25 +1246,6 @@ function Building({ at, size, clad, roof, rotation = 0 }: { at: [number, number]
     );
 }
 
-/** A floodlight tower: a tapered mast with a lamp head. */
-function LightTower({ at, steel, dark }: { at: [number, number]; steel: MeshStandardMaterial; dark: MeshStandardMaterial }) {
-    return (
-        <group position={[at[0], 0, at[1]]}>
-            <mesh position={[0, 17, 0]} material={steel} castShadow>
-                <cylinderGeometry args={[0.35, 0.7, 34, 10]} />
-            </mesh>
-            <mesh position={[0, 34.4, 0]} material={steel} castShadow>
-                <boxGeometry args={[3.2, 1.4, 0.6]} />
-            </mesh>
-            {[-1, 0, 1].map((k) => (
-                <mesh key={k} position={[k * 1.05, 34.4, 0.32]} material={dark}>
-                    <boxGeometry args={[0.8, 1.0, 0.05]} />
-                </mesh>
-            ))}
-        </group>
-    );
-}
-
 export default function LaunchSite({ met, head, groundOpacity, quality }: { met: () => number; head: () => Vector3; groundOpacity: () => number; quality: 'high' | 'low' }) {
     const plumeAt = useMemo(() => new Vector3(), []);
     const maps = useContext(MapsContext);
@@ -1067,13 +1255,61 @@ export default function LaunchSite({ met, head, groundOpacity, quality }: { met:
     const cladA = useSurface(() => cladding([206, 210, 214], 2, 71), 3, 1);
     const cladB = useSurface(() => cladding([178, 184, 190], 1, 73), 4, 1);
     const cladC = useSurface(() => cladding([226, 228, 230], 0, 75), 6, 2);
-    const steel = useMat({ color: '#ffffff', roughness: 1, metalness: 0.55, ...(towerSteel ? { map: towerSteel.map, normalMap: towerSteel.normalMap, roughnessMap: towerSteel.roughnessMap } : {}) }, [towerSteel]);
-    const dark = useMat({ color: '#ffffff', roughness: 1, metalness: 0.5, ...(darkSteel ? { map: darkSteel.map, normalMap: darkSteel.normalMap, roughnessMap: darkSteel.roughnessMap } : {}) }, [darkSteel]);
-    const tankPaint = useMat({ color: '#ffffff', roughness: 1, metalness: 0.15, ...(whitePaint ? { map: whitePaint.map, normalMap: whitePaint.normalMap, roughnessMap: whitePaint.roughnessMap } : {}) }, [whitePaint]);
+    const steel = useMat(
+        {
+            color: '#ffffff',
+            roughness: 1,
+            metalness: 0.55,
+            ...(towerSteel
+                ? {
+                      map: towerSteel.map,
+                      normalMap: towerSteel.normalMap,
+                      roughnessMap: towerSteel.roughnessMap,
+                  }
+                : {}),
+        },
+        [towerSteel],
+    );
+    const dark = useMat(
+        {
+            color: '#ffffff',
+            roughness: 1,
+            metalness: 0.5,
+            ...(darkSteel
+                ? {
+                      map: darkSteel.map,
+                      normalMap: darkSteel.normalMap,
+                      roughnessMap: darkSteel.roughnessMap,
+                  }
+                : {}),
+        },
+        [darkSteel],
+    );
+    const tankPaint = useMat(
+        {
+            color: '#ffffff',
+            roughness: 1,
+            metalness: 0.15,
+            ...(whitePaint
+                ? {
+                      map: whitePaint.map,
+                      normalMap: whitePaint.normalMap,
+                      roughnessMap: whitePaint.roughnessMap,
+                  }
+                : {}),
+        },
+        [whitePaint],
+    );
     const pipe = useMat({ color: '#c3c7cc', roughness: 0.35, metalness: 0.85 });
     const hose = useMat({ color: '#e9e9e6', roughness: 0.6, metalness: 0.1 });
     const roof = useMat({ color: '#6c7178', roughness: 0.75, metalness: 0.3 });
-    const asphalt = useMat({ color: '#3d3e40', roughness: 0.95, metalness: 0, polygonOffset: true, polygonOffsetFactor: -1 });
+    const asphalt = useMat({
+        color: '#3d3e40',
+        roughness: 0.95,
+        metalness: 0,
+        polygonOffset: true,
+        polygonOffsetFactor: -1,
+    });
     const site = useRef<Group>(null);
 
     // Catenary lightning protection: three masts around the pad with wires between their tops and
@@ -1103,8 +1339,8 @@ export default function LaunchSite({ met, head, groundOpacity, quality }: { met:
     return (
         <group>
             <Ocean opacity={groundOpacity} />
-            <Land opacity={groundOpacity} />
-            <Scrub quality={quality} />
+            {!perfOff('noLand') && <Land opacity={groundOpacity} />}
+            {!perfOff('noScrub') && <Scrub quality={quality} />}
             <group ref={site}>
                 <Pad concrete={maps?.concrete} concreteN={maps?.concreteN} steel={steel} dark={dark} />
                 <Scorch />
@@ -1148,17 +1384,6 @@ export default function LaunchSite({ met, head, groundOpacity, quality }: { met:
                 <PipeRack a={[108, -86]} b={[22, -12]} steel={dark} pipe={pipe} />
                 <PipeRack a={[-46, -164]} b={[-22, -24]} steel={dark} pipe={pipe} />
                 <PipeRack a={[94, 62]} b={[22, 12]} steel={dark} pipe={pipe} />
-                {/* Lighting towers at the corners of the hardstand */}
-                {(
-                    [
-                        [-70, 62],
-                        [74, 64],
-                        [76, -70],
-                        [-74, -66],
-                    ] as [number, number][]
-                ).map((p) => (
-                    <LightTower key={p.join(',')} at={p} steel={steel} dark={dark} />
-                ))}
                 {/* Perimeter road and the access road from the west */}
                 <mesh position={[0, 0.06, 0]} rotation={[-Math.PI / 2, 0, 0]} material={asphalt} receiveShadow>
                     <ringGeometry args={[150, 158, 128]} />
@@ -1172,19 +1397,21 @@ export default function LaunchSite({ met, head, groundOpacity, quality }: { met:
                 <Building at={[-720, 230]} size={[150, 42, 90]} clad={cladC} roof={roof} rotation={0.05} />
                 <Building at={[-2300, 1300]} size={[80, 14, 50]} clad={cladA} roof={roof} rotation={-0.3} />
             </group>
-            <ExhaustClouds
-                met={met}
-                trenchExit={TRENCH_EXIT}
-                deck={DECK}
-                plume={() => plumeAt.set(head().x, Math.max(DECK + 2, head().y - 8), head().z)}
-                throttle={() => {
-                    const s = sampleAt(met());
-                    return s.phase === 'ignition' || s.phase === 'stage1' ? s.throttle : 0;
-                }}
-                altitude={() => sampleAt(met()).altitude}
-                quality={quality}
-            />
-            <TrenchJet met={met} quality={quality} />
+            {!perfOff('noClouds') && (
+                <ExhaustClouds
+                    met={met}
+                    trenchExit={TRENCH_EXIT}
+                    deck={DECK}
+                    plume={() => plumeAt.set(head().x, Math.max(DECK + 2, head().y - 8), head().z)}
+                    throttle={() => {
+                        const s = sampleAt(met());
+                        return s.phase === 'ignition' || s.phase === 'stage1' ? s.throttle : 0;
+                    }}
+                    altitude={() => sampleAt(met()).altitude}
+                    quality={quality}
+                />
+            )}
+            {!perfOff('noPlume') && <TrenchJet met={met} quality={quality} />}
             <ExhaustTrail met={met} head={head} />
         </group>
     );

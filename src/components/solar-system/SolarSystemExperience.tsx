@@ -21,9 +21,14 @@ import { dateOf, journey, readingAny } from '@/lib/solar-system/phaseB';
 import { isoDate } from '@/lib/solar-system/ephemeris';
 import { PHASE_B_LABELS } from './PlanetViews';
 import styles from './SolarSystemExperience.module.css';
+import { missionSound } from './sound';
 
 const SolarCanvas = dynamic(() => import('./SolarCanvas'), { ssr: false });
+// Posters: the scene's first frame, rendered from the live scene for each layout (wide, tablet, phone),
+// so the still and the animation that replaces it are the same picture.
 const POSTER = '/images/space-twin/poster-solar-system.jpg';
+const POSTER_TABLET = '/images/space-twin/poster-solar-system-tablet.jpg';
+const POSTER_PHONE = '/images/space-twin/poster-solar-system-phone.jpg';
 
 type Mode = { kind: 'intro' } | { kind: 'chapter'; c: number; guided: boolean } | { kind: 'label'; c: number; l: number };
 
@@ -32,6 +37,8 @@ const TONE: Record<string, string> = { nominal: 'state-nominal', solar: 'state-s
 const LABELS_3D = [
     { id: 'solar-vehicle', text: 'Upper stage, kick stage and spacecraft (marker enlarged)' },
     { id: 'deploy-craft', text: 'Spacecraft RSC-1' },
+    { id: 'deep-earth', text: 'Earth' },
+    { id: 'deep-jupiter', text: 'Jupiter' },
     ...PHASE_B_LABELS,
     { id: 'pl-hga', text: 'High-gain antenna, 3.7 m' },
     { id: 'pl-rtg', text: 'RTGs (2), stowed' },
@@ -48,6 +55,7 @@ function scaleText(seg: Segment) {
     const c = compression(seg);
     const time = c === 0 ? 'Held moment' : c <= 1.25 ? 'Real time' : c < 20 ? `Time ×${c.toFixed(1)}` : c < 1e6 ? `Time ×${Math.round(c).toLocaleString('en-GB')}` : `Time ×${(c / 1e6).toFixed(1)} million`;
     if (seg.scene === 'cruise') return `${time} · orbits to scale · planets and spacecraft are markers`;
+    if (seg.scene === 'deep') return `${time} · spacecraft to scale · Sun, Earth and Jupiter in their true directions and sizes`;
     if (seg.scene === 'jupiter') return `${time} · Jupiter, moon orbits and flyby path to scale · moon positions illustrative`;
     if (seg.scene === 'saturn') return 'Saturn and rings to scale · the spacecraft’s pass is placed for illustration';
     if (seg.scene === 'orbit' || seg.scene === 'departure') return `${time} · Earth and orbits to scale`;
@@ -75,6 +83,7 @@ export default function SolarSystemExperience() {
     const resume = useRef<{ c: number; t: number } | null>(null);
     const [paused, setPaused] = useState<boolean | null>(null);
     const [ready, setReady] = useState(false);
+    const markReady = useCallback(() => setReady(true), []);
     const [, setTick] = useState(0);
 
     const chapterIndex = mode.kind === 'intro' ? 0 : mode.c;
@@ -93,6 +102,32 @@ export default function SolarSystemExperience() {
 
     const autoplay = !(paused ?? reducedMotion);
     const playing = near && onScreen && pageVisible && autoplay && ready;
+
+    // Sound (synthesised, see sound.ts): starts with Start Mission (browsers need a click), can be muted,
+    // and the choice is remembered. It fades out whenever the mission is paused or out of view.
+    const [soundOn, setSoundOn] = useState(false);
+    useEffect(() => missionSound.onChange(() => setSoundOn(missionSound.on)), []);
+    useEffect(() => {
+        missionSound.setActive(playing);
+    }, [playing]);
+    useEffect(() => () => missionSound.setActive(false), []);
+    const soundWanted = () => {
+        try {
+            return window.localStorage.getItem('solar-sound') !== 'off';
+        } catch {
+            return true;
+        }
+    };
+    const toggleSound = () => {
+        const next = !missionSound.on;
+        if (next) missionSound.enable();
+        else missionSound.disable();
+        try {
+            window.localStorage.setItem('solar-sound', next ? 'on' : 'off');
+        } catch {
+            /* storage unavailable: the choice lasts for this visit */
+        }
+    };
 
     // The guided mission moves on to the next chapter a moment after each one ends.
     const advance = useCallback(() => {
@@ -116,6 +151,7 @@ export default function SolarSystemExperience() {
         if (paused) setPaused(null);
     };
     const start = () => {
+        if (soundWanted()) missionSound.enable();
         setStagesOpen(false);
         go({ kind: 'chapter', c: 0, guided: true });
     };
@@ -174,10 +210,23 @@ export default function SolarSystemExperience() {
         <div className={styles.solar} data-mode={mode.kind}>
             <div className={styles.stageWrap}>
                 <div ref={frameRef} className={styles.viewport} data-ready={ready || undefined} role="img" aria-label={`${TITLE}: ${SUBTITLE}. ${title}. ${label ? label.does : chapter ? chapter.summary : SUPPORT} ${DATA_LABEL}.`}>
-                    <Image className={styles.poster} src={POSTER} alt="" fill sizes="(min-width: 1320px) 1240px, 100vw" />
+                    {/* With 3D available the opening fades in from black, straight into the live scene (no still to
+                        swap out); the posters are the fallback when 3D is not available. */}
+                    {!live && (
+                        <>
+                            <Image className={`${styles.poster} ${styles.posterWide}`} src={POSTER} alt="" fill sizes="(min-width: 1320px) 1240px, 100vw" />
+                            <Image className={`${styles.poster} ${styles.posterTablet}`} src={POSTER_TABLET} alt="" fill sizes="100vw" />
+                            <Image className={`${styles.poster} ${styles.posterPhone}`} src={POSTER_PHONE} alt="" fill sizes="100vw" />
+                        </>
+                    )}
+                    {live && !ready && (
+                        <p className={styles.loading} aria-hidden="true">
+                            Preparing the launch site
+                        </p>
+                    )}
                     {live && (
                         <div className={styles.canvas} aria-hidden="true">
-                            <SolarCanvas clock={clock} playing={playing} reducedMotion={reducedMotion} quality={quality} focus={label?.focus} labels={LABELS_3D} shift={shift} shiftY={shiftY} onReady={() => setReady(true)} />
+                            <SolarCanvas clock={clock} playing={playing} reducedMotion={reducedMotion} quality={quality} focus={label?.focus} labels={LABELS_3D} shift={shift} shiftY={shiftY} onReady={markReady} />
                         </div>
                     )}
                     <div className={styles.shade} aria-hidden="true" />
@@ -202,19 +251,24 @@ export default function SolarSystemExperience() {
                             <h3 className={styles.heroTitle}>{TITLE}</h3>
                             <p className={styles.heroLine}>{SUPPORT}</p>
                             <div className={styles.heroActions} data-ready={atReady || undefined}>
-                                <button type="button" className={`btn btn-primary ${styles.cta}`} onClick={start} data-track="station_model_interaction" data-track-name="Solar System: start mission">
+                                <button type="button" className={styles.startBtn} onClick={start} data-track="station_model_interaction" data-track-name="Solar System: start mission">
+                                    <span className={styles.startIcon} aria-hidden="true">
+                                        <svg viewBox="0 0 16 16" width="14" height="14">
+                                            <path d="M5 3.2v9.6l7.8-4.8z" fill="currentColor" />
+                                        </svg>
+                                    </span>
                                     Start Mission
                                 </button>
                                 <button
                                     type="button"
-                                    className={`btn btn-secondary ${styles.cta}`}
+                                    className={styles.stagesBtn}
                                     aria-expanded={stagesOpen}
                                     aria-controls="solar-stages"
                                     onClick={() => setStagesOpen(!stagesOpen)}
                                     data-track="station_model_interaction"
                                     data-track-name="Solar System: mission stages"
                                 >
-                                    Explore Mission Stages
+                                    Explore Mission Stages <span aria-hidden="true">→</span>
                                 </button>
                             </div>
                         </div>
@@ -401,6 +455,25 @@ export default function SolarSystemExperience() {
                     </button>
                     <button type="button" className={styles.tool} onClick={() => clock.replay()} aria-label="Replay" data-track="station_model_interaction" data-track-name="Solar System control: replay">
                         <span aria-hidden="true">↺</span>
+                    </button>
+                    <button
+                        type="button"
+                        className={styles.tool}
+                        onClick={toggleSound}
+                        aria-pressed={soundOn}
+                        aria-label={soundOn ? 'Sound on' : 'Sound off'}
+                        title={soundOn ? 'Sound on' : 'Sound off'}
+                        data-track="station_model_interaction"
+                        data-track-name={soundOn ? 'Solar System control: sound off' : 'Solar System control: sound on'}
+                    >
+                        <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">
+                            <path d="M3 8v4h3l4 3.5v-11L6 8H3z" fill="currentColor" />
+                            {soundOn ? (
+                                <path d="M13 7.2a4 4 0 0 1 0 5.6M15.2 5a7 7 0 0 1 0 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                            ) : (
+                                <path d="M13.5 7.5l5 5m0-5l-5 5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                            )}
+                        </svg>
                     </button>
                 </div>
                 <ol className={styles.timeline} aria-label="Mission timeline">

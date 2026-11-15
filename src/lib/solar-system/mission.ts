@@ -24,7 +24,7 @@ export const DESCRIPTION = 'Experience the complete journey of space exploration
 export const SIGNATURE = 'Explore the Solar System. Understand the science. Experience the mission.';
 export const DATA_LABEL = 'SIMULATED — Conceptual reference mission SOL-1';
 
-export type SceneId = 'intro' | 'pad' | 'ascent' | 'orbit' | 'departure' | 'deploy' | 'helio' | 'cruise' | 'jupiter' | 'saturn' | 'tour';
+export type SceneId = 'intro' | 'pad' | 'ascent' | 'orbit' | 'departure' | 'deploy' | 'helio' | 'cruise' | 'deep' | 'jupiter' | 'saturn' | 'tour';
 
 /** Camera programmes, implemented by the scene (SolarScene.tsx). */
 export type ShotId =
@@ -77,6 +77,13 @@ export type ShotId =
     | 'jupiterApproach'
     | 'jupiterClose'
     | 'jupiterWide'
+    | 'jupiterDepart'
+    // Cinematic cruise (deepspace.tsx)
+    | 'deepDepart'
+    | 'deepCruise'
+    | 'deepPower'
+    | 'deepComms'
+    | 'deepApproach'
     | 'saturnClose'
     | 'tourOverview'
     | 'tourTravel'
@@ -441,7 +448,7 @@ function build(f: FlightResult) {
             short: 'Ascent',
             summary: 'Through the thinning atmosphere: air resistance peaks at Max Q, then falls away as the vehicle climbs.',
             why: 'The ascent trades climbing out of the air against building the horizontal speed an orbit needs.',
-            segments: [span(30, 90, 12, 'ascent', 'chase'), span(90, 160, 9, 'ascent', 'onboard'), span(160, meco - 6, 9, 'ascent', 'high')],
+            segments: [span(30, 90, 12, 'ascent', 'chase'), span(90, 160, 9, 'ascent', 'track'), span(160, meco - 6, 9, 'ascent', 'high')],
             telemetry: ['altitude', 'speed', 'acceleration', 'q'],
             labels: [
                 {

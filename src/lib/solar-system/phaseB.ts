@@ -52,7 +52,9 @@ function build(): Chapter[] {
         short: 'Cruise',
         summary: `Free of Earth, RSC-1 coasts on an ellipse around the Sun that meets Jupiter ${yrs(J)} years after launch.`,
         why: 'A spacecraft cannot fly straight to a planet: it follows an orbit around the Sun, timed so the planet is there when it arrives.',
-        segments: [span(3 * D, 160 * D, 7, 'cruise', 'cruiseDepart'), span(160 * D, J - 90 * D, 11, 'cruise', 'cruiseWide'), span(J - 90 * D, J - 12 * D, 7, 'cruise', 'cruiseFollow')],
+        // Cinematic: following RSC-1 as the Earth recedes, through deep space, then towards Jupiter. The
+        // Sun-centred diagrams are the scientific views (View Trajectory, Launch Window, Planet Positions).
+        segments: [span(3 * D, 60 * D, 8, 'deep', 'deepDepart'), span(60 * D, J - 90 * D, 10, 'deep', 'deepCruise'), span(J - 90 * D, J - 12 * D, 8, 'deep', 'deepApproach')],
         telemetry: ['missionDate', 'sunDist', 'lightTimeB', 'rtgB'],
         labels: [
             {
@@ -80,7 +82,7 @@ function build(): Chapter[] {
             {
                 id: 'b-delay',
                 title: 'Distance and Signal Delay',
-                segments: [span(160 * D, J - 12 * D, 10, 'cruise', 'cruiseFollow')],
+                segments: [span(160 * D, J - 12 * D, 10, 'deep', 'deepComms')],
                 what: 'How far the spacecraft is from Earth, and how long its radio signals take.',
                 does: 'Radio travels at the speed of light; delay = distance / c.',
                 why: 'Commands sent from Earth arrive tens of minutes later, so the spacecraft must manage itself.',
@@ -91,7 +93,7 @@ function build(): Chapter[] {
             {
                 id: 'b-power',
                 title: 'Power in Deep Space',
-                segments: [span(3 * D, J, 10, 'cruise', 'cruiseWide')],
+                segments: [span(3 * D, J - 12 * D, 10, 'deep', 'deepPower')],
                 what: 'The electrical power available as the spacecraft moves away from the Sun.',
                 does: 'The RTGs give almost the same power at any distance; sunlight falls with the square of the distance.',
                 why: 'At Jupiter a solar array would receive only 3.7 % of the sunlight it gets at Earth.',
@@ -133,7 +135,7 @@ function build(): Chapter[] {
         short: 'Jupiter',
         summary: `RSC-1 passes ${rj} Jupiter radii from Jupiter’s centre on ${MISSION_DATES.jupiter}; Jupiter’s gravity bends its path towards Saturn.`,
         why: `The flyby changes the spacecraft’s velocity around the Sun by ${k(m.flyby.helioDv)} km/s without using propellant.`,
-        segments: [span(J - 4 * D, J - 0.3 * D, 9, 'jupiter', 'jupiterApproach'), span(J - 5 * 3600, J + 5 * 3600, 11, 'jupiter', 'jupiterClose'), span(J + 1.5 * D, J + 14 * D, 8, 'jupiter', 'jupiterWide')],
+        segments: [span(J - 4 * D, J - 0.3 * D, 9, 'jupiter', 'jupiterApproach'), span(J - 5 * 3600, J + 5 * 3600, 11, 'jupiter', 'jupiterClose'), span(J + 0.6 * D, J + 8 * D, 8, 'jupiter', 'jupiterDepart')],
         telemetry: ['jupDist', 'jupSpeed', 'helioSpeed', 'lightTimeB'],
         labels: [
             {
@@ -203,7 +205,7 @@ function build(): Chapter[] {
         short: 'Saturn',
         summary: `After Jupiter the spacecraft climbs to Saturn, reached on ${MISSION_DATES.saturn}, then heads out of the Solar System.`,
         why: 'Far from Earth and the Sun the spacecraft runs on radioisotope power, long signal delays and its own autonomy.',
-        segments: [span(J + 20 * D, S - 30 * D, 10, 'cruise', 'cruiseOuter'), hold(S, 10, 'saturn', 'saturnClose')],
+        segments: [span(J + 20 * D, S - 30 * D, 10, 'deep', 'deepCruise'), hold(S, 10, 'saturn', 'saturnClose')],
         telemetry: ['sunDist', 'lightTimeB', 'rtgB', 'helioSpeed'],
         labels: [
             {

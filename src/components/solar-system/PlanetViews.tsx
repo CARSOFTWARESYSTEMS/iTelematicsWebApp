@@ -41,6 +41,8 @@ import { Globe, LOGDEPTH } from './environment';
 import type { VehicleState } from './LaunchVehicle';
 import SpacecraftModel from './Spacecraft';
 import { Marker, Path, Stars } from './views';
+import { LiveReflections } from './render';
+import { SUN_IRRADIANCE } from './sun';
 
 export const toScene = (v: Vec, out = new Vector3()) => out.set(v[0], v[2], -v[1]);
 
@@ -147,6 +149,11 @@ const POLES: Partial<Record<BodyId, [number, number, number]>> = {
     saturn: [0.0855, 0.8825, -0.4624],
 };
 export const poleOf = (id: BodyId) => (POLES[id] ? new Vector3(...POLES[id]!).normalize() : null);
+
+/** A planet from its map, pole orientation and flattening (also used by the cinematic cruise view). */
+export function DeepPlanet(props: { id: BodyId; radius: number; spin?: () => number; tint?: string }) {
+    return <Planet {...props} />;
+}
 
 function Planet({ id, radius, spin = () => 0, tint }: { id: BodyId; radius: number; spin?: () => number; tint?: string }) {
     const b = body(id);
@@ -284,8 +291,9 @@ const GALILEAN = [
     { id: 'callisto', name: 'Callisto', a: 1.8827e9, r: 2.4103e6, days: 16.689, color: '#5d564e', phase: 5.3 },
 ] as const;
 
-export function JupiterView({ met }: { met: () => number }) {
+export function JupiterView({ met, scientific = () => true }: { met: () => number; scientific?: () => boolean }) {
     const m = missionTrajectory();
+    const [sci, setSci] = useState(scientific);
     // Labels on the far side of Jupiter are hidden by the planet.
     const registry = useContext(LabelContext);
     useEffect(() => {
@@ -308,10 +316,16 @@ export function JupiterView({ met }: { met: () => number }) {
     const moons = useRef<(Group | null)[]>([]);
     const ends = useRef<Group>(null);
     const endOut = useRef<Group>(null);
-    useLabelAnchor('jup-in', ends, [0, 0, 0]);
-    useLabelAnchor('jup-out', endOut, [0, 0, 0]);
+    useLabelAnchor(sci ? 'jup-in' : null, ends, [0, 0, 0]);
+    useLabelAnchor(sci ? 'jup-out' : null, endOut, [0, 0, 0]);
     const q = useMemo(() => new Vector3(), []);
+    // Cinematic shots show Jupiter, its moons and the spacecraft; the orbit lines, the flyby path and the
+    // moon names belong to the scientific (gravity-assist) view.
+    const overlays = useRef<Group>(null);
     useFrame(() => {
+        const now = scientific();
+        if (now !== sci) setSci(now);
+        if (overlays.current) overlays.current.visible = now;
         const dt = (dateOf(met()) - m.jupiter) * 86400;
         const p = toScene(flybyPosition(dt), q);
         if (craft.current) {
@@ -328,19 +342,24 @@ export function JupiterView({ met }: { met: () => number }) {
     return (
         <>
             <Stars count={2600} brightness={() => 1} />
-            <directionalLight position={sunDir.clone().multiplyScalar(1e10).toArray()} intensity={2.6} color="#fff4e2" />
-            <ambientLight intensity={0.035} />
-            <hemisphereLight args={['#283246', '#000000', 0.25]} />
+            <directionalLight position={sunDir.clone().multiplyScalar(1e10).toArray()} intensity={SUN_IRRADIANCE} color="#fff4e2" />
+            <ambientLight intensity={0.02} />
+            {/* Jupiter-shine: light reflected from the planet onto the spacecraft's night side. */}
+            <hemisphereLight args={['#1a2233', '#6b5a44', 0.18]} />
+            <LiveReflections at={() => craft.current?.position ?? new Vector3()} hide={craft} interval={0.6} />
             <Planet id="jupiter" radius={R_JUPITER} spin={() => ((dateOf(met()) - m.jupiter) * 24 * 2 * Math.PI) / 9.925} />
-            {moonOrbits.map((pts, i) => (
-                <Path key={i} points={pts} color="#8fa3bf" opacity={0.3} />
-            ))}
             {GALILEAN.map((g, i) => (
                 <group key={g.id} ref={(el) => void (moons.current[i] = el)}>
-                    <MoonBall radius={g.r} color={g.color} label={`jup-${g.id}`} />
+                    <MoonBall radius={g.r} color={g.color} label={sci ? `jup-${g.id}` : null} />
                 </group>
             ))}
-            <Path points={path} color="#22D3EE" opacity={0.85} />
+            <group ref={overlays}>
+                {moonOrbits.map((pts, i) => (
+                    <Path key={i} points={pts} color="#8fa3bf" opacity={0.3} />
+                ))}
+                <Path points={path} color="#22D3EE" opacity={0.85} />
+                <Marker position={() => toScene(flybyPosition((dateOf(met()) - m.jupiter) * 86400))} label={null} color="#22D3EE" size={0.006} />
+            </group>
             <group ref={ends} position={path[0]} />
             <group ref={endOut} position={path[path.length - 1]} />
             <group ref={craft}>
@@ -348,12 +367,11 @@ export function JupiterView({ met }: { met: () => number }) {
                     <SpacecraftModel state={state} />
                 </group>
             </group>
-            <Marker position={() => toScene(flybyPosition((dateOf(met()) - m.jupiter) * 86400))} label={null} color="#22D3EE" size={0.006} />
         </>
     );
 }
 
-function MoonBall({ radius, color, label }: { radius: number; color: string; label: string }) {
+function MoonBall({ radius, color, label }: { radius: number; color: string; label: string | null }) {
     const ref = useRef<Group>(null);
     useLabelAnchor(label, ref, [0, 0, 0]);
     return (

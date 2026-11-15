@@ -134,7 +134,7 @@ export const BODIES: Body[] = [
         tiltDeg: 3.13,
         atmosphere: 'Hydrogen and helium; ammonia cloud bands; the Great Red Spot',
         features: 'The largest planet: 318 Earth masses. Galilean moons Io, Europa, Ganymede and Callisto',
-        imagery: { file: 'jupiter-2k.jpg', kind: 'Map from mission data (Solar System Scope, CC BY 4.0)' },
+        imagery: { file: 'jupiter-4k.jpg', kind: 'Map from mission data (Solar System Scope, CC BY 4.0)' },
     },
     {
         id: 'saturn',

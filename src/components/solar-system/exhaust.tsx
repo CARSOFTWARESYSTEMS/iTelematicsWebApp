@@ -29,6 +29,7 @@ import {
     InstancedBufferGeometry,
     LinearFilter,
     LinearMipmapLinearFilter,
+    Matrix4,
     Mesh,
     OneFactor,
     OneMinusSrcAlphaFactor,
@@ -47,7 +48,7 @@ const NOISE = /* glsl */ `
     float hash13(vec3 p) { p = fract(p * 0.1031); p += dot(p, p.zyx + 31.32); return fract((p.x + p.y) * p.z); }
     float hash12(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
     float noise3(vec3 p) {
-        vec3 i = floor(p); vec3 f = fract(p); f = f * f * (3.0 - 2.0 * f);
+        vec3 i = floor(p); vec3 f = fract(p); f = f * f * f * (f * (f * 6.0 - 15.0) + 10.0);
         float a = hash13(i), b = hash13(i + vec3(1, 0, 0)), c = hash13(i + vec3(0, 1, 0)), d = hash13(i + vec3(1, 1, 0));
         float e = hash13(i + vec3(0, 0, 1)), g = hash13(i + vec3(1, 0, 1)), h = hash13(i + vec3(0, 1, 1)), k = hash13(i + vec3(1, 1, 1));
         return mix(mix(mix(a, b, f.x), mix(c, d, f.x), f.y), mix(mix(e, g, f.x), mix(h, k, f.x), f.y), f.z);
@@ -62,10 +63,9 @@ function plumeMaterial(steps: number, octaves: number) {
         blendSrc: OneFactor,
         blendDst: OneMinusSrcAlphaFactor,
         uniforms: {
-            uOrigin: { value: new Vector3() },
-            uAxis: { value: new Vector3(0, -1, 0) },
-            uSide: { value: new Vector3(1, 0, 0) },
-            uSide2: { value: new Vector3(0, 0, 1) },
+            uCam: { value: new Vector3() },
+            uMeshScale: { value: new Vector3(1, 1, 1) },
+            uMeshY: { value: 0 },
             uL: { value: 30 },
             uR0: { value: 0.68 },
             uR1: { value: 4 },
@@ -82,21 +82,34 @@ function plumeMaterial(steps: number, octaves: number) {
             uFlow: { value: 60 },
             uTint: { value: new Color(1, 1, 1) },
             uSun: { value: SUN.clone() },
+            uSunP: { value: new Vector3(1, 0, 0) },
             uSunI: { value: SUN_IRRADIANCE },
             uAmb: { value: new Color(0.35, 0.4, 0.5) },
         },
+        // Precision: the plume can sit thousands of kilometres from the scene origin (Earth-centred views),
+        // where world positions in 32-bit floats are quantised to ~0.5 m. So the ray is set up in the plume's
+        // own frame: the camera is converted on the CPU in double precision (uCam), and each surface point
+        // comes from the mesh's local coordinates (small numbers).
         vertexShader: /* glsl */ `${LOGDEPTH.vPars}
-            varying vec3 vWorld;
-            void main() { vec4 wp = modelMatrix * vec4(position, 1.0); vWorld = wp.xyz; gl_Position = projectionMatrix * viewMatrix * wp; ${LOGDEPTH.v} }`,
+            uniform vec3 uMeshScale; uniform float uMeshY;
+            varying vec3 vPlume;
+            void main() {
+                vec3 g = position * uMeshScale + vec3(0.0, uMeshY, 0.0);
+                vPlume = vec3(g.x, -g.y, -g.z);
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                ${LOGDEPTH.v}
+            }`,
         fragmentShader: /* glsl */ `${LOGDEPTH.fPars}
-            uniform vec3 uOrigin; uniform vec3 uAxis; uniform vec3 uSide; uniform vec3 uSide2;
+            uniform vec3 uCam;
             uniform float uL; uniform float uR0; uniform float uR1; uniform float uRm; uniform float uSep;
             uniform float uTime; uniform float uPower; uniform float uEmit; uniform float uDens; uniform float uSoot;
             uniform float uDiam; uniform float uCoreLen; uniform float uCoreI; uniform float uFlow; uniform vec3 uTint;
-            uniform vec3 uSun; uniform float uSunI; uniform vec3 uAmb;
-            varying vec3 vWorld;
+            uniform vec3 uSun; uniform vec3 uSunP; uniform float uSunI; uniform vec3 uAmb;
+            varying vec3 vPlume;
             ${NOISE}
-            float fbm(vec3 p) { float s = 0.0, a = 0.5; for (int i = 0; i < ${octaves}; i++) { s += a * noise3(p); p = p * 2.03 + 17.1; a *= 0.5; } return s / (1.0 - pow(0.5, float(${octaves}))); }
+            // Octaves rotated against each other, so no axis-aligned cell structure shows through.
+            const mat3 ROT = mat3(0.00, 0.80, 0.60, -0.80, 0.36, -0.48, -0.60, -0.48, 0.64);
+            float fbm(vec3 p) { float s = 0.0, a = 0.5; for (int i = 0; i < ${octaves}; i++) { s += a * noise3(p); p = ROT * p * 2.03 + 17.1; a *= 0.5; } return s / (1.0 - pow(0.5, float(${octaves}))); }
             // Hot gas colour by normalised temperature (approximately incandescent soot and hot gas).
             vec3 fire(float t) {
                 vec3 c0 = vec3(0.30, 0.05, 0.01), c1 = vec3(1.0, 0.36, 0.07), c2 = vec3(1.0, 0.70, 0.33), c3 = vec3(1.0, 0.93, 0.80);
@@ -104,10 +117,8 @@ function plumeMaterial(steps: number, octaves: number) {
             }
             void main() {
                 ${LOGDEPTH.f}
-                vec3 rw = normalize(vWorld - cameraPosition);
-                vec3 q = cameraPosition - uOrigin;
-                vec3 o = vec3(dot(q, uSide), dot(q, uAxis), dot(q, uSide2));
-                vec3 d = vec3(dot(rw, uSide), dot(rw, uAxis), dot(rw, uSide2));
+                vec3 o = uCam;
+                vec3 d = normalize(vPlume - uCam);
                 float a = dot(d.xz, d.xz);
                 float b = dot(o.xz, d.xz);
                 float c = dot(o.xz, o.xz) - uRm * uRm;
@@ -136,7 +147,7 @@ function plumeMaterial(steps: number, octaves: number) {
                     float f = 1.4 / max(Rs, 0.4);
                     float n = fbm(vec3(p.x * f, (p.y - uTime * uFlow) * f * 0.55, p.z * f));
                     float edge = r / (Rs * (0.7 + 0.6 * n));
-                    float body = 1.0 - smoothstep(0.45, 1.0, edge);
+                    float body = 1.0 - smoothstep(0.35, 1.15, edge);
                     float tail = 1.0 - smoothstep(0.55, 1.0, s);
                     float dens = body * tail * (0.45 + 1.1 * n * n);
                     // Inviscid core and shock cells, right behind each nozzle.
@@ -146,7 +157,7 @@ function plumeMaterial(steps: number, octaves: number) {
                     vec3 emit = fire(temp * 0.92) * uTint * (uEmit * pow(temp, 2.4) * dens / Rs) + vec3(1.0, 0.96, 0.88) * uTint * uCoreI * (core + uDiam * cell) / uR0;
                     // Soot downstream: absorbs, and scatters sunlight and skylight (grey-brown smoke).
                     float smoke = uSoot * smoothstep(0.38, 0.9, s) * dens;
-                    float sunVis = 0.5 + 0.5 * dot(normalize(vec3(p.x, 0.0, p.z) + vec3(0.0, 0.001, 0.0)), vec3(dot(uSun, uSide), 0.0, dot(uSun, uSide2)));
+                    float sunVis = 0.5 + 0.5 * dot(normalize(vec3(p.x, 0.0, p.z) + vec3(0.0, 0.001, 0.0)), vec3(uSunP.x, 0.0, uSunP.z));
                     vec3 scat = smoke * (vec3(0.42, 0.38, 0.34) * (uSunI * 0.16 * sunVis) + uAmb * 0.55) / Rs;
                     float sigma = (dens * uDens + smoke * 2.5 + core * 1.5) / Rs;
                     col += T * (emit + scat) * dt;
@@ -195,10 +206,10 @@ export function VolumePlume({
     quality?: 'high' | 'low';
 }) {
     const ref = useRef<Mesh>(null);
-    const material = useMemo(() => (quality === 'high' ? plumeMaterial(28, 3) : plumeMaterial(14, 2)), [quality]);
+    const material = useMemo(() => (quality === 'high' ? plumeMaterial(22, 3) : plumeMaterial(12, 2)), [quality]);
     useEffect(() => () => material.dispose(), [material]);
     const k = KINDS[kind];
-    const tmp = useMemo(() => ({ o: new Vector3(), a: new Vector3(), s: new Vector3(), s2: new Vector3(), c: new Vector3() }), []);
+    const tmp = useMemo(() => ({ s: new Vector3(), c: new Vector3(), inv: new Matrix4() }), []);
     useFrame((st) => {
         const p = power();
         const mesh = ref.current;
@@ -216,7 +227,8 @@ export function VolumePlume({
         u.uR1.value = R1;
         u.uRm.value = Rm;
         u.uSep.value = separation;
-        u.uTime.value = st.clock.elapsedTime;
+        // Wrapped, so the advected noise keeps full float precision however long the page stays open.
+        u.uTime.value = st.clock.elapsedTime % 60;
         u.uPower.value = Math.min(1, p);
         const pr = Math.max(0, Math.min(1, pressure()));
         const mix = (v: [number, number]) => v[1] + (v[0] - v[1]) * pr;
@@ -229,6 +241,18 @@ export function VolumePlume({
         u.uFlow.value = k.flow;
         (u.uTint.value as Color).set(k.tint);
     });
+    // Compile the shader while loading, not at ignition (which would stall that first frame).
+    const gl = useThree((st) => st.gl);
+    const scene = useThree((st) => st.scene);
+    const cam = useThree((st) => st.camera);
+    useEffect(() => {
+        const mesh = ref.current;
+        if (!mesh) return;
+        const was = mesh.visible;
+        mesh.visible = true;
+        gl.compile(mesh, cam, scene);
+        mesh.visible = was;
+    }, [gl, scene, cam, material]);
     // The plume's frame is taken at render time, from the final world transform and the camera that is
     // actually rendering (useFrame of a child runs before its parents move the vehicle for the frame).
     useEffect(() => {
@@ -237,22 +261,20 @@ export function VolumePlume({
         mesh.onBeforeRender = (_r, _s, camera) => {
             const g = mesh.parent;
             if (!g) return;
-            const m = g.matrixWorld;
             const u = material.uniforms;
-            tmp.o.setFromMatrixPosition(m);
-            tmp.a.set(0, -1, 0).transformDirection(m);
-            tmp.s.set(1, 0, 0).transformDirection(m);
-            tmp.s2.crossVectors(tmp.s, tmp.a).normalize();
-            (u.uOrigin.value as Vector3).copy(tmp.o);
-            (u.uAxis.value as Vector3).copy(tmp.a);
-            (u.uSide.value as Vector3).copy(tmp.s);
-            (u.uSide2.value as Vector3).copy(tmp.s2);
+            // Camera in the nozzle group's local frame (JS doubles), then in plume coordinates (x, −y, −z).
+            tmp.inv.copy(g.matrixWorld).invert();
+            tmp.c.setFromMatrixPosition(camera.matrixWorld).applyMatrix4(tmp.inv);
+            (u.uCam.value as Vector3).set(tmp.c.x, -tmp.c.y, -tmp.c.z);
+            (u.uMeshScale.value as Vector3).copy(mesh.scale);
+            u.uMeshY.value = mesh.position.y;
+            tmp.s.copy(SUN).transformDirection(tmp.inv);
+            (u.uSunP.value as Vector3).set(tmp.s.x, -tmp.s.y, -tmp.s.z);
             // Inside the bounding cylinder (close-ups), draw its far side so the volume is still marched.
             const L = u.uL.value as number;
             const Rm = u.uRm.value as number;
-            tmp.c.setFromMatrixPosition(camera.matrixWorld).sub(tmp.o);
-            const along = tmp.c.dot(tmp.a);
-            const radial = Math.sqrt(Math.max(0, tmp.c.lengthSq() - along * along));
+            const along = -tmp.c.y;
+            const radial = Math.hypot(tmp.c.x, tmp.c.z);
             const inside = along > -0.5 && along < L + 0.5 && radial < Rm + 0.5;
             material.side = inside ? BackSide : FrontSide;
             material.depthTest = !inside;
@@ -424,7 +446,7 @@ const CLOUD_FRAG = /* glsl */ `${LOGDEPTH.fPars}
         float ao = 0.6 + 0.4 * smoothstep(0.03, 0.6, height);
         // Sun: lightly wrapped diffuse, shadowed by the rest of the cloud towards the Sun.
         float ndl = dot(nw, uSun);
-        float direct = pow(clamp((ndl + 0.3) / 1.3, 0.0, 1.0), 1.2);
+        float direct = pow(clamp((ndl + 0.2) / 1.2, 0.0, 1.0), 1.4) * 1.25;
         float shadow = vShade * vShade;
         vec3 sun = uSunCol * direct * shadow * mix(0.6, 1.0, ao);
         // Sky above and ground bounce below.
@@ -486,7 +508,7 @@ export function ExhaustClouds({
     altitude: () => number;
     quality: 'high' | 'low';
 }) {
-    const count = quality === 'high' ? 460 : 170;
+    const count = quality === 'high' ? 330 : 150;
     const camera = useThree((s) => s.camera);
     const atlas = useMemo(() => puffAtlas(), []);
     const puffs = useMemo(() => {
@@ -567,15 +589,15 @@ export function ExhaustClouds({
                     uAtlas: { value: atlas },
                     uSun: { value: SUN.clone() },
                     uSunCol: { value: new Color(1, 0.97, 0.92).multiplyScalar(SUN_IRRADIANCE) },
-                    uSky: { value: new Color(0.42, 0.52, 0.72).multiplyScalar(1.7) },
-                    uGround: { value: new Color(0.3, 0.28, 0.24).multiplyScalar(0.9) },
+                    uSky: { value: new Color(0.4, 0.5, 0.72).multiplyScalar(1.15) },
+                    uGround: { value: new Color(0.3, 0.28, 0.24).multiplyScalar(0.6) },
                     uPlumePos: { value: new Vector3() },
                     uPlumeCol: { value: new Color(1.0, 0.5, 0.18) },
                     uPlumeI: { value: 0 },
-                    uPlumeR: { value: 18 },
+                    uPlumeR: { value: 13 },
                     uFogCol: { value: HORIZON.clone() },
                     uFogDensity: { value: 3.2e-5 },
-                    uAlbedo: { value: new Color(0.86, 0.86, 0.85) },
+                    uAlbedo: { value: new Color(0.8, 0.8, 0.79) },
                     uGroundY: { value: deck * 0.3 },
                 },
                 vertexShader: CLOUD_VERT,
@@ -592,8 +614,34 @@ export function ExhaustClouds({
         [geometry, material, atlas],
     );
 
-    const work = useMemo(() => ({ pos: new Float32Array(count * 3), size: new Float32Array(count), alpha: new Float32Array(count), rot: new Float32Array(count), heat: new Float32Array(count), variant: new Float32Array(count), shade: new Float32Array(count), order: new Int32Array(count), depth: new Float32Array(count), v: new Vector3() }), [count]);
+    const work = useMemo(
+        () => ({
+            pos: new Float32Array(count * 3),
+            size: new Float32Array(count),
+            alpha: new Float32Array(count),
+            rot: new Float32Array(count),
+            heat: new Float32Array(count),
+            variant: new Float32Array(count),
+            shade: new Float32Array(count).fill(1),
+            order: new Int32Array(count),
+            depth: new Float32Array(count),
+            v: new Vector3(),
+            frame: 0,
+            lastCount: -1,
+        }),
+        [count],
+    );
     const ref = useRef<Mesh>(null);
+    const gl = useThree((st) => st.gl);
+    const scene = useThree((st) => st.scene);
+    useEffect(() => {
+        const mesh = ref.current;
+        if (!mesh) return;
+        const was = mesh.visible;
+        mesh.visible = true;
+        gl.compile(mesh, camera, scene);
+        mesh.visible = was;
+    }, [gl, scene, camera, material]);
     useFrame(() => {
         const t = met();
         const W = work;
@@ -625,7 +673,7 @@ export function ExhaustClouds({
                 z = p.dir.z * (r0 + travel);
                 y = deck + 1.5 + p.rise * age;
             }
-            const size = p.size0 + p.grow * Math.pow(age + 0.3, 0.72);
+            const size = (p.size0 + p.grow * Math.pow(age + 0.3, 0.72)) * 1.12;
             // Keep the cloud above the ground as it grows.
             y = Math.max(y, deck * 0.3 + size * 0.55);
             W.pos[i3] = x + wind.x * age;
@@ -638,14 +686,18 @@ export function ExhaustClouds({
             W.rot[n] = p.rot + age * p.spin;
             W.variant[n] = p.variant;
             // Fresh exhaust near the trench glows from the hot gas inside it.
-            W.heat[n] = p.src === 0 ? Math.exp(-age / 1.1) * throttle() * 0.6 : p.src === 1 ? Math.exp(-age / 0.9) * throttle() * 0.35 : 0;
+            W.heat[n] = p.src === 0 ? Math.exp(-age / 0.9) * throttle() * 0.22 : p.src === 1 ? Math.exp(-age / 0.7) * throttle() * 0.12 : 0;
             n++;
         }
-        // Self-shadowing: the optical path towards the Sun through the other puffs.
+        // Self-shadowing: the optical path towards the Sun through the other puffs (every third frame; the
+        // cloud changes slowly, and this is the costly part).
+        W.frame++;
+        const shadowNow = W.frame % 3 === 0 || W.lastCount !== n;
+        W.lastCount = n;
         const sx = SUN.x;
         const sy = SUN.y;
         const sz = SUN.z;
-        for (let i = 0; i < n; i++) {
+        for (let i = 0; i < n && shadowNow; i++) {
             let occ = 0;
             const xi = W.pos[i * 3];
             const yi = W.pos[i * 3 + 1];
@@ -674,7 +726,7 @@ export function ExhaustClouds({
             W.order[i] = i;
             W.depth[i] = (W.pos[i * 3] - cx) ** 2 + (W.pos[i * 3 + 1] - cy) ** 2 + (W.pos[i * 3 + 2] - cz) ** 2;
         }
-        const ord = Array.from(W.order.subarray(0, n)).sort((a, b) => W.depth[b] - W.depth[a]);
+        const ord = W.order.subarray(0, n).sort((a, b) => W.depth[b] - W.depth[a]);
         const iPos = geometry.getAttribute('iPos') as InstancedBufferAttribute;
         const iData = geometry.getAttribute('iData') as InstancedBufferAttribute;
         const iLight = geometry.getAttribute('iLight') as InstancedBufferAttribute;
@@ -700,7 +752,7 @@ export function ExhaustClouds({
         const u = material.uniforms;
         (u.uPlumePos.value as Vector3).copy(plume());
         // Plume light: strong while the engines fire close to the ground.
-        u.uPlumeI.value = throttle() * 16 * Math.max(0, 1 - Math.max(0, lift) / 400);
+        u.uPlumeI.value = throttle() * 8 * Math.max(0, 1 - Math.max(0, lift) / 400);
         u.uFogDensity.value = 3.2e-5;
     });
     return <mesh ref={ref} geometry={geometry} material={material} frustumCulled={false} renderOrder={7} />;

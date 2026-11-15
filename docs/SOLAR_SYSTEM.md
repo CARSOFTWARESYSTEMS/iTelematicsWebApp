@@ -297,6 +297,60 @@ and the Kuiper belt. Six are main topics and the rest sit under *More topics*.
 - **Imagery:** each destination states its imagery: a map from mission data (Solar System Scope), Earth imagery, an illustrative
   surface (Pluto) or an illustrative distribution (the belts).
 
+## Cinematic recovery, round 2 (15 November 2026)
+
+The first recovery was rejected as looking like an animation project. This round worked from the brief
+"Master Animation Recovery & Cinematic Engineering Prompt" and the reference images supplied (a launch photograph, a
+booster-separation render over Earth, a gold spacecraft over the Earth's limb, and a spacecraft against Jupiter), and was
+judged on rendered GPU frames, measured frame times and an end-to-end run of every flow.
+
+### Root causes found
+
+| Problem seen | Cause | Fix |
+|---|---|---|
+| Flat, "CG" look everywhere | No environment light (metal and foil reflected nothing), no glow, tone mapping per material, procedural sky | HDR pipeline (`render.tsx`): linear half-float frame, bloom only above sunlit levels, one ACES tone map, film grade, vignette, lens fringing, grain. Photographed sky (Poly Haven, CC0) with matching image-based light at the pad; live reflections (cube camera) in space |
+| Exhaust looked like transparent beams | Textured cones | Ray-marched volumetric plume (`exhaust.tsx`): nozzle cores, shock cells at sea level, turbulent mixing layer, soot; length and width from the simulated ambient pressure |
+| Ground cloud looked like cotton | Self-lit sprites | Lit billows: generated normal/density atlas, sun with self-shadowing through the cloud, sky and ground bounce, light from the plume; motion a function of mission time |
+| Rocket read as a cylinder | Plain paint, wide lenses | Orange spray-on foam on the kerosene/oxygen first stage (as on the 3.8 m Atlas V core this class of stage resembles), white upper stage; long-lens compositions |
+| Empty, flat launch site | One grass texture | Olive coastal scrub (terrain shader), 14,000 foliage-card shrubs, a wooded skyline, sight lines kept clear around every camera |
+| Earth blurred at altitude | 2k maps (≈20 km per pixel) | 8k day and cloud maps for this experience only (decoded off the main thread, uploaded during the opening) and fine cloud structure below the map's resolution in low-orbit views |
+| Spacecraft unreadable | Noise "foil", studio reflections | Crumpled-foil facets reflecting the live surroundings |
+| Cruise and Jupiter were diagrams | Physically scaled views used as the default | Cinematic layer (`deepspace.tsx`, Jupiter shots): spacecraft-centred views with the Sun, Earth and Jupiter in their true directions and angular sizes; the diagrams moved behind View Trajectory, View Orbit and Explore Gravity Assist |
+| Interface dominated the scene | Card always open | Default cinematic view: title, simulated-data indicator, mission time, one caption with the guided action and Investigate; the card opens on request; Return to mission view resumes the same moment |
+| Opening still differed from the live scene | Static poster cross-faded into a differently framed live frame | The opening fades in from black straight into the live scene once its sky and textures are loaded; posters (rendered from the first frame per layout) are only the no-3D fallback |
+| Not smooth | Measured: 32–40 fps on the pad, 1.2 s freeze before orbit, 100 ms spikes | Engine light toggled by visibility recompiled every shader (now faded by intensity); hidden full-screen scattering sky still drawn; 4× multisampled HDR target (now 2×); main-thread decoding of 8k maps; shadow map redrawn every frame (now only while the vehicle moves); shaders compiled at load; reflection cube one face per frame; children updated before the scene each frame (now the scene updates first); dynamic resolution (down to 70 %) on the pad |
+| Blocky plume far from the origin | 32-bit world coordinates (~7,000 km) in the shader | Ray set up in the plume's local frame, converted on the CPU in double precision |
+
+### Camera director
+
+- Shots now fit their subject to the frame for any aspect ratio (`fitDistance`), and include the operator's behaviour of real
+  footage: a slight lag when following the vehicle, a sub-degree sway, and on the pad cameras the ground shake that arrives with
+  the sound (distance ÷ 343 m/s after ignition).
+- Opening: long-lens view of the complex (also the first frame) → approach → engine section → payload fairing → Mission Ready.
+- Ignition and liftoff: long-lens countdown, a ground-level remote camera at ignition, the long-lens liftoff out of the ground
+  cloud past the tower, then a ground tracking telescope.
+- Staging and fairing: framings that keep both stages (and both fairing halves) in shot as they separate.
+- Orbit and departure: over-the-shoulder views with the horizon level and the Earth filling the background; the stack climbing
+  away as the Earth recedes, ending before spacecraft separation (which follows the departure burns, chapter 08).
+- Cruise: the Earth left behind (named), deep space in sunlight, the generators, the antenna looking back at the Earth, and the
+  approach to Jupiter. Jupiter: approach, closest approach against the sunlit cloud bands, departure.
+
+### Sound
+
+Synthesised in the browser (`sound.ts`, no audio files), driven by the simulation each frame: engine roar and crackle scaled by
+thrust, delayed by the distance to the camera at the speed of sound and dulled by air absorption, fading with altitude; wind
+following dynamic pressure on the flying cameras; the pad's breeze and oxygen venting; near silence in space with a quiet
+ambience and structural thumps for separations and deployments. It starts with Start Mission (browsers require a click), has a
+mute toggle that is remembered, and fades out when paused or out of view.
+
+### Measured
+
+- Frame rate (headless Chrome for Testing, ANGLE/Metal, Apple GPU, 1240×698 canvas): opening 59.8 fps, liftoff 58.1, ascent 58.2
+  (one 150 ms frame in the window), orbit, deployment, cruise and Jupiter 60; 95th-percentile frame time 18.6–18.8 ms.
+- End-to-end run: 12 stages, every guided action and Return to mission view (resumes at the same mission time), Investigate on
+  every stage, sound states (off before Start Mission; at liftoff from the 720 m camera: engine on, 2.1 s delay, 2.7 kHz
+  absorption cutoff; ambience only in space), no console errors.
+
 ## Validation
 
 - **Tests:** 233 site tests pass, 42 of them in the Solar System experience and libraries. The Phase A flight and mission tests
@@ -307,27 +361,24 @@ and the Kuiper belt. Six are main topics and the rest sit under *More topics*.
   - flyby hyperbola geometry;
   - every Phase B reading free of gaps;
   - the interface: 3–6 topics, ≤ 4 readings, all topics reachable, payload exploration, cinematic labelling.
-- **Lint and build:** ESLint is clean; the production build succeeds (the experience is lazy-loaded; homepage first load 146 kB).
+- **Lint and build:** ESLint and the type check are clean; the production build result is recorded below for round 2.
 - **Visual review:** rendered with GPU WebGL (Chrome for Testing, ANGLE/Metal) on desktop (1440×900), in full screen and on a
   phone (390×844). Reviewed at the opening, the payload cutaway, countdown, ignition, liftoff, tracking, ascent, staging, fairing
   separation, orbit insertion, the parking orbit, departure, deployment, cruise, the Jupiter approach, closest approach and wide
   view, Saturn, and Discovery destinations. The frame rate was 60 fps at about 210,000 triangles and 520 draw calls (headless,
   Apple GPU).
 
-## Known limitations and open items (15 November 2026)
+## Known limitations and open items (15 November 2026, after round 2)
 
-- **Realism ceiling.** The vehicle, spacecraft and pad are detailed, code-built models with physically based materials and
-  procedural detail maps. They are not photogrammetry or artist-made production assets, and the opening still reads as high-end
-  CG rather than photography. The ground near the pad is sparse, the plume is a shader model (no volumetric simulation), and there
-  is no post-processing (bloom, ambient occlusion).
-- **Not built yet:**
-  - the three fault scenarios (Workstream E);
-  - imagery for Pluto, Charon and the Galilean moons (USGS mosaics not downloaded);
-  - a designed Saturn flyby and the trajectory beyond;
-  - trajectory-correction manoeuvres and launch-window width analysis beyond the date grid;
-  - thermal and data-rate models;
-  - the radiation dose at Jupiter.
-- **Not measured:** performance on real phones and in Safari (only headless Chrome on an Apple GPU was used); the mobile layout
-  was checked at 390 px only.
-- **Scope note on the opening:** the brief's establishing → reveal → payload → full vehicle → ready sequence replaces the previous
-  globe intro; the globe now appears from the ascent onwards.
+- **Realism ceiling.** The hardware and the pad are detailed, code-built models with physically based materials. Lighting, sky,
+  exhaust, Earth and camera work now carry most frames to a photographic look, but close-ups of the launch table and tower still
+  show their simple geometry; artist-made production models (GLB) would be the next step and are not in this round.
+- **Exhaust:** the plume and ground cloud are real-time approximations (ray-marched volume and lit billboards), not fluid
+  simulation; the cloud's billows can repeat on close inspection.
+- **Not built yet:** the three fault scenarios; imagery for Pluto, Charon and the Galilean moons; a designed Saturn flyby;
+  trajectory-correction manoeuvres; thermal, data-rate and radiation models; a launch cutoff targeted at the mission's C3 of
+  79.6 km²/s² (the simulated launch still delivers 113.6, as documented in Phase B).
+- **Not measured:** real phones, tablets and Safari (headless Chrome on an Apple GPU only); slower GPUs rely on the dynamic
+  resolution and the low-quality path.
+- **One remaining hitch:** a single ~150 ms frame during the ascent (most likely a render-target reallocation by the dynamic
+  resolution), once per launch.

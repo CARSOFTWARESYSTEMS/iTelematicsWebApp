@@ -16,7 +16,7 @@ import { CatmullRomCurve3, Color, DoubleSide, LatheGeometry, MeshStandardMateria
 import { EnergyFlow } from '@/components/space-twin/primitives';
 import type { Focus } from '@/lib/solar-system/mission';
 import type { VehicleState } from './LaunchVehicle';
-import { blanket, repeated, type SurfaceSet } from './textures';
+import { crumpledFoil, repeated, type SurfaceSet } from './textures';
 
 function useMat(params: ConstructorParameters<typeof MeshStandardMaterial>[0], deps: unknown[] = []) {
     const m = useMemo(() => new MeshStandardMaterial(params), deps);
@@ -25,7 +25,7 @@ function useMat(params: ConstructorParameters<typeof MeshStandardMaterial>[0], d
 }
 
 function useBlanket(kind: 'gold' | 'black' | 'silver', x: number, y: number) {
-    const set = useMemo<SurfaceSet | null>(() => (typeof document === 'undefined' ? null : repeated(blanket(kind), x, y)), [kind, x, y]);
+    const set = useMemo<SurfaceSet | null>(() => (typeof document === 'undefined' ? null : repeated(crumpledFoil(kind), x, y)), [kind, x, y]);
     useEffect(
         () => () => {
             set?.map.dispose();
@@ -69,10 +69,12 @@ export default function SpacecraftModel({ state, position = [0, 0, 0] }: { state
     const goldMli = useBlanket('gold', 2, 1);
     const blackMli = useBlanket('black', 2, 1);
     const silverMli = useBlanket('silver', 1, 1);
-    const gold = useMat({ color: '#ffffff', roughness: 1, metalness: 0.85, side: DoubleSide, ...maps(goldMli, 1) }, [goldMli]);
-    const black = useMat({ color: '#ffffff', roughness: 1, metalness: 0.2, ...maps(blackMli, 0.8) }, [blackMli]);
-    const silver = useMat({ color: '#ffffff', roughness: 1, metalness: 0.9, ...maps(silverMli, 0.6) }, [silverMli]);
+    // Goldised and aluminised Kapton foil: metallic, smooth facets (the roughness map carries 0.12–0.45).
+    const gold = useMat({ color: '#ffffff', roughness: 1, metalness: 1, side: DoubleSide, envMapIntensity: 1.4, ...maps(goldMli, 1) }, [goldMli]);
+    const black = useMat({ color: '#ffffff', roughness: 1, metalness: 0.3, ...maps(blackMli, 0.8) }, [blackMli]);
+    const silver = useMat({ color: '#ffffff', roughness: 1, metalness: 1, envMapIntensity: 1.4, ...maps(silverMli, 1) }, [silverMli]);
     const dishWhite = useMat({ color: '#eef0f2', roughness: 0.55, metalness: 0.05, side: DoubleSide });
+    const dishRib = useMat({ color: '#9aa0a8', roughness: 0.5, metalness: 0.4 });
     const truss = useMat({ color: '#a9b0b9', roughness: 0.32, metalness: 0.9 });
     const composite = useMat({ color: '#2a2c31', roughness: 0.6, metalness: 0.3 });
     const rtg = useMat({ color: '#2f3135', roughness: 0.62, metalness: 0.5 });
@@ -229,8 +231,8 @@ export default function SpacecraftModel({ state, position = [0, 0, 0] }: { state
                     const a = (i / 12) * Math.PI * 2;
                     const r = DISH_R * 0.5;
                     return (
-                        <mesh key={i} position={[Math.cos(a) * r, (r * r) / (4 * DISH_F) - 0.06, Math.sin(a) * r]} rotation={[0, -a, Math.atan(r / (2 * DISH_F))]} material={composite}>
-                            <boxGeometry args={[DISH_R, 0.05, 0.03]} />
+                        <mesh key={i} position={[Math.cos(a) * r, (r * r) / (4 * DISH_F) - 0.05, Math.sin(a) * r]} rotation={[0, -a, Math.atan(r / (2 * DISH_F))]} material={dishRib}>
+                            <boxGeometry args={[DISH_R, 0.035, 0.022]} />
                         </mesh>
                     );
                 })}

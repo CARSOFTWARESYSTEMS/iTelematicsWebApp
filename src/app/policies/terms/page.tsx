@@ -10,7 +10,7 @@ const PATH = '/policies/terms';
 const TITLE = 'Terms of Use';
 const DESCRIPTION = 'Terms of use for itelematics.com: technical content, simulations, forward-looking statements, research participation, intellectual property and governing law.';
 /** Update when the terms change. */
-const UPDATED = '14 November 2026';
+const UPDATED = '15 November 2026';
 
 export const metadata: Metadata = pageMetadata({ path: PATH, title: TITLE, description: DESCRIPTION });
 
@@ -115,7 +115,7 @@ export default function TermsPage() {
                             <ExternalLink href="https://www.solarsystemscope.com/textures/" trackName="Image credits: Solar System Scope planets">
                                 Solar System Scope
                             </ExternalLink>
-                            , CC BY 4.0, recompressed. Ground, concrete and metal surfaces at the launch site:{' '}
+                            , CC BY 4.0, recompressed. The sky, ground, concrete and metal surfaces at the launch site:{' '}
                             <ExternalLink href="https://polyhaven.com/" trackName="Image credits: Poly Haven">
                                 Poly Haven
                             </ExternalLink>

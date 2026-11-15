@@ -3,7 +3,7 @@
 // option is opened; renders continuously only while playing and visible, otherwise on demand.
 // A logarithmic depth buffer lets one camera go from engine close-ups (metres) to the Sun-centred
 // view (astronomical units); every custom shader in this experience writes logarithmic depth.
-import { useEffect } from 'react';
+import { memo, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { ACESFilmicToneMapping, SRGBColorSpace } from 'three';
 import { AdaptiveDpr } from '@/components/space-twin/environment';
@@ -52,7 +52,7 @@ function DebugInfo() {
     return null;
 }
 
-export default function SolarCanvas({
+function SolarCanvas({
     clock,
     playing,
     reducedMotion,
@@ -93,13 +93,12 @@ export default function SolarCanvas({
                         gl.toneMappingExposure = 1.0;
                         // Engineering cutaways are section cuts through the vehicle (clipping planes).
                         gl.localClippingEnabled = true;
-                        onReady();
                     }}
                     aria-hidden="true"
                 >
                     <GlobeTextures hd={high}>
                         <SiteTextures>
-                            <SolarScene clock={clock} quality={quality} reducedMotion={reducedMotion} focusOverride={focus} shift={shift} shiftY={shiftY} />
+                            <SolarScene clock={clock} quality={quality} reducedMotion={reducedMotion} focusOverride={focus} shift={shift} shiftY={shiftY} onReady={onReady} />
                         </SiteTextures>
                     </GlobeTextures>
                     <ClockDriver clock={clock} playing={playing} />
@@ -112,3 +111,6 @@ export default function SolarCanvas({
         </LabelContext.Provider>
     );
 }
+
+/** Memoised: the overlay re-renders on clock ticks, the 3D scene does not need to. */
+export default memo(SolarCanvas);

@@ -467,6 +467,80 @@ export function blanket(kind: 'gold' | 'black' | 'silver', seed = 51): SurfaceSe
     });
 }
 
+/**
+ * Crumpled multi-layer insulation foil (u, v over a 0.5 m tile): the outer layer of a thermal blanket is
+ * a thin aluminised or goldised film that crumples into flat facets between creases, each facet a small
+ * mirror tilted a few degrees. Built as a Voronoi pattern of facets with their own tilt, ridged creases
+ * between them and a stitched seam around the tile; very smooth (roughness 0.12–0.3), so the facets show
+ * the environment and the Sun as broken reflections rather than an even sheen.
+ */
+export function crumpledFoil(kind: 'gold' | 'silver' | 'black', seed = 71): SurfaceSet {
+    return memo(`foil-${kind}-${seed}`, () => {
+        const w = 512;
+        const h = 512;
+        const r = rng(seed);
+        const cells = Array.from({ length: 70 }, () => ({ x: r() * w, y: r() * h, tx: (r() - 0.5) * 0.7, ty: (r() - 0.5) * 0.7, b: r(), g: r() }));
+        const fine = fbm(w, h, 24, 24, 3, seed + 5);
+        const { c: col, g } = canvas(w, h);
+        const img = g.createImageData(w, h);
+        const { c: ncol, g: ng } = canvas(w, h);
+        const nimg = ng.createImageData(w, h);
+        const rough = new Float32Array(w * h);
+        const base = kind === 'gold' ? [222, 172, 86] : kind === 'silver' ? [214, 218, 224] : [26, 27, 30];
+        for (let y = 0; y < h; y++)
+            for (let x = 0; x < w; x++) {
+                // Nearest and second-nearest facet centres (tileable distance).
+                let d1 = 1e9;
+                let d2 = 1e9;
+                let c1 = cells[0];
+                for (const c of cells) {
+                    let dx = Math.abs(x - c.x);
+                    let dy = Math.abs(y - c.y);
+                    if (dx > w / 2) dx = w - dx;
+                    if (dy > h / 2) dy = h - dy;
+                    const d = dx * dx + dy * dy;
+                    if (d < d1) {
+                        d2 = d1;
+                        d1 = d;
+                        c1 = c;
+                    } else if (d < d2) d2 = d;
+                }
+                const k = y * w + x;
+                const crease = Math.max(0, 1 - (Math.sqrt(d2) - Math.sqrt(d1)) / 3);
+                const seam = x % 256 < 2 || y % 256 < 2 ? 1 : 0;
+                let nx = c1.tx + (fine[k] - 0.5) * 0.12;
+                let ny = c1.ty + (fine[(k + 7919) % (w * h)] - 0.5) * 0.12;
+                if (seam) {
+                    nx *= 0.2;
+                    ny *= 0.2;
+                }
+                const nz = Math.sqrt(Math.max(0.05, 1 - nx * nx - ny * ny));
+                const l = Math.hypot(nx, ny, nz);
+                const i = k * 4;
+                nimg.data[i] = ((nx / l) * 0.5 + 0.5) * 255;
+                nimg.data[i + 1] = ((ny / l) * 0.5 + 0.5) * 255;
+                nimg.data[i + 2] = ((nz / l) * 0.5 + 0.5) * 255;
+                nimg.data[i + 3] = 255;
+                const shade = 0.9 + c1.b * 0.14 - crease * 0.22 - seam * 0.35;
+                img.data[i] = Math.min(255, base[0] * shade);
+                img.data[i + 1] = Math.min(255, base[1] * shade);
+                img.data[i + 2] = Math.min(255, base[2] * shade);
+                img.data[i + 3] = 255;
+                rough[k] = (kind === 'black' ? 0.5 : 0.36) + c1.g * 0.3 + crease * 0.2 + seam * 0.3;
+            }
+        g.putImageData(img, 0, 0);
+        ng.putImageData(nimg, 0, 0);
+        return {
+            map: tex(col, true),
+            normalMap: tex(ncol, false),
+            roughnessMap: tex(
+                greyFromField(rough, w, h, (v) => Math.min(1, v)),
+                false,
+            ),
+        };
+    });
+}
+
 /** Concrete with stains and expansion joints every `joint` texels (for the pad deck). */
 export function padConcrete(seed = 61): SurfaceSet {
     return memo(`concrete-${seed}`, () => {
