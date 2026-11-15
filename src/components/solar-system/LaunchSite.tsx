@@ -24,6 +24,7 @@ import {
     DoubleSide,
     Float32BufferAttribute,
     FogExp2,
+    IcosahedronGeometry,
     InstancedMesh,
     Line,
     LineBasicMaterial,
@@ -40,7 +41,9 @@ import {
 } from 'three';
 import { R_EARTH } from '@/lib/solar-system/constants';
 import { flight, sampleAt } from '@/lib/solar-system/flight';
-import { Plume } from './LaunchVehicle';
+import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { ExhaustClouds, VolumePlume } from './exhaust';
+import { SUN } from './sun';
 import { LOGDEPTH } from './environment';
 import { cladding, paintedSteel, repeated, type SurfaceSet } from './textures';
 
@@ -53,7 +56,7 @@ const TOWER_H = 74; // above the deck
 const TRENCH_HALF = 6; // half width of the flame trench (it runs north, along −z)
 const TRENCH_EXIT = new Vector3(0, 0.6, -52);
 const GROUND_RADIUS = 60000;
-const SUN_SITE = new Vector3(0.814, 0.5, 0.296).normalize();
+const SUN_SITE = SUN;
 
 /** The coastline (east of the pad), x as a function of z; the same formula is used in the shaders. */
 export const coastX = (z: number) => 720 + 170 * Math.sin(z * 0.00042 + 0.6) + 80 * Math.sin(z * 0.0013 + 2.1);
@@ -236,11 +239,12 @@ function Land({ opacity }: { opacity: () => number }) {
                     vec3 sand = vec3(0.62, 0.57, 0.45);
                     #endif
                     float beach = smoothstep(coast - 200.0, coast - 25.0, wp.x);
-                    float patches = smoothstep(0.6, 0.82, fbm(wp * 0.0035 + 7.0)) * 0.55;
-                    // Low coastal scrub: darker, greener patches in a broken pattern.
-                    float scrub = smoothstep(0.45, 0.75, fbm(wp * 0.006 + 3.0)) * (1.0 - beach);
+                    float patches = smoothstep(0.66, 0.86, fbm(wp * 0.0035 + 7.0)) * 0.3;
+                    // Low coastal scrub (saw palmetto, wax myrtle): dark olive cover broken by sandy grass,
+                    // at two scales so it reads as vegetation from the pad and from a kilometre away.
+                    float scrub = smoothstep(0.32, 0.62, fbm(wp * 0.006 + 3.0) * 0.65 + fbm(wp * 0.045 + 11.0) * 0.35) * (1.0 - beach);
                     vec3 col = mix(grass, sand, max(beach, patches));
-                    col = mix(col, col * vec3(0.62, 0.72, 0.5), scrub * 0.55);
+                    col = mix(col, col * vec3(0.42, 0.55, 0.3), scrub * 0.85);
                     // Crushed-stone apron inside the perimeter road, kept clear of vegetation.
                     float r = length(wp);
                     float apron = 1.0 - smoothstep(128.0, 150.0, r + (fbm(wp * 0.08) - 0.5) * 14.0);
@@ -248,11 +252,11 @@ function Land({ opacity }: { opacity: () => number }) {
                     col = mix(col, gravel, apron);
                     scrub *= 1.0 - apron;
                     // From afar the texture's repeat would show: fade to its average colour, varied by large-scale noise.
-                    vec3 avg = mix(vec3(0.29, 0.29, 0.18), vec3(0.62, 0.57, 0.45), max(beach, patches));
-                    avg = mix(avg, avg * vec3(0.7, 0.8, 0.62), scrub * 0.6);
+                    vec3 avg = mix(vec3(0.25, 0.26, 0.15), vec3(0.62, 0.57, 0.45), max(beach, patches));
+                    avg = mix(avg, avg * vec3(0.48, 0.6, 0.36), scrub * 0.85);
                     avg = mix(avg, vec3(0.55, 0.52, 0.47), apron);
                     col = mix(col, avg, smoothstep(350.0, 2600.0, camDist));
-                    col *= (0.8 + 0.42 * fbm(wp * 0.0009)) * 1.12;
+                    col *= (0.8 + 0.42 * fbm(wp * 0.0009)) * 0.9;
                     // Wet sand darkens at the waterline.
                     col *= 1.0 - 0.35 * smoothstep(coast - 12.0, coast, wp.x);
                     diffuseColor.rgb *= col;
@@ -487,118 +491,143 @@ function SurfaceBox({
     );
 }
 
-// ── Exhaust ───────────────────────────────────────────────────────────────
+// ── Vegetation ────────────────────────────────────────────────────────────
 
-/** A cloudy puff texture (value-noise turbulence with a soft edge), drawn once. */
-function puffTexture() {
-    if (typeof document === 'undefined') return null;
-    const N = 128;
-    const c = document.createElement('canvas');
-    c.width = c.height = N;
-    const g = c.getContext('2d')!;
-    const img = g.createImageData(N, N);
-    let seed = 3;
-    const rnd = () => {
-        seed = (seed * 1664525 + 1013904223) >>> 0;
-        return seed / 4294967296;
-    };
-    const grid = Array.from({ length: 17 * 17 }, () => rnd());
-    const vn = (x: number, y: number, f: number) => {
-        const gx = (x / N) * f;
-        const gy = (y / N) * f;
-        const ix = Math.floor(gx) % 16;
-        const iy = Math.floor(gy) % 16;
-        const fx = gx - Math.floor(gx);
-        const fy = gy - Math.floor(gy);
-        const s = (t: number) => t * t * (3 - 2 * t);
-        const a = grid[iy * 17 + ix];
-        const b = grid[iy * 17 + ix + 1];
-        const cc = grid[(iy + 1) * 17 + ix];
-        const d = grid[(iy + 1) * 17 + ix + 1];
-        return a + (b - a) * s(fx) + (cc - a) * s(fy) + (a - b - cc + d) * s(fx) * s(fy);
-    };
-    for (let y = 0; y < N; y++)
-        for (let x = 0; x < N; x++) {
-            const r = Math.hypot(x - N / 2, y - N / 2) / (N / 2);
-            const turb = 0.5 * vn(x, y, 4) + 0.3 * vn(x, y, 8) + 0.2 * vn(x, y, 16);
-            const a = Math.max(0, 1 - r) ** 1.3 * (0.45 + 0.75 * turb);
-            const shade = 200 + 55 * turb - 30 * (y / N);
-            const i = (y * N + x) * 4;
-            img.data[i] = img.data[i + 1] = shade;
-            img.data[i + 2] = Math.min(255, shade + 4);
-            img.data[i + 3] = Math.min(255, a * 255);
-        }
-    g.putImageData(img, 0, 0);
-    const t = new CanvasTexture(c);
-    t.colorSpace = SRGBColorSpace;
-    return t;
+/** A low-poly shrub (an icosphere pushed out by smooth noise): `variant` changes the noise. */
+function shrubGeometry(variant: number, detail: number) {
+    // Shared vertices, so the noise displacement keeps the surface continuous and shading is smooth.
+    const base = new IcosahedronGeometry(1, detail);
+    base.deleteAttribute('normal');
+    base.deleteAttribute('uv');
+    const g = mergeVertices(base);
+    base.dispose();
+    const p = g.getAttribute('position');
+    const v = new Vector3();
+    for (let i = 0; i < p.count; i++) {
+        v.fromBufferAttribute(p, i);
+        const n = Math.sin(v.x * 3.1 + variant) * Math.sin(v.y * 2.7 + variant * 1.7) * Math.sin(v.z * 3.3 + variant * 0.6);
+        const r = 1 + 0.28 * n + 0.1 * Math.sin(v.x * 7 + v.z * 5 + variant);
+        // Flat-bottomed: shrubs sit on the ground.
+        v.multiplyScalar(r);
+        if (v.y < -0.2) v.y = -0.2 + (v.y + 0.2) * 0.25;
+        p.setXYZ(i, v.x, v.y, v.z);
+    }
+    g.computeVertexNormals();
+    return g;
 }
 
 /**
- * The ignition cloud: seeded particles whose state is a function of mission time only. Steam from the
- * sound-suppression water and exhaust billow out of the trench's north exit and rise around the table.
+ * Coastal scrub and a few low trees around the cleared pad area (seeded, so it never changes): kept off
+ * the roads, the buildings, the beach and the 175 m cleared zone around the pad. From the long-lens
+ * camera positions it forms the dark vegetation band in front of the launch complex.
  */
-function ExhaustCloud({ met, quality }: { met: () => number; quality: 'high' | 'low' }) {
-    const count = quality === 'high' ? 340 : 150;
-    const ref = useRef<InstancedMesh>(null);
-    const camera = useThree((s) => s.camera);
-    const texture = useMemo(() => puffTexture(), []);
-    // Steam and exhaust products are bright on their shaded side too (they scatter skylight): partly self-lit.
-    const material = useMemo(
-        () => new MeshStandardMaterial({ color: '#eceef0', emissive: '#aab4bf', emissiveIntensity: 0.45, emissiveMap: texture ?? undefined, map: texture ?? undefined, transparent: true, depthWrite: false, roughness: 1, metalness: 0, opacity: 0.8 }),
-        [texture],
-    );
+function Scrub({ quality }: { quality: 'high' | 'low' }) {
+    const count = quality === 'high' ? 9000 : 2600;
+    const sets = useMemo(() => {
+        let seed = 77;
+        const rnd = () => {
+            seed = (seed * 1664525 + 1013904223) >>> 0;
+            return seed / 4294967296;
+        };
+        // Camera positions of the pad shots (site frame) and the hero lines of sight to the vehicle: no
+        // vegetation there, so nothing large ever stands in front of a lens.
+        const cams: [number, number][] = [
+            [-174, 699],
+            [-158, 682],
+            [-700, 1212],
+            [-587, 1103],
+            [-142, 181],
+            [-13, 33],
+            [-1, 95],
+            [70, 262],
+            [-700, 2600],
+        ];
+        const nearSegment = (x: number, z: number, ax: number, az: number, w: number) => {
+            const t = Math.max(0, Math.min(1, (x * ax + z * az) / (ax * ax + az * az)));
+            return Math.hypot(x - ax * t, z - az * t) < w;
+        };
+        const blocked = (x: number, z: number) => {
+            const r = Math.hypot(x, z);
+            if (r < 175 || r > 1900) return true;
+            if (coastX(z) - x < 60) return true;
+            if (x < -140 && Math.abs(z - 14) < 14) return true; // access road
+            if (Math.abs(x + 720) < 95 && Math.abs(z - 230) < 65) return true; // integration hangar
+            if (Math.hypot(x + 205, z + 40) < 45) return true;
+            if (Math.hypot(x + 52, z + 178) < 22) return true;
+            for (const [cx, cz] of cams) if (Math.hypot(x - cx, z - cz) < 80) return true;
+            if (nearSegment(x, z, -174, 699, 18) || nearSegment(x, z, -700, 1212, 22)) return true;
+            return false;
+        };
+        // More clumps south-south-west of the pad, the side the long-lens cameras look across from.
+        const centres = Array.from({ length: 420 }, () => {
+            const sector = rnd() < 0.55;
+            const a = sector ? ((80 + rnd() * 75) * Math.PI) / 180 : rnd() * Math.PI * 2;
+            const r = 185 + Math.sqrt(rnd()) * (sector ? 1500 : 1650);
+            return [Math.cos(a) * r, Math.sin(a) * r, 30 + rnd() * 80] as const;
+        });
+        const out: { x: number; z: number; s: number; h: number; rot: number; tone: number; tree: boolean }[] = [];
+        let guard = 0;
+        while (out.length < count && guard++ < count * 20) {
+            const c = centres[Math.floor(rnd() * centres.length)];
+            const a = rnd() * Math.PI * 2;
+            const d = Math.sqrt(rnd()) * c[2];
+            const x = c[0] + Math.cos(a) * d;
+            const z = c[1] + Math.sin(a) * d;
+            if (blocked(x, z)) continue;
+            const r = Math.hypot(x, z);
+            const tree = r > 650 && rnd() < 0.04;
+            out.push({ x, z, s: tree ? 2.2 + rnd() * 1.2 : 0.9 + rnd() * 1.4, h: tree ? 1.6 + rnd() * 0.8 : 0.55 + rnd() * 0.45, rot: rnd() * Math.PI * 2, tone: rnd(), tree });
+        }
+        return out;
+    }, [count]);
+    const geos = useMemo(() => [0, 1, 2].map((k) => shrubGeometry(k * 2.3 + 0.4, 1)), []);
+    const material = useMemo(() => new MeshStandardMaterial({ roughness: 0.95, metalness: 0, vertexColors: false }), []);
+    const refs = [useRef<InstancedMesh>(null), useRef<InstancedMesh>(null), useRef<InstancedMesh>(null)];
+    useEffect(() => {
+        const o = new Object3D();
+        const col = new Color();
+        const counts = [0, 0, 0];
+        sets.forEach((b, i) => {
+            const k = i % 3;
+            const mesh = refs[k].current;
+            if (!mesh) return;
+            o.position.set(b.x, terrainHeight(b.x, b.z) + b.s * b.h * 0.55, b.z);
+            o.rotation.set(0, b.rot, 0);
+            o.scale.set(b.s, b.s * b.h, b.s * (0.85 + 0.3 * b.tone));
+            o.updateMatrix();
+            mesh.setMatrixAt(counts[k], o.matrix);
+            // Olive, sage and dark green, sun-bleached at random.
+            col.setRGB(0.09 + 0.05 * b.tone, 0.12 + 0.05 * b.tone, 0.05 + 0.02 * b.tone);
+            if (b.tree) col.multiplyScalar(0.8);
+            mesh.setColorAt(counts[k], col);
+            counts[k]++;
+        });
+        refs.forEach((r, k) => {
+            if (!r.current) return;
+            r.current.count = counts[k];
+            r.current.instanceMatrix.needsUpdate = true;
+            if (r.current.instanceColor) r.current.instanceColor.needsUpdate = true;
+            r.current.computeBoundingSphere();
+        });
+    }, [sets]);
     useEffect(
         () => () => {
+            geos.forEach((g) => g.dispose());
             material.dispose();
-            texture?.dispose();
         },
-        [material, texture],
+        [geos, material],
     );
-    const seeds = useMemo(() => {
-        let s = 7;
-        const rnd = () => {
-            s = (s * 1664525 + 1013904223) >>> 0;
-            return s / 4294967296;
-        };
-        // Births weighted towards ignition: the steam bursts out in the first seconds.
-        return Array.from({ length: count }, () => ({ birth: -2.6 + rnd() ** 1.8 * 16, a: rnd() * Math.PI * 2, spread: rnd(), up: rnd(), size: 0.6 + rnd() * 0.8, life: 16 + rnd() * 10, spin: (rnd() - 0.5) * 0.3, rot: rnd() * Math.PI * 2 }));
-    }, [count]);
-    const o = useMemo(() => new Object3D(), []);
-    const dir = useMemo(() => new Vector3(), []);
-    useFrame(() => {
-        const mesh = ref.current;
-        if (!mesh) return;
-        const t = met();
-        let n = 0;
-        for (const p of seeds) {
-            const age = t - p.birth;
-            if (age < 0 || age > p.life) continue;
-            // Out of the trench northwards and up, slowing with age (drag), growing as it mixes.
-            const travel = 150 * (1 - Math.exp(-age / 3.5));
-            dir.set(Math.sin(p.a) * 0.9, 0, -Math.cos(p.a * 0.35) * 0.9);
-            o.position.copy(TRENCH_EXIT).addScaledVector(dir, travel * (0.4 + p.spread));
-            o.position.y += 5 + age * (1.8 + 3.2 * p.up);
-            // Steam from the deluge water also rises around the launch table itself.
-            const table = p.spread < 0.22;
-            if (table) o.position.set(Math.cos(p.a) * (8 + age * 2.2), DECK + 2 + age * 2.6, Math.sin(p.a) * (8 + age * 2.2));
-            const s = (table ? 4 + age * 2.8 : 8 + age * 5.2) * p.size;
-            o.scale.setScalar(s);
-            o.quaternion.copy(camera.quaternion);
-            o.rotateZ(p.rot + age * p.spin);
-            o.updateMatrix();
-            mesh.setMatrixAt(n++, o.matrix);
-        }
-        mesh.count = n;
-        mesh.instanceMatrix.needsUpdate = true;
-        mesh.visible = n > 0;
-    });
+    const per = Math.ceil(count / 3) + 1;
     return (
-        <instancedMesh ref={ref} args={[undefined, material, count]} frustumCulled={false} renderOrder={6}>
-            <planeGeometry args={[1, 1]} />
-        </instancedMesh>
+        <>
+            {geos.map((g, k) => (
+                <instancedMesh key={k} ref={refs[k]} args={[g, material, per]} castShadow={false} receiveShadow />
+            ))}
+        </>
     );
 }
+
+// ── Exhaust ───────────────────────────────────────────────────────────────
 
 /**
  * The exhaust trail left in the sky: a tube along the simulated trajectory (first 160 s) whose sections
@@ -702,18 +731,16 @@ function ExhaustTrail({ met, head }: { met: () => number; head: () => Vector3 })
  * The exhaust turned by the flame deflector: a flattened jet running north along the trench and out of
  * its exit while the vehicle is low (thrust from the flight simulation; it fades as the vehicle climbs).
  */
-function TrenchJet({ met }: { met: () => number }) {
+function TrenchJet({ met, quality }: { met: () => number; quality: 'high' | 'low' }) {
     const power = () => {
         const s = sampleAt(met());
         if (s.phase !== 'ignition' && s.phase !== 'stage1') return 0;
-        return s.throttle * Math.max(0, 1 - Math.max(0, s.altitude) / 55) * 0.9;
+        return s.throttle * Math.max(0, 1 - Math.max(0, s.altitude) / 55);
     };
+    // Deflected exhaust running north along the trench floor, flattened by the trench walls.
     return (
-        <group position={[0, 2.4, 1]} scale={[1, 0.42, 1]}>
-            <group rotation={[Math.PI / 2, 0, 0]}>
-                <Plume power={power} length={() => 62} radius={() => 5.2} core="#fff0c4" edge="#d9702c" diamonds={0} soot={1} />
-                <Plume power={() => power() * 0.7} length={() => 26} radius={() => 3.2} core="#fffaf0" edge="#ffb347" additive />
-            </group>
+        <group position={[0, 1.6, -4]} rotation={[-Math.PI / 2, 0, 0]} scale={[1, 1, 0.55]}>
+            <VolumePlume kind="kerosene" power={power} length={() => 56} radius={() => 7.5} nozzle={3.2} pressure={() => 1} quality={quality} />
         </group>
     );
 }
@@ -1032,6 +1059,7 @@ function LightTower({ at, steel, dark }: { at: [number, number]; steel: MeshStan
 }
 
 export default function LaunchSite({ met, head, groundOpacity, quality }: { met: () => number; head: () => Vector3; groundOpacity: () => number; quality: 'high' | 'low' }) {
+    const plumeAt = useMemo(() => new Vector3(), []);
     const maps = useContext(MapsContext);
     const towerSteel = useSurface(() => paintedSteel([172, 176, 182], 43), 4, 4);
     const darkSteel = useSurface(() => paintedSteel([70, 74, 80], 47), 4, 4);
@@ -1076,6 +1104,7 @@ export default function LaunchSite({ met, head, groundOpacity, quality }: { met:
         <group>
             <Ocean opacity={groundOpacity} />
             <Land opacity={groundOpacity} />
+            <Scrub quality={quality} />
             <group ref={site}>
                 <Pad concrete={maps?.concrete} concreteN={maps?.concreteN} steel={steel} dark={dark} />
                 <Scorch />
@@ -1143,8 +1172,19 @@ export default function LaunchSite({ met, head, groundOpacity, quality }: { met:
                 <Building at={[-720, 230]} size={[150, 42, 90]} clad={cladC} roof={roof} rotation={0.05} />
                 <Building at={[-2300, 1300]} size={[80, 14, 50]} clad={cladA} roof={roof} rotation={-0.3} />
             </group>
-            <ExhaustCloud met={met} quality={quality} />
-            <TrenchJet met={met} />
+            <ExhaustClouds
+                met={met}
+                trenchExit={TRENCH_EXIT}
+                deck={DECK}
+                plume={() => plumeAt.set(head().x, Math.max(DECK + 2, head().y - 8), head().z)}
+                throttle={() => {
+                    const s = sampleAt(met());
+                    return s.phase === 'ignition' || s.phase === 'stage1' ? s.throttle : 0;
+                }}
+                altitude={() => sampleAt(met()).altitude}
+                quality={quality}
+            />
+            <TrenchJet met={met} quality={quality} />
             <ExhaustTrail met={met} head={head} />
         </group>
     );

@@ -8,7 +8,7 @@
 // from the standard equations; also prefiltered once into the pad's lighting environment.
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { BackSide, Mesh, PMREMGenerator, Scene, ShaderMaterial, SphereGeometry, Vector3 } from 'three';
+import { BackSide, Mesh, PMREMGenerator, Scene, ShaderMaterial, SphereGeometry, Vector3, type WebGLRenderer } from 'three';
 import { LOGDEPTH } from './environment';
 
 const R_PLANET = 6.371e6;
@@ -156,27 +156,30 @@ export function AtmosphereSky({ origin, sun, quality }: { origin: () => Vector3;
     );
 }
 
+/** The scattering sky seen from the ground, prefiltered into an environment map. */
+export function skyEnvironmentTarget(gl: WebGLRenderer, sun: Vector3) {
+    const pmrem = new PMREMGenerator(gl);
+    const scene = new Scene();
+    const material = skyMaterial(16, 6);
+    material.depthTest = true;
+    (material.uniforms.uSun.value as Vector3).copy(sun);
+    (material.uniforms.uOrigin.value as Vector3).set(0, R_PLANET + 30, 0);
+    // A brighter exposure for lighting, so the sky contributes realistic fill.
+    material.uniforms.uExposure.value = 1.6;
+    const geometry = new SphereGeometry(100, 64, 32);
+    scene.add(new Mesh(geometry, material));
+    const rt = pmrem.fromScene(scene, 0, 0.1, 1000);
+    geometry.dispose();
+    material.dispose();
+    pmrem.dispose();
+    return rt;
+}
+
 /** The pad's lighting environment: the same sky, seen from the ground, prefiltered once. */
 export function SkyEnvironment({ sun }: { sun: Vector3 }) {
     const gl = useThree((s) => s.gl);
     const key = sun.toArray().join(',');
-    const target = useMemo(() => {
-        const pmrem = new PMREMGenerator(gl);
-        const scene = new Scene();
-        const material = skyMaterial(16, 6);
-        material.depthTest = true;
-        (material.uniforms.uSun.value as Vector3).fromArray(key.split(',').map(Number));
-        (material.uniforms.uOrigin.value as Vector3).set(0, R_PLANET + 30, 0);
-        // A brighter exposure for lighting, so the sky contributes realistic fill.
-        material.uniforms.uExposure.value = 1.6;
-        const geometry = new SphereGeometry(100, 64, 32);
-        scene.add(new Mesh(geometry, material));
-        const rt = pmrem.fromScene(scene, 0, 0.1, 1000);
-        geometry.dispose();
-        material.dispose();
-        pmrem.dispose();
-        return rt;
-    }, [gl, key]);
+    const target = useMemo(() => skyEnvironmentTarget(gl, new Vector3().fromArray(key.split(',').map(Number))), [gl, key]);
     useEffect(() => () => target.dispose(), [target]);
     return <primitive object={target.texture} attach="environment" />;
 }

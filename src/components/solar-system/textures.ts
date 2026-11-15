@@ -216,11 +216,58 @@ export function carbonShell(stringers: number, seed = 11): SurfaceSet {
 }
 
 /**
+ * Spray-on foam insulation over a cryogenic tank barrel (u around, v along): orange-brown closed-cell
+ * foam as sprayed, with the broad mottling of the spray passes, slightly yellower hand-sprayed closeouts
+ * over the circumferential welds, faint vertical weathering streaks and the fine bumpy grain of the
+ * foam surface (normal map). Matt: roughness 0.8–0.95.
+ */
+export function sprayFoam(rings: number, seed = 41): SurfaceSet {
+    return memo(`sofi-${rings}-${seed}`, () => {
+        const w = 512;
+        const h = 1024;
+        const grain = fbm(w, h, 192, 384, 2, seed);
+        const mottle = fbm(w, h, 6, 10, 4, seed + 3);
+        const streak = fbm(w, h, 48, 3, 3, seed + 9);
+        const height = new Float32Array(w * h);
+        const ringY = Array.from({ length: rings }, (_, i) => Math.round(((i + 0.5) / rings) * h));
+        const { c: col, g } = canvas(w, h);
+        const img = g.createImageData(w, h);
+        for (let y = 0; y < h; y++)
+            for (let x = 0; x < w; x++) {
+                const k = y * w + x;
+                let close = 0;
+                for (const ry of ringY) {
+                    const d = Math.abs(y - ry);
+                    if (d < 18) close = Math.max(close, 1 - d / 18);
+                }
+                const m = mottle[k] - 0.5;
+                const st = Math.max(0, streak[k] - 0.5);
+                height[k] = grain[k] * 0.35 + m * 0.25 + close * 0.3;
+                const i = k * 4;
+                img.data[i] = 199 + m * 26 + close * 12 - st * 40;
+                img.data[i + 1] = 106 + m * 16 + close * 14 - st * 26;
+                img.data[i + 2] = 46 + m * 8 + close * 8 - st * 12;
+                img.data[i + 3] = 255;
+            }
+        g.putImageData(img, 0, 0);
+        return {
+            map: tex(col, true),
+            normalMap: tex(normalFromHeight(height, w, h, 0.9), false),
+            roughnessMap: tex(
+                greyFromField(grain, w, h, (v) => 0.8 + v * 0.15),
+                false,
+            ),
+        };
+    });
+}
+
+/**
  * Spray-on foam insulation of the cryogenic upper stage: a warm tan with darker panel bands where the
  * foam was applied in sections, mottled texture and a matt finish.
  */
-export function foamInsulation(seed = 21): SurfaceSet {
-    return memo(`foam-${seed}`, () => {
+export function foamInsulation(seed = 21, palette: 'tan' | 'white' = 'tan'): SurfaceSet {
+    return memo(`foam-${seed}-${palette}`, () => {
+        const base = palette === 'tan' ? [218, 168, 118] : [232, 233, 230];
         const w = 512;
         const h = 512;
         const n = fbm(w, h, 16, 16, 5, seed);
@@ -235,9 +282,9 @@ export function foamInsulation(seed = 21): SurfaceSet {
                 height[k] = n[k] * 0.35 - band * 0.6;
                 const t = big[k] * 0.7 + n[k] * 0.3;
                 const i = k * 4;
-                img.data[i] = 218 + t * 22 - band * 34;
-                img.data[i + 1] = 168 + t * 20 - band * 30;
-                img.data[i + 2] = 118 + t * 16 - band * 24;
+                img.data[i] = base[0] + t * 22 - band * 34;
+                img.data[i + 1] = base[1] + t * 20 - band * 30;
+                img.data[i + 2] = base[2] + t * 16 - band * 24;
                 img.data[i + 3] = 255;
             }
         g.putImageData(img, 0, 0);

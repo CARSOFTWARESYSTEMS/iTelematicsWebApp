@@ -5,10 +5,12 @@
 // that moment. Everything shown derives from the flight simulation and spacecraft model in
 // lib/solar-system.
 //
-// Layout (visual-quality recovery, 15 November 2026): the 3D scene is the hero and fills the frame.
-// Overlays are kept to a top status line, one contextual card (a title, what happens, why it matters,
-// two to four readings, Learn more and the chapter's three to six main topics) and, below the scene, a
-// slim chapter timeline with the transport controls. Deep detail stays behind Learn more.
+// Layout (visual recovery, round 2): the 3D scene is the hero and fills the frame. The default cinematic
+// view shows only the stage title, the simulated-data indicator and mission time at the top, a compact
+// caption (what happens, two readings, the chapter's guided action and Investigate) and, below the scene,
+// the chapter timeline with the transport controls. The contextual card (why it matters, two to four
+// readings, Learn more and the chapter's topics) opens only on Investigate or a topic. Returning from a
+// topic resumes the mission at the moment it was left.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
@@ -68,6 +70,9 @@ export default function SolarSystemExperience() {
     const [mode, setMode] = useState<Mode>({ kind: 'intro' });
     const [stagesOpen, setStagesOpen] = useState(false);
     const [moreOpen, setMoreOpen] = useState(false);
+    const [investigate, setInvestigate] = useState(false);
+    // Where to resume the chapter when the visitor returns from a topic (story time).
+    const resume = useRef<{ c: number; t: number } | null>(null);
     const [paused, setPaused] = useState<boolean | null>(null);
     const [ready, setReady] = useState(false);
     const [, setTick] = useState(0);
@@ -78,6 +83,13 @@ export default function SolarSystemExperience() {
     const program = mode.kind === 'intro' ? intro : label ? label.segments : chapter!.segments;
     const programKey = mode.kind === 'intro' ? 'intro' : mode.kind === 'label' ? `l-${mode.c}-${mode.l}` : `c-${mode.c}`;
     const clock = useMemo(() => new MissionClock(program), [programKey]);
+    useEffect(() => {
+        const r = resume.current;
+        if (r && mode.kind === 'chapter' && mode.c === r.c) {
+            resume.current = null;
+            clock.seek(r.t);
+        }
+    }, [clock, mode]);
 
     const autoplay = !(paused ?? reducedMotion);
     const playing = near && onScreen && pageVisible && autoplay && ready;
@@ -100,6 +112,7 @@ export default function SolarSystemExperience() {
     const go = (next: Mode) => {
         setMode(next);
         setMoreOpen(false);
+        setInvestigate(false);
         if (paused) setPaused(null);
     };
     const start = () => {
@@ -110,7 +123,14 @@ export default function SolarSystemExperience() {
         setStagesOpen(false);
         go({ kind: 'chapter', c, guided: false });
     };
-    const openLabel = (c: number, l: number) => go({ kind: 'label', c, l });
+    const openLabel = (c: number, l: number) => {
+        if (mode.kind === 'chapter' && mode.c === c) resume.current = { c, t: clock.time };
+        go({ kind: 'label', c, l });
+    };
+    const returnToMission = (c: number) => {
+        setStagesOpen(false);
+        go({ kind: 'chapter', c, guided: false });
+    };
     const step = (delta: 1 | -1) => {
         if (mode.kind === 'intro') return delta > 0 ? openChapter(0) : undefined;
         if (mode.kind === 'label') {
@@ -122,7 +142,7 @@ export default function SolarSystemExperience() {
         if (c < chapters.length) go({ kind: 'chapter', c, guided: mode.guided });
     };
     const back = () => {
-        if (mode.kind === 'label') return openChapter(mode.c);
+        if (mode.kind === 'label') return returnToMission(mode.c);
         setStagesOpen(false);
         go({ kind: 'intro' });
     };
@@ -141,9 +161,12 @@ export default function SolarSystemExperience() {
     const mainTopics = chapter ? chapter.labels.map((l, i) => ({ l, i })).filter(({ l }) => !l.more) : [];
     const moreTopics = chapter ? chapter.labels.map((l, i) => ({ l, i })).filter(({ l }) => l.more) : [];
     const chosenMore = label?.more === true;
-    // Wide layouts keep the card on the left of the scene and frame the hardware right of centre.
-    const cardShown = mode.kind !== 'intro';
-    const shift = !wide ? 0 : cardShown ? 0.13 : 0.15;
+    // The card opens on Investigate or a topic; otherwise a compact caption keeps the scene clear.
+    const cardShown = mode.kind === 'label' || (mode.kind === 'chapter' && investigate);
+    const captionShown = mode.kind === 'chapter' && !investigate;
+    const primaryIndex = chapter?.primary ? chapter.labels.findIndex((l) => l.id === chapter.primary!.label) : -1;
+    // Wide layouts frame the hardware right of centre, clear of the card or the opening title.
+    const shift = !wide ? 0 : cardShown ? 0.13 : mode.kind === 'intro' ? 0.15 : 0.04;
     // Phones: the opening title sits over the lower part of the scene, so frame the vehicle higher.
     const shiftY = !wide && mode.kind === 'intro' ? 0.2 : 0;
 
@@ -220,9 +243,50 @@ export default function SolarSystemExperience() {
                     {live === false && near && noWebGL && <p className={styles.fallback}>3D isn&rsquo;t available on this device, so a still image is shown; the mission controls work as normal.</p>}
                 </div>
 
-                {/* Contextual card: over the scene on wide screens, a sheet under it on phones. */}
-                {chapter && (
+                {/* Default cinematic view: one compact caption with the guided action. */}
+                {chapter && captionShown && (
+                    <section className={styles.caption} aria-live="polite" aria-labelledby="solar-caption-title">
+                        <h3 id="solar-caption-title" className="visually-hidden">
+                            {chapter.title}
+                        </h3>
+                        <p className={styles.captionText}>{chapter.summary}</p>
+                        {readings.length > 0 && (
+                            <p className={styles.captionData} aria-label="Engineering measurements, simulated">
+                                {readings.slice(0, 2).map((r, i) => (
+                                    <span key={r.label}>
+                                        {i > 0 && <span aria-hidden="true"> · </span>}
+                                        {r.label} <strong className={r.tone ? TONE[r.tone] : undefined}>{r.value}</strong>
+                                    </span>
+                                ))}
+                            </p>
+                        )}
+                        <div className={styles.captionActions}>
+                            {primaryIndex >= 0 && (
+                                <button
+                                    type="button"
+                                    className={styles.primaryBtn}
+                                    onClick={() => openLabel(chapterIndex, primaryIndex)}
+                                    data-track="station_model_interaction"
+                                    data-track-name={`Solar System guided action: ${chapter.primary!.text}`}
+                                >
+                                    {chapter.primary!.text}
+                                </button>
+                            )}
+                            <button type="button" className={styles.investigateBtn} aria-expanded={false} onClick={() => setInvestigate(true)} data-track="station_model_interaction" data-track-name={`Solar System investigate: ${chapter.title}`}>
+                                Investigate ({chapter.labels.length})
+                            </button>
+                        </div>
+                    </section>
+                )}
+
+                {/* Contextual card (on request): over the scene on wide screens, a sheet under it on phones. */}
+                {chapter && cardShown && (
                     <section className={styles.card} aria-live="polite" aria-labelledby="solar-card-title">
+                        {!label && (
+                            <button type="button" className={styles.cardClose} aria-label="Hide details" onClick={() => setInvestigate(false)}>
+                                <span aria-hidden="true">×</span>
+                            </button>
+                        )}
                         <p className={styles.cardKicker}>{label ? chapter.title : `Stage ${chapter.number}`}</p>
                         <h3 id="solar-card-title" className={styles.cardTitle}>
                             {title}
@@ -299,8 +363,8 @@ export default function SolarSystemExperience() {
                             </div>
                         )}
                         {label && (
-                            <button type="button" className={styles.returnBtn} onClick={() => openChapter(chapterIndex)}>
-                                ← Return to mission
+                            <button type="button" className={styles.returnBtn} onClick={() => returnToMission(chapterIndex)}>
+                                ← Return to mission view
                             </button>
                         )}
                     </section>

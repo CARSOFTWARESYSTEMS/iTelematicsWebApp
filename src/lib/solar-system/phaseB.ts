@@ -47,6 +47,7 @@ function build(): Chapter[] {
     const cruise: Chapter = {
         id: 'cruise',
         number: '09',
+        primary: { label: 'b-trajectory', text: 'View Trajectory' },
         title: 'Interplanetary Cruise',
         short: 'Cruise',
         summary: `Free of Earth, RSC-1 coasts on an ellipse around the Sun that meets Jupiter ${yrs(J)} years after launch.`,
@@ -127,6 +128,7 @@ function build(): Chapter[] {
     const jupiter: Chapter = {
         id: 'jupiter',
         number: '10',
+        primary: { label: 'j-assist', text: 'Explore Gravity Assist' },
         title: 'Jupiter Encounter and Gravity Assist',
         short: 'Jupiter',
         summary: `RSC-1 passes ${rj} Jupiter radii from Jupiter’s centre on ${MISSION_DATES.jupiter}; Jupiter’s gravity bends its path towards Saturn.`,
@@ -196,6 +198,7 @@ function build(): Chapter[] {
     const saturn: Chapter = {
         id: 'saturn',
         number: '11',
+        primary: { label: 's-rings', text: 'Saturn’s Rings' },
         title: 'Saturn and Deep Space',
         short: 'Saturn',
         summary: `After Jupiter the spacecraft climbs to Saturn, reached on ${MISSION_DATES.saturn}, then heads out of the Solar System.`,

@@ -38,7 +38,8 @@ import { useLabelAnchor } from '@/components/space-twin/labels';
 import type { Focus } from '@/lib/solar-system/mission';
 import SpacecraftModel from './Spacecraft';
 import { LOGDEPTH } from './environment';
-import { carbonShell, foamInsulation, lettering, nozzleSkin, paintedBarrel, repeated, rollPattern, type SurfaceSet } from './textures';
+import { carbonShell, foamInsulation, lettering, nozzleSkin, paintedBarrel, repeated, rollPattern, sprayFoam, type SurfaceSet } from './textures';
+import { VolumePlume } from './exhaust';
 
 export type CutPart = 'fairing' | 'interstage' | 'tanks';
 
@@ -417,13 +418,29 @@ function MainEngine({ bell, skin, soot, metal, dark, x }: { bell: LatheGeometry;
 
 // ── The vehicle ───────────────────────────────────────────────────────────
 
-export default function LaunchVehicle({ state, showStage1 = true, showFairing = true, payloadLabels = false, children }: { state: MutableRefObject<VehicleState>; showStage1?: boolean; showFairing?: boolean; payloadLabels?: boolean; children?: ReactNode }) {
+export default function LaunchVehicle({
+    state,
+    showStage1 = true,
+    showFairing = true,
+    payloadLabels = false,
+    quality = 'high',
+    children,
+}: {
+    state: MutableRefObject<VehicleState>;
+    showStage1?: boolean;
+    showFairing?: boolean;
+    payloadLabels?: boolean;
+    quality?: 'high' | 'low';
+    children?: ReactNode;
+}) {
     // Surfaces (procedural, shared): kerosene and oxygen tank barrels, fairing, foam, carbon, nozzles.
-    const fuelSkin = useSurface(() => paintedBarrel(4, 4, 3));
-    const loxSkin = useSurface(() => paintedBarrel(6, 4, 5));
-    const fwdSkin = useSurface(() => paintedBarrel(1, 4, 7));
+    // First stage: orange spray-on foam insulation over both tanks (the liquid oxygen is at −183 °C).
+    const fuelSkin = useSurface(() => sprayFoam(3, 43));
+    const loxSkin = useSurface(() => sprayFoam(5, 47));
+    const fwdSkin = useSurface(() => sprayFoam(1, 53));
+    const adapterSkin = useSurface(() => paintedBarrel(1, 4, 7));
     const fairingSkin = useSurface(() => paintedBarrel(3, 2, 9));
-    const foam = useSurface(() => foamInsulation(), 3, 2);
+    const foam = useSurface(() => foamInsulation(21, 'white'), 3, 2);
     const carbon = useSurface(() => carbonShell(48));
     const carbonAft = useSurface(() => carbonShell(36, 12));
     const copper = useSurface(() => nozzleSkin('copper'));
@@ -431,9 +448,10 @@ export default function LaunchVehicle({ state, showStage1 = true, showFairing = 
     const name = useMemo(() => (typeof document === 'undefined' ? null : lettering('RLV-1', 2048, { size: 190 })), []);
     const roll = useMemo(() => (typeof document === 'undefined' ? null : rollPattern(8)), []);
 
-    const paintFuel = useMaterial({ color: '#ffffff', roughness: 1, metalness: 0.05, ...surf(fuelSkin, 0.5) }, [fuelSkin]);
-    const paintLox = useMaterial({ color: '#ffffff', roughness: 1, metalness: 0.05, ...surf(loxSkin, 0.5) }, [loxSkin]);
-    const paintFwd = useMaterial({ color: '#ffffff', roughness: 1, metalness: 0.05, ...surf(fwdSkin, 0.5) }, [fwdSkin]);
+    const paintFuel = useMaterial({ color: '#ffffff', roughness: 1, metalness: 0, ...surf(fuelSkin, 0.45) }, [fuelSkin]);
+    const paintLox = useMaterial({ color: '#ffffff', roughness: 1, metalness: 0, ...surf(loxSkin, 0.45) }, [loxSkin]);
+    const paintFwd = useMaterial({ color: '#ffffff', roughness: 1, metalness: 0, ...surf(fwdSkin, 0.45) }, [fwdSkin]);
+    const paintAdapter = useMaterial({ color: '#ffffff', roughness: 1, metalness: 0.05, ...surf(adapterSkin, 0.5) }, [adapterSkin]);
     const fairingPaint = useMaterial({ color: '#ffffff', roughness: 1, metalness: 0.03, side: DoubleSide, ...surf(fairingSkin, 0.35) }, [fairingSkin]);
     const lining = useMaterial({ color: '#b9bec5', roughness: 0.9, metalness: 0.0, side: BackSide });
     const upperFoam = useMaterial({ color: '#ffffff', roughness: 1, metalness: 0, ...surf(foam, 0.8) }, [foam]);
@@ -449,7 +467,6 @@ export default function LaunchVehicle({ state, showStage1 = true, showFairing = 
     const ring = useMaterial({ color: '#b4b9c0', roughness: 0.3, metalness: 0.9 });
     const seam = useMaterial({ color: '#2a2d32', roughness: 0.55, metalness: 0.6 });
     const raceway = useMaterial({ color: '#d9dce0', roughness: 0.55, metalness: 0.2 });
-    const frost = useMaterial({ color: '#ffffff', roughness: 0.92, metalness: 0, map: useFrostTexture(), transparent: true, depthWrite: false, opacity: 1 });
     const tankFuel = useMaterial({ color: '#b98745', roughness: 0.3, metalness: 0.1 });
     const tankLox = useMaterial({ color: '#8fb5e2', roughness: 0.2, metalness: 0.1 });
     const tankWall = useMaterial({ color: '#c9cdd3', roughness: 0.45, metalness: 0.7, side: DoubleSide });
@@ -501,7 +518,6 @@ export default function LaunchVehicle({ state, showStage1 = true, showFairing = 
     const halfB = useRef<Group>(null);
     const kickSpin = useRef<Group>(null);
     const tanks = useRef<Group>(null);
-    const frostRef = useRef<Mesh>(null);
 
     // Label anchors for the payload cutaway (registered only while the cutaway is open).
     const aHga = useRef<Group>(null);
@@ -542,8 +558,6 @@ export default function LaunchVehicle({ state, showStage1 = true, showFairing = 
         if (kickSpin.current) kickSpin.current.rotation.y = s.spin;
         const tanksOpen = s.cut.part === 'tanks' && s.cut.amount > 0.01;
         if (tanks.current) tanks.current.visible = tanksOpen;
-        frost.opacity = s.frost;
-        if (frostRef.current) frostRef.current.visible = s.frost > 0.01 && !tanksOpen;
     });
 
     const firstStage = (
@@ -597,10 +611,6 @@ export default function LaunchVehicle({ state, showStage1 = true, showFairing = 
             {[13.05, 14.95, 3.25, 31].map((y) => (
                 <Tube key={y} r={STACK.r1 + 0.02} h={0.06} y={y} mat={ring} segments={48} />
             ))}
-            {/* Frost on the liquid-oxygen tank while it is cold-soaked on the pad; it sheds after liftoff */}
-            <mesh ref={frostRef} position={[0, 22.8, 0]} material={frost} renderOrder={3}>
-                <cylinderGeometry args={[STACK.r1 + 0.012, STACK.r1 + 0.012, 15.4, 64, 1, true]} />
-            </mesh>
             <VentVapour state={state} />
             {/* Tank cutaway (shown with the Propellant Tanks topic): walls, domes and propellant levels */}
             <group ref={tanks} visible={false}>
@@ -627,25 +637,25 @@ export default function LaunchVehicle({ state, showStage1 = true, showFairing = 
             </group>
             {/* Two main engines, with their glow and plumes */}
             <group position={[0, -2.6, 0]}>
-                <EngineGlow power={() => state.current.firing1 * (0.42 + 0.22 * state.current.pressure) + state.current.igniter * 0.8} size={() => 6 + 9 * state.current.pressure} color={IGNITER_COLOR(state)} />
+                <EngineGlow power={() => state.current.firing1 * 0.22 + state.current.igniter * 0.8} size={() => 3 + 3 * state.current.pressure} color={IGNITER_COLOR(state)} />
             </group>
             {[-0.86, 0.86].map((x) => (
-                <group key={x}>
-                    <MainEngine bell={bell1} skin={nozzle1} soot={soot} metal={metal} dark={dark} x={x} />
-                    <group position={[x, 0.2 - 2.25, 0]}>
-                        <Plume
-                            power={() => state.current.firing1 * (0.95 - 0.45 * (1 - state.current.pressure))}
-                            length={() => 32 + 44 * (1 - state.current.pressure) ** 1.5}
-                            radius={() => 1.55 + 7.2 * (1 - state.current.pressure) ** 2.2}
-                            core="#fff3d0"
-                            edge="#f0782a"
-                            diamonds={0.45}
-                            soot={0.8}
-                        />
-                        <Plume power={() => state.current.firing1 * 0.92} length={() => 15 + 8 * (1 - state.current.pressure)} radius={() => 0.95 + 1.4 * (1 - state.current.pressure) ** 2} core="#fffaf0" edge="#ffb347" diamonds={0.8} additive />
-                    </group>
-                </group>
+                <MainEngine key={x} bell={bell1} skin={nozzle1} soot={soot} metal={metal} dark={dark} x={x} />
             ))}
+            {/* Both engines' exhaust, one volume: twin cores merging downstream; length and width follow
+                the ambient pressure (tight and opaque at the pad, wide and faint near vacuum). */}
+            <group position={[0, 0.2 - 2.25, 0]}>
+                <VolumePlume
+                    kind="kerosene"
+                    quality={quality}
+                    nozzle={0.68}
+                    separation={0.86}
+                    power={() => state.current.firing1}
+                    pressure={() => state.current.pressure}
+                    length={() => 40 + 64 * (1 - state.current.pressure) ** 1.5}
+                    radius={() => 3.0 + 15 * (1 - state.current.pressure) ** 2}
+                />
+            </group>
         </>
     );
 
@@ -676,18 +686,18 @@ export default function LaunchVehicle({ state, showStage1 = true, showFairing = 
                         </mesh>
                         <mesh geometry={bell2} material={nozzle2} />
                         <mesh geometry={bell2} material={soot} scale={[0.985, 1, 0.985]} />
-                        <group position={[0, -2.2, 0]}>
-                            {/* Hydrogen-oxygen exhaust in vacuum is almost invisible: a faint blue cone. */}
-                            <Plume power={() => (state.current.firing2 ? 0.09 : 0)} length={() => 16} radius={() => 2.4} core="#e4ecff" edge="#6d86d8" additive />
-                            <Plume power={() => (state.current.firing2 ? 0.8 : 0)} length={() => 5} radius={() => 0.7} core="#ffffff" edge="#b9c8ff" additive />
-                        </group>
+
                     </group>
                 ))}
                 <group position={[0, STACK.interstageTop - 3.0, 0]}>
-                    <EngineGlow power={() => (state.current.firing2 ? 0.5 : 0)} size={() => 3.2} color="#cfdcff" />
+                    <EngineGlow power={() => (state.current.firing2 ? 0.3 : 0)} size={() => 2.2} color="#cfdcff" />
+                </group>
+                {/* Hydrogen–oxygen exhaust in vacuum: almost transparent, a faint blue-violet glow. */}
+                <group position={[0, STACK.interstageTop - 0.55 - 2.2, 0]}>
+                    <VolumePlume kind="hydrogen" quality={quality} nozzle={0.62} separation={0.7} power={() => (state.current.firing2 ? 1 : 0)} pressure={() => 0} length={() => 22} radius={() => 5} />
                 </group>
                 {/* Conical adapter to the fairing diameter, and the fairing separation ring */}
-                <Tube r={STACK.rUpper} top={STACK.rFairing} h={STACK.adapterTop - STACK.upperTop} y={STACK.upperTop} mat={paintFwd} />
+                <Tube r={STACK.rUpper} top={STACK.rFairing} h={STACK.adapterTop - STACK.upperTop} y={STACK.upperTop} mat={paintAdapter} />
                 <Tube r={STACK.rFairing + 0.02} h={0.16} y={STACK.adapterTop - 0.08} mat={ring} />
             </group>
 
@@ -751,38 +761,6 @@ function IGNITER_COLOR(state: MutableRefObject<VehicleState>) {
     const green = new Color('#7dff9a');
     const c = new Color();
     return () => c.copy(warm).lerp(green, Math.min(1, state.current.igniter * 1.4));
-}
-
-/** Frost on a cryogenic tank: white flakes with gaps, transparent, drawn once. */
-function useFrostTexture() {
-    const t = useMemo(() => {
-        if (typeof document === 'undefined') return null;
-        const c = document.createElement('canvas');
-        c.width = 256;
-        c.height = 512;
-        const g = c.getContext('2d')!;
-        let seed = 17;
-        const rnd = () => {
-            seed = (seed * 1664525 + 1013904223) >>> 0;
-            return seed / 4294967296;
-        };
-        g.clearRect(0, 0, 256, 512);
-        for (let i = 0; i < 2600; i++) {
-            const x = rnd() * 256;
-            const y = rnd() * 512;
-            const r = 1 + rnd() * 5;
-            g.fillStyle = `rgba(245,248,252,${0.22 + rnd() * 0.45})`;
-            g.beginPath();
-            g.ellipse(x, y, r, r * (0.4 + rnd()), rnd() * Math.PI, 0, Math.PI * 2);
-            g.fill();
-        }
-        const tex = new CanvasTexture(c);
-        tex.wrapS = RepeatWrapping;
-        tex.repeat.set(2, 1);
-        return tex;
-    }, []);
-    useEffect(() => () => t?.dispose(), [t]);
-    return t ?? undefined;
 }
 
 /**
@@ -885,8 +863,7 @@ export function KickStage({ state }: { state: MutableRefObject<VehicleState> }) 
                 <mesh geometry={bell} material={nozzle} />
                 <group position={[0, -0.7, 0]}>
                     {/* A solid motor in vacuum: a bright core and a broad, faint, rapidly expanding glow */}
-                    <Plume power={() => (state.current.firingKick ? 0.16 : 0)} length={() => 9} radius={() => 2.6} core="#fff7e8" edge="#ffc27a" additive />
-                    <Plume power={() => (state.current.firingKick ? 0.9 : 0)} length={() => 6} radius={() => 0.6} core="#ffffff" edge="#ffd38a" additive />
+                    <VolumePlume kind="solid" nozzle={0.36} power={() => (state.current.firingKick ? 1 : 0)} pressure={() => 0} length={() => 14} radius={() => 3.2} />
                 </group>
             </group>
             {/* Spacecraft attach fitting with its clamp band */}

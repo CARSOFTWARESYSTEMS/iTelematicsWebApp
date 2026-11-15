@@ -19,6 +19,17 @@ import styles from './SolarSystemExperience.module.css';
 function ClockDriver({ clock, playing }: { clock: MissionClock; playing: boolean }) {
     const invalidate = useThree((s) => s.invalidate);
     useEffect(() => clock.setFrameRequester(invalidate), [clock, invalidate]);
+    // Development only: window.__solarSeek(storySeconds) jumps within the current programme (frame reviews).
+    useEffect(() => {
+        if (process.env.NODE_ENV === 'production') return;
+        const w = window as Window & { __solarSeek?: (t: number) => void; __solarStory?: () => { t: number; total: number; met: number } };
+        w.__solarSeek = (t: number) => clock.seek(t);
+        w.__solarStory = () => ({ t: clock.time, total: clock.duration, met: clock.met });
+        return () => {
+            delete w.__solarSeek;
+            delete w.__solarStory;
+        };
+    }, [clock]);
     // Development only: ?solar-speed=N plays the story N times faster, for reviewing the whole mission.
     const speed = process.env.NODE_ENV !== 'production' && typeof window !== 'undefined' ? Number(new URLSearchParams(window.location.search).get('solar-speed')) || 1 : 1;
     useFrame((_, delta) => {
@@ -86,7 +97,7 @@ export default function SolarCanvas({
                     }}
                     aria-hidden="true"
                 >
-                    <GlobeTextures>
+                    <GlobeTextures hd={high}>
                         <SiteTextures>
                             <SolarScene clock={clock} quality={quality} reducedMotion={reducedMotion} focusOverride={focus} shift={shift} shiftY={shiftY} />
                         </SiteTextures>

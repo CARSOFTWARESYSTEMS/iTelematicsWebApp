@@ -12,6 +12,8 @@ export class MissionClock {
     private total: number;
     private ticks = new Set<() => void>();
     private requestFrame: () => void = () => {};
+    /** Incremented by seek(): the scene cuts (no camera blend) after a jump. */
+    seeks = 0;
 
     constructor(program: readonly Segment[], private readonly tickSeconds = 0.2) {
         this.program = program;
@@ -73,6 +75,14 @@ export class MissionClock {
 
     replay() {
         this.t = 0;
+        this.emit();
+        this.requestFrame();
+    }
+
+    /** Jumps to story time `t` (seconds from the start of the programme). */
+    seek(t: number) {
+        this.t = Math.max(0, Math.min(this.total, t));
+        this.seeks++;
         this.emit();
         this.requestFrame();
     }

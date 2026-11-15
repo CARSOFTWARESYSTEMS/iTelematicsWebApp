@@ -38,8 +38,13 @@ export const LOGDEPTH = {
 type Maps = { day: Texture; night: Texture; clouds: Texture };
 const MapsContext = createContext<Maps | null>(null);
 
-/** Loads the Earth imagery once per canvas. Without it (offline) the globe falls back to a plain shaded sphere. */
-export function GlobeTextures({ children }: { children: ReactNode }) {
+/**
+ * Loads the Earth imagery once per canvas. Without it (offline) the globe falls back to a plain shaded
+ * sphere. The 2k maps (shared with the other experiences) load first; with `hd`, this experience's own
+ * 8k day and cloud maps and 4k night lights (Solar System Scope, CC BY 4.0) replace them once loaded,
+ * so the opening never waits for them.
+ */
+export function GlobeTextures({ children, hd = false }: { children: ReactNode; hd?: boolean }) {
     const { gl, invalidate } = useThree();
     const [maps, setMaps] = useState<Maps | null>(null);
     useEffect(() => {
@@ -47,27 +52,28 @@ export function GlobeTextures({ children }: { children: ReactNode }) {
         const loader = new TextureLoader();
         const aniso = Math.min(8, gl.capabilities.getMaxAnisotropy());
         const load = (file: string, srgb: boolean) =>
-            loader.loadAsync(BASE + file).then((t) => {
+            loader.loadAsync(file).then((t) => {
                 if (srgb) t.colorSpace = SRGBColorSpace;
                 t.anisotropy = aniso;
                 return t;
             });
-        Promise.all([load('earth-day-2k.jpg', true), load('earth-night-2k.jpg', true), load('earth-clouds-2k.jpg', false)])
+        const set = (list: Texture[], next: Maps) => {
+            if (!alive) return list.forEach((t) => t.dispose());
+            setMaps(next);
+            invalidate();
+        };
+        Promise.all([load(BASE + 'earth-day-2k.jpg', true), load(BASE + 'earth-night-2k.jpg', true), load(BASE + 'earth-clouds-2k.jpg', false)])
             .then(([day, night, clouds]) => {
-                if (!alive) {
-                    day.dispose();
-                    night.dispose();
-                    clouds.dispose();
-                    return;
-                }
-                setMaps({ day, night, clouds });
-                invalidate();
+                set([day, night, clouds], { day, night, clouds });
+                if (!hd || !alive) return;
+                const HD = '/images/solar-system/';
+                return Promise.all([load(HD + 'earth-day-8k.jpg', true), load(HD + 'earth-night-4k.jpg', true), load(HD + 'earth-clouds-8k.jpg', false)]).then(([d8, n4, c8]) => set([d8, n4, c8], { day: d8, night: n4, clouds: c8 }));
             })
             .catch(() => {});
         return () => {
             alive = false;
         };
-    }, [gl, invalidate]);
+    }, [gl, invalidate, hd]);
     useEffect(
         () => () => {
             maps?.day.dispose();
@@ -108,6 +114,8 @@ export function Globe({
 }) {
     const maps = useEarthMaps();
     const spinRef = useRef<Mesh>(null);
+    const camera = useThree((st) => st.camera);
+    const centre = useMemo(() => new Vector3(), []);
     const material = useMemo(
         () =>
             new ShaderMaterial({
@@ -118,6 +126,7 @@ export function Globe({
                     uHasMaps: { value: maps ? 1 : 0 },
                     uSun: { value: new Vector3(0, 1, 0) },
                     uOpacity: { value: 1 },
+                    uDetail: { value: 0 },
                 },
                 vertexShader: /* glsl */ `
                     ${LOGDEPTH.vPars}
@@ -133,8 +142,13 @@ export function Globe({
                 fragmentShader: /* glsl */ `
                     ${LOGDEPTH.fPars}
                     uniform sampler2D uDay; uniform sampler2D uNight; uniform sampler2D uClouds;
-                    uniform float uHasMaps; uniform vec3 uSun; uniform float uOpacity;
+                    uniform float uHasMaps; uniform vec3 uSun; uniform float uOpacity; uniform float uDetail;
                     varying vec2 vUv; varying vec3 vN; varying vec3 vPos;
+                    float gh(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
+                    float gn(vec2 p) { vec2 i = floor(p); vec2 f = fract(p); f = f * f * (3.0 - 2.0 * f);
+                        return mix(mix(gh(i), gh(i + vec2(1.0, 0.0)), f.x), mix(gh(i + vec2(0.0, 1.0)), gh(i + vec2(1.0, 1.0)), f.x), f.y); }
+                    // Fine cloud structure below the map's resolution (cells of a few km), for low-orbit views.
+                    float cloudFine(vec2 uv) { vec2 p = uv * vec2(6000.0, 3000.0); return 0.5 * gn(p) + 0.3 * gn(p * 2.63 + 7.1) + 0.2 * gn(p * 6.9 + 3.3); }
                     void main() {
                         ${LOGDEPTH.f}
                         vec3 n = normalize(vN);
@@ -143,11 +157,17 @@ export function Globe({
                         float day = smoothstep(-0.08, 0.22, d);
                         vec3 dayCol = uHasMaps > 0.5 ? texture2D(uDay, vUv).rgb : vec3(0.08, 0.16, 0.3);
                         float cloud = uHasMaps > 0.5 ? texture2D(uClouds, vUv).r : 0.0;
+                        float fine = 0.5;
+                        if (uDetail > 0.001) {
+                            fine = cloudFine(vUv);
+                            // Erode and build the edges of the mapped clouds; clear sky stays clear.
+                            cloud = clamp(cloud + (fine - 0.5) * 1.5 * uDetail * smoothstep(0.03, 0.35, cloud), 0.0, 1.0);
+                        }
                         vec3 nightCol = uHasMaps > 0.5 ? texture2D(uNight, vUv).rgb : vec3(0.0);
                         float ocean = smoothstep(0.015, 0.09, dayCol.b - max(dayCol.r, dayCol.g));
                         float glint = pow(max(dot(n, normalize(uSun + v)), 0.0), 60.0) * ocean * (1.0 - cloud);
                         vec3 col = dayCol * (0.03 + 1.25 * max(d, 0.0)) + vec3(1.0, 0.95, 0.85) * glint * 0.7 * day;
-                        col = mix(col, vec3(0.04 + 1.1 * max(d, 0.0)), cloud * 0.82);
+                        col = mix(col, vec3(0.04 + 1.1 * max(d, 0.0)) * (1.0 + (fine - 0.5) * 0.5 * uDetail), cloud * 0.86);
                         col += nightCol * vec3(1.0, 0.78, 0.5) * (1.0 - day) * (1.0 - cloud) * 1.4;
                         float rim = pow(1.0 - max(dot(n, v), 0.0), 3.5);
                         col += vec3(0.32, 0.56, 1.0) * rim * (0.12 + 0.88 * day) * 0.8;
@@ -190,6 +210,12 @@ export function Globe({
         halo.uniforms.uOpacity.value = o;
         (material.uniforms.uSun.value as Vector3).copy(sun.current);
         (halo.uniforms.uSun.value as Vector3).copy(sun.current);
+        // Fine cloud detail only when the camera is low over the globe.
+        if (spinRef.current) {
+            spinRef.current.getWorldPosition(centre);
+            const alt = camera.position.distanceTo(centre) - radius;
+            material.uniforms.uDetail.value = 1 - Math.min(1, Math.max(0, (alt - 4e5) / 3e6));
+        }
         if (spinRef.current && spin) spinRef.current.rotation.y = spin();
         if (spinRef.current) spinRef.current.visible = o > 0.002;
     });

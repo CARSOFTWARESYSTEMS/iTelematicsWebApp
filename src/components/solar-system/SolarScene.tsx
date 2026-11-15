@@ -19,7 +19,9 @@ import { elements } from '@/lib/solar-system/orbit';
 import { attitudeAt } from '@/lib/solar-system/spacecraft';
 import { VEHICLE } from '@/lib/solar-system/vehicle';
 import { Globe } from './environment';
-import { AtmosphereSky, SkyEnvironment } from './atmosphere';
+import { AtmosphereSky } from './atmosphere';
+import { HORIZON, SUN, SUN_IRRADIANCE } from './sun';
+import { Exposure, LiveReflections, PadEnvironment, PhotoSky, PostFX } from './render';
 import { Reflections } from '@/components/space-twin/environment';
 import LaunchSite, { MOUNT_TOP, terrainHeight } from './LaunchSite';
 import LaunchVehicle, { KickStage, STACK, type VehicleState } from './LaunchVehicle';
@@ -34,8 +36,6 @@ import { useLabelAnchor } from '@/components/space-twin/labels';
 
 const Y = new Vector3(0, 1, 0);
 const Z = new Vector3(0, 0, 1);
-/** Morning Sun at the site: east-south-east, 30° up (site frame = inertial frame at liftoff). */
-export const SUN = new Vector3(0.814, 0.5, 0.296).normalize();
 const SITE_LON_DEG = -61;
 
 /** Earth model orientation placing the site (10° N) at +Y with east along +X and north along −Z. */
@@ -72,14 +72,20 @@ interface PadCam {
 const padCam = (c: PadCam): Cam => ({ pos: v3(-c.d * Math.sin(c.A * DEG), c.h, c.d * Math.cos(c.A * DEG)), target: v3(0, c.ty, 0), fov: c.fov });
 const mixCam = (a: PadCam, b: PadCam, k: number): PadCam => ({ A: a.A + (b.A - a.A) * k, d: a.d * Math.pow(b.d / a.d, k), h: a.h + (b.h - a.h) * k, ty: a.ty + (b.ty - a.ty) * k, fov: a.fov + (b.fov - a.fov) * k });
 
-/** Key compositions of the pad (the vehicle and launch table are 69 m tall). */
+/**
+ * Key compositions of the pad (the vehicle and launch table are 69 m tall). The hero frames are long-
+ * lens views from a camera platform 720 m south-south-west, as launch photographers shoot them: the
+ * compression stacks the tower, the vehicle and the clouds into one dense frame, the vehicle fills about
+ * two thirds of the height, and the camera is high enough (12 m) to see the pad over the scrub.
+ */
 const PAD = {
-    establish: { A: 26, d: 320, h: 24, ty: 31, fov: 30 },
-    establishEnd: { A: 23, d: 305, h: 24, ty: 32, fov: 30 },
-    reveal: { A: 38, d: 118, h: 30, ty: 39, fov: 34 },
+    establish: { A: 30, d: 1400, h: 14, ty: 30, fov: 12 },
+    establishEnd: { A: 28, d: 1250, h: 14, ty: 31, fov: 12 },
+    reveal: { A: 38, d: 230, h: 18, ty: 36, fov: 20 },
+    engineDetail: { A: 22, d: 34, h: 5.5, ty: 9.5, fov: 34 },
     payloadId: { A: 2, d: 36, h: 64, ty: 62.5, fov: 36 },
-    full: { A: 18, d: 235, h: 10, ty: 34, fov: 30 },
-    fullEnd: { A: 15, d: 228, h: 10, ty: 34, fov: 30 },
+    full: { A: 14, d: 720, h: 12, ty: 33, fov: 8.2 },
+    fullEnd: { A: 13, d: 700, h: 12, ty: 33.5, fov: 8.2 },
     fairing: { A: 0, d: 31, h: 63, ty: 62.5, fov: 40 },
     payload: { A: 4, d: 21, h: 61.5, ty: 60.2, fov: 40 },
     payloadEnd: { A: 14, d: 18.5, h: 61, ty: 59.8, fov: 40 },
@@ -123,6 +129,16 @@ function fitPad(c: PadCam, aspect: number): PadCam {
     return { ...c, d: c.d * (1 + (1.2 - Math.max(0.55, aspect)) * 0.35) };
 }
 
+/**
+ * Camera distance that keeps a subject of half-extent `half` (m) inside the frame, whichever way it lies
+ * on screen: the narrower of the vertical and horizontal half-angles, with a margin.
+ */
+export function fitDistance(half: number, fovDeg: number, aspect: number, margin = 1.12) {
+    const v = (fovDeg * DEG) / 2;
+    const h = Math.atan(Math.tan(v) * aspect);
+    return (half * margin) / Math.tan(Math.min(v, h));
+}
+
 const fit = (pos: Vector3, target: Vector3, size: number, max: number) => Math.min(max, Math.max(0.6, (2 * Math.atan(size / pos.distanceTo(target)) * 180) / Math.PI));
 
 /** The camera programme for each shot. */
@@ -145,8 +161,10 @@ function shotCamera(f: Frame): Cam {
             return padCam(mixCam(fitPad(PAD.establish, f.aspect), fitPad(PAD.establishEnd, f.aspect), p));
         case 'reveal':
             return padCam(mixCam(fitPad(PAD.establishEnd, f.aspect), PAD.reveal, glide(p)));
+        case 'engineDetail':
+            return padCam(mixCam(PAD.reveal, PAD.engineDetail, glide(p)));
         case 'payloadId':
-            return padCam(mixCam(PAD.reveal, PAD.payloadId, glide(p)));
+            return padCam(mixCam(PAD.engineDetail, PAD.payloadId, glide(p)));
         case 'fullVehicle':
             return padCam(mixCam(PAD.payloadId, fitPad(PAD.full, f.aspect), glide(p)));
         case 'ready':
@@ -184,15 +202,17 @@ function shotCamera(f: Frame): Cam {
         case 'payload':
             return { pos: ring(6.5, 0.8 + 0.25 * p, 53), target: v3(0, MOUNT_TOP + 51.5, 0), fov: 48 };
         case 'liftoff': {
-            // A remote camera at the perimeter road, low, looking up as the vehicle clears the tower.
-            const pos = v3(70, terrainHeight(70, 262) + 2.5, 262);
-            const target = at(26, 0, 0);
-            return { pos, target, fov: fit(pos, target, 64, 34) };
+            // The long-lens hero camera: the vehicle on the pad through the countdown, then rising out of
+            // its own ground cloud past the tower. The camera tilts to follow and widens as it climbs so
+            // the nose, the plume and the top of the cloud stay in frame.
+            const alt = Math.max(0, f.P.y - MOUNT_TOP);
+            const k = smooth(alt / 150);
+            return padCam(fitPad({ A: 14, d: 720, h: 12, ty: 33 + 0.62 * alt, fov: 8.2 + 6 * k }, f.aspect));
         }
         case 'engineClose':
-            // Low and close on the sunlit side: the engine section, the launch table and the steam, with
-            // the igniter flash and the exhaust visible under the table, and the trench exit behind.
-            return padCam({ A: 4 + 5 * p, d: 56, h: 7, ty: 15 + Math.max(0, f.P.y - MOUNT_TOP) * 0.8, fov: 34 });
+            // At the edge of the ground cloud: the engine section, the launch table and the trench exit,
+            // then tilting up with the vehicle as it rises.
+            return padCam({ A: 10 + 3 * p, d: 260, h: 8, ty: 13 + Math.max(0, f.P.y - MOUNT_TOP) * 0.8, fov: 11 });
         case 'track': {
             // A long-lens tracking camera 2.7 km from the pad, as in launch coverage: the vehicle and its
             // plume fill a good part of the frame.
@@ -201,9 +221,16 @@ function shotCamera(f: Frame): Cam {
             return { pos, target, fov: fit(pos, target, 70, 30) };
         }
         case 'chase': {
-            // Beside the first stage, framing the engines, the plume and most of the body.
+            // Beside the vehicle, framing the whole vehicle from nose to the bright upper plume: the subject
+            // spans about −20 m (plume) to 61 m (nose), so it is fitted to the frame whatever the aspect.
             const a = 0.3 * p;
-            return { pos: at(6, 72 * Math.cos(a), -22 - 26 * Math.sin(a)), target: at(10, 0, 0), fov: 42 };
+            const target = at(21, 0, 0);
+            const dir = S.clone()
+                .multiplyScalar(Math.cos(a))
+                .addScaledVector(O, -0.32 - 0.36 * Math.sin(a))
+                .addScaledVector(A, -0.08)
+                .normalize();
+            return { pos: target.clone().addScaledVector(dir, fitDistance(41, 40, f.aspect)), target, fov: 40 };
         }
         case 'onboard':
             // Mounted on the sunlit side of the interstage, looking back along the stage at the plume and the Earth.
@@ -213,15 +240,53 @@ function shotCamera(f: Frame): Cam {
         case 'high':
             // Beside and above the vehicle, looking ahead and down: the vehicle, its plume and the curving Earth.
             return { pos: at(-35, 110, -45), target: at(30, 0, 25), fov: 48 };
-        case 'staging':
-            // Ahead of the separation plane and to the side, looking back at the gap opening.
-            // Wide enough for both stages as the gap opens, then following the upper stage.
-            return { pos: at(44 - 2 * p, 52, -16), target: at(30 + 6 * smooth(p), 0, 0), fov: 46 };
-        case 'fairingSep':
-            return { pos: at(52, 34, -12), target: at(52, 0, 0), fov: 48 };
+        case 'staging': {
+            // A medium-wide side view that keeps both stages in frame while the gap opens (the spent stage
+            // falls back as the upper stage accelerates), then settles on the upper stage alone.
+            const gap = stage1AwayAt(f.met);
+            const up = 45; // upper stage and payload, centre (vehicle axis, m)
+            const first = 16 - gap; // first stage, centre
+            const solo = smooth((gap - 70) / 140);
+            const centre = (up + first) / 2 + ((up - (up + first) / 2) * solo);
+            const half = ((up - first) / 2 + 17) * (1 - solo) + 14 * solo;
+            const dir = S.clone().multiplyScalar(0.86).addScaledVector(O, -0.42).addScaledVector(A, 0.22).normalize();
+            const target = at(centre, 0, 0);
+            return { pos: target.clone().addScaledVector(dir, fitDistance(half, 40, f.aspect)), target, fov: 40, up: v3(P.x, P.y + R_EARTH, P.z).normalize() };
+        }
+        case 'fairingSep': {
+            // Side-on and wide enough for both halves as they open on their hinges and fall away behind
+            // the accelerating upper stage; the frame widens with the measured drift distance.
+            const e = EV();
+            const tf = f.met - e.fair - 1.5;
+            const drift = tf > 0 ? 2 * tf + 0.5 * 7.4 * tf * tf : 0;
+            const centre = 51 - Math.min(drift, 160) * 0.5;
+            const half = 11 + Math.min(drift, 160) * 0.55;
+            const dir = S.clone().multiplyScalar(0.9).addScaledVector(O, -0.36).addScaledVector(A, 0.12).normalize();
+            const target = at(centre, 0, 0);
+            return { pos: target.clone().addScaledVector(dir, fitDistance(half, 40, f.aspect)), target, fov: 40, up: v3(P.x, P.y + R_EARTH, P.z).normalize() };
+        }
         case 'insertion':
-            // Behind and above, looking along the orbit: the vehicle against the Earth and the horizon ahead.
-            return { pos: at(-75, 35, -40), target: at(70, 0, 20), fov: 50 };
+        case 'orbitFollow': {
+            // Over the shoulder of the upper stage and payload (about 22 m long after the fairing has gone):
+            // behind, beside and above it, so the Earth fills the lower frame and the horizon runs above.
+            const target = at(45, 0, 0);
+            const dir = A.clone()
+                .multiplyScalar(-0.72)
+                .addScaledVector(S, -0.55)
+                .addScaledVector(O, -0.42)
+                .normalize();
+            // Horizon level: "up" is away from the Earth's centre (in the pad frame the centre is R below).
+            const up = f.scene === 'ascent' ? v3(P.x, P.y + R_EARTH, P.z).normalize() : P.clone().normalize();
+            return { pos: target.clone().addScaledVector(dir, fitDistance(14, 38, f.aspect)), target, fov: 38, up };
+        }
+        case 'departRecede': {
+            // Looking back past the kick stage and spacecraft at the Earth they are leaving: the camera sits
+            // on the far side of the stack from the Earth, so the planet shrinks behind it.
+            const target = at(51, 0, 0);
+            const out = P.clone().normalize();
+            const dir = out.multiplyScalar(0.82).addScaledVector(S, 0.42).addScaledVector(A, -0.38).normalize();
+            return { pos: target.clone().addScaledVector(dir, fitDistance(4.2, 36, f.aspect)), target, fov: 36, up: A.clone() };
+        }
         case 'orbitWide': {
             const a = 0.25 * p;
             return { pos: v3(-1.1 * R, 1.9 * R, 2.6 * R).applyAxisAngle(Y, a), target: v3(0.1 * R, 0.25 * R, 0), fov: 40 };
@@ -243,7 +308,8 @@ function shotCamera(f: Frame): Cam {
         case 'burnChase':
             return { pos: at(28, 32, -12), target: at(44, 0, 0), fov: 44 };
         case 'kick':
-            return { pos: at(44, 15, -5), target: at(50, 0, 0), fov: 46 };
+            // Side-on to the kick stage and spacecraft, so the solid motor's exhaust runs across the frame.
+            return { pos: at(50, 17, -4), target: at(47, 0, 0), fov: 40, up: P.clone().normalize() };
         case 'sepClose':
             return { pos: at(2.2, 6.5, -5), target: at(1, 0, 0), fov: 40 };
         case 'deployWide':
@@ -457,6 +523,13 @@ function cutFor(shot: ShotId, progress: number, focus: Focus | undefined, met: n
     return { part: null, amount: 0 };
 }
 
+/** Distance the spent first stage has fallen behind the upper stage (m), 0 before separation. */
+function stage1AwayAt(met: number) {
+    const e = EV();
+    const aUs = 7.4;
+    return met >= e.sep ? 1.5 * (met - e.sep) + (met > e.usIgn ? 0.5 * aUs * (met - e.usIgn) ** 2 : 0) : 0;
+}
+
 /** Configures the shared vehicle state from mission time. */
 function updateVehicle(state: VehicleState, met: number, focus: Focus | undefined, shot: ShotId, time: number, progress: number) {
     const e = EV();
@@ -516,6 +589,7 @@ export default function SolarScene({ clock, quality, reducedMotion, focusOverrid
     const [, force] = useForce();
     const blend = useRef<{ from: ShotId | null; t: number }>({ from: null, t: 1 });
     const lastShot = useRef<ShotId | null>(null);
+    const seekSeen = useRef(0);
     const sun = useRef(SUN.clone());
     const gl = useThree((s) => s.gl);
     const invalidate = useThree((s) => s.invalidate);
@@ -632,7 +706,12 @@ export default function SolarScene({ clock, quality, reducedMotion, focusOverrid
         f.S.copy(Z);
         f.O.crossVectors(f.A, f.S).normalize();
 
-        // Camera: blend between shots within a scene, cut between scenes.
+        // Camera: blend between shots within a scene, cut between scenes (and after a seek).
+        if (seekSeen.current !== clock.seeks) {
+            seekSeen.current = clock.seeks;
+            blend.current = { from: null, t: 1 };
+            lastShot.current = seg.shot;
+        }
         if (sceneRef.current !== seg.scene) {
             sceneRef.current = seg.scene;
             blend.current = { from: null, t: 1 };
@@ -716,18 +795,24 @@ export default function SolarScene({ clock, quality, reducedMotion, focusOverrid
         return d.normalize().multiplyScalar(6.371e6 + Math.max(1, alt));
     };
 
+    // Display exposure per scene (the HDR frame is tone mapped once, at the end).
+    const exposure = () => EXPOSURE[sceneRef.current] ?? 1;
+
     return (
         <>
+            {quality === 'high' ? <PostFX exposure={exposure} /> : <Exposure exposure={exposure} />}
             {scene === 'intro' && <IntroView sun={sun} />}
             {(scene === 'pad' || scene === 'ascent') && (
                 <group>
                     <AtmosphereSky origin={skyOrigin} sun={SUN} quality={quality} />
+                    {/* The photographed sky near the ground, fading into the scattering sky above the clouds. */}
+                    <PhotoSky opacity={() => 1 - smooth((camAltitude() - 1200) / 3800)} quality={quality} />
                     <Haze altitude={camAltitude} />
                     <Stars count={quality === 'high' ? 2200 : 1100} brightness={() => smooth((camAltitude() - 40000) / 40000)} />
-                    <SkyEnvironment sun={SUN} />
+                    <PadEnvironment altitude={camAltitude} />
                     <directionalLight
                         position={[SUN.x * 400, SUN.y * 400, SUN.z * 400]}
-                        intensity={3.8}
+                        intensity={SUN_IRRADIANCE}
                         color="#fff5e8"
                         castShadow={quality === 'high'}
                         shadow-mapSize={[2048, 2048]}
@@ -742,7 +827,7 @@ export default function SolarScene({ clock, quality, reducedMotion, focusOverrid
                     <Globe radius={R_EARTH} position={[0, -R_EARTH - 40, 0]} orientation={SITE_Q} sun={sun} opacity={globeOpacity} />
                     <LaunchSite met={met} head={P} groundOpacity={groundOpacity} quality={quality} />
                     <VehicleAt P={P} A={() => frame.current.A}>
-                        <LaunchVehicle state={state} payloadLabels={payloadLabels} />
+                        <LaunchVehicle state={state} payloadLabels={payloadLabels} quality={quality} />
                     </VehicleAt>
                     <EngineLight state={state} P={P} />
                 </group>
@@ -763,6 +848,9 @@ export default function SolarScene({ clock, quality, reducedMotion, focusOverrid
     );
 }
 
+/** Display exposure by scene: daylight at the pad; sunlit hardware against black space elsewhere. */
+const EXPOSURE: Partial<Record<SceneId, number>> = { pad: 1, ascent: 1 };
+
 /** Re-renders the scene when the playing segment switches to another scene. */
 function useForce() {
     const [n, set] = useState(0);
@@ -771,7 +859,7 @@ function useForce() {
 
 /** Aerial perspective: haze over the ground that thins with the camera's altitude. */
 function Haze({ altitude }: { altitude: () => number }) {
-    const fog = useMemo(() => new FogExp2(new Color('#b3c5d9'), 3.2e-5), []);
+    const fog = useMemo(() => new FogExp2(HORIZON.clone(), 3.2e-5), []);
     const scene = useThree((s) => s.scene);
     useEffect(() => {
         const before = scene.fog;
@@ -799,7 +887,8 @@ function HemiByAltitude({ altitude }: { altitude: () => number }) {
         const k = smooth((altitude() - 10000) / 40000);
         l.color.copy(daySky).lerp(spaceSky, k);
         l.groundColor.copy(dayGround).lerp(earthshine, k);
-        l.intensity = 0.95 - 0.35 * k;
+        // Near the ground the photographed sky's image-based light carries the skylight.
+        l.intensity = 0.12 + 0.48 * smooth((altitude() - 1500) / 20000);
     });
     return <hemisphereLight ref={ref} args={['#a9c8ec', '#6d6250', 0.95]} />;
 }
@@ -881,25 +970,30 @@ function InertialView({ frame, state, sun, quality }: { frame: MutableRefObject<
         while (n < departureTimes.length && departureTimes[n] <= t) n++;
         return n;
     };
+    // Scientific views (orbit and trajectory diagrams) versus the cinematic follow views.
     const wide = () => frame.current.shot === 'orbitWide' || frame.current.shot === 'departureWide';
     const vehicle = useRef<Group>(null);
+    const paths = useRef<Group>(null);
     useFrame(() => {
         if (vehicle.current) vehicle.current.visible = !wide();
+        if (paths.current) paths.current.visible = wide();
     });
     return (
         <>
             <Stars count={quality === 'high' ? 2600 : 1200} brightness={() => 1} />
-            <Reflections sun={[SUN.x, SUN.y, SUN.z]} />
-            <directionalLight position={[SUN.x * 1e9, SUN.y * 1e9, SUN.z * 1e9]} intensity={2.6} color="#fff6ea" />
+            <LiveReflections at={() => frame.current.P} hide={vehicle} />
+            <directionalLight position={[SUN.x * 1e9, SUN.y * 1e9, SUN.z * 1e9]} intensity={SUN_IRRADIANCE} color="#fff6ea" />
             <Earthshine position={() => frame.current.P} />
             <Globe radius={R_EARTH} orientation={SITE_Q} spin={() => OMEGA_EARTH * (frame.current.met + SEQUENCE.ignitionLead)} sun={sun} />
-            <Path points={ascent} color="#FBBF24" opacity={0.85} />
-            <Path points={parking} color="#e2e8f0" opacity={0.75} />
-            <Path points={departure} color="#22D3EE" opacity={0.95} count={flown} />
-            <Path points={departure} color="#22D3EE" opacity={0.25} dashed />
+            <group ref={paths}>
+                <Path points={ascent} color="#FBBF24" opacity={0.85} />
+                <Path points={parking} color="#e2e8f0" opacity={0.75} />
+                <Path points={departure} color="#22D3EE" opacity={0.95} count={flown} />
+                <Path points={departure} color="#22D3EE" opacity={0.25} dashed />
+            </group>
             <group ref={vehicle}>
                 <VehicleAt P={() => frame.current.P} A={() => frame.current.A}>
-                    <LaunchVehicle state={state} showStage1={false} showFairing={false} />
+                    <LaunchVehicle state={state} showStage1={false} showFairing={false} quality={quality} />
                 </VehicleAt>
             </group>
             <Marker position={() => frame.current.P} label={wide() ? 'solar-vehicle' : null} size={0.022} />
@@ -935,9 +1029,9 @@ function DeployView({ frame, state, sun, quality }: { frame: MutableRefObject<Fr
     return (
         <>
             <Stars count={quality === 'high' ? 2600 : 1200} brightness={() => 1} />
-            <Reflections sun={[SUN.x, SUN.y, SUN.z]} />
-            <directionalLight position={[SUN.x * 1e9, SUN.y * 1e9, SUN.z * 1e9]} intensity={2.8} color="#fff6ea" />
-            <Earthshine position={() => frame.current.P} intensity={1.1} />
+            <LiveReflections at={() => frame.current.P} hide={craft} />
+            <directionalLight position={[SUN.x * 1e9, SUN.y * 1e9, SUN.z * 1e9]} intensity={SUN_IRRADIANCE} color="#fff6ea" />
+            <Earthshine position={() => frame.current.P} intensity={0.8} />
             <Globe radius={R_EARTH} orientation={SITE_Q} spin={() => OMEGA_EARTH * (frame.current.met + SEQUENCE.ignitionLead)} sun={sun} />
             <group ref={craft}>
                 <SpacecraftModel state={state} />

@@ -31,6 +31,7 @@ export type ShotId =
     | 'earthApproach'
     | 'establish'
     | 'reveal'
+    | 'engineDetail'
     | 'payloadId'
     | 'fullVehicle'
     | 'ready'
@@ -57,6 +58,8 @@ export type ShotId =
     | 'fairingSep'
     | 'insertion'
     | 'orbitWide'
+    | 'orbitFollow'
+    | 'departRecede'
     | 'departureWide'
     | 'burnChase'
     | 'kick'
@@ -179,6 +182,8 @@ export interface Chapter {
     summary: string;
     /** One sentence: why this stage matters. */
     why: string;
+    /** The guided action offered in the cinematic view (a label of this chapter), e.g. Watch Separation. */
+    primary?: { label: string; text: string };
     segments: readonly Segment[];
     labels: readonly Label[];
     telemetry: readonly TKey[];
@@ -232,14 +237,16 @@ function build(f: FlightResult) {
     const c3 = f.c3 / 1e6;
     const t = (n: number, d = 0) => n.toFixed(d);
 
-    // Opening, as a documentary would shoot it: the whole launch complex, a slow approach that shows the
-    // vehicle's scale, a look at the (closed) payload fairing, back to the full vehicle, then ready.
-    const intro: Segment[] = [hold(PAD, 5, 'pad', 'establish'), hold(PAD, 7, 'pad', 'reveal'), hold(PAD, 5, 'pad', 'payloadId'), hold(PAD, 5, 'pad', 'fullVehicle'), hold(PAD, 8, 'pad', 'ready')];
+    // Opening, as a documentary would shoot it: the whole launch complex on a long lens, an approach that
+    // shows the vehicle's scale, the engine section and first stage, up to the (closed) payload fairing,
+    // then back out to the long-lens hero frame of the full vehicle: Mission Ready.
+    const intro: Segment[] = [hold(PAD, 5, 'pad', 'establish'), hold(PAD, 6, 'pad', 'reveal'), hold(PAD, 5, 'pad', 'engineDetail'), hold(PAD, 5, 'pad', 'payloadId'), hold(PAD, 5, 'pad', 'fullVehicle'), hold(PAD, 6, 'pad', 'ready')];
 
     const chapters: Chapter[] = [
         {
             id: 'prep',
             number: '01',
+            primary: { label: 'payload', text: 'Explore Spacecraft Payload' },
             title: 'Launch Vehicle Preparation',
             short: 'Preparation',
             summary: `${VEHICLE.name} stands on the pad: a first stage, an upper stage and, under the closed fairing, a solid kick stage and the spacecraft.`,
@@ -348,6 +355,7 @@ function build(f: FlightResult) {
         {
             id: 'liftoff',
             number: '02',
+            primary: { label: 'liftoff', text: 'Watch Liftoff' },
             title: 'Engine Ignition and Liftoff',
             short: 'Liftoff',
             summary: 'Countdown, ignition, thrust build-up and release: the vehicle rises once thrust exceeds its weight.',
@@ -428,6 +436,7 @@ function build(f: FlightResult) {
         {
             id: 'ascent',
             number: '03',
+            primary: { label: 'max-q', text: 'Maximum Dynamic Pressure' },
             title: 'Atmospheric Ascent',
             short: 'Ascent',
             summary: 'Through the thinning atmosphere: air resistance peaks at Max Q, then falls away as the vehicle climbs.',
@@ -508,6 +517,7 @@ function build(f: FlightResult) {
         {
             id: 'staging',
             number: '04',
+            primary: { label: 'separation', text: 'Watch Separation' },
             title: 'First-Stage Cutoff and Separation',
             short: 'Staging',
             summary: 'The first stage separates after completing its powered ascent, and the upper stage ignites.',
@@ -578,6 +588,7 @@ function build(f: FlightResult) {
         {
             id: 'fairing',
             number: '05',
+            primary: { label: 'fairing-sep', text: 'Watch Fairing Separation' },
             title: 'Payload Fairing Separation',
             short: 'Fairing',
             summary: 'Above the dense atmosphere the fairing is no longer needed: its two halves separate and the spacecraft is exposed to space.',
@@ -638,11 +649,12 @@ function build(f: FlightResult) {
         {
             id: 'orbit',
             number: '06',
+            primary: { label: 'parking-orbit', text: 'View Orbit' },
             title: 'Earth Orbit Insertion',
             short: 'Orbit',
             summary: 'The upper stage flies until the trajectory becomes an orbit, then shuts down in a 185 km parking orbit.',
             why: 'Orbit is a matter of horizontal speed: about 7.8 km/s at this height, enough to keep falling around the Earth.',
-            segments: [span(fair + 14, seco1 - 25, 10, 'ascent', 'insertion'), span(seco1 - 25, seco1 + 5, 8, 'ascent', 'insertion'), span(seco1 + 5, restart - 30, 10, 'orbit', 'orbitWide', 'trajectory')],
+            segments: [span(fair + 14, seco1 - 25, 10, 'ascent', 'insertion'), span(seco1 - 25, seco1 + 5, 8, 'ascent', 'insertion'), span(seco1 + 5, restart - 30, 10, 'orbit', 'orbitFollow')],
             telemetry: ['altitude', 'orbitalSpeed', 'perigee', 'apogee'],
             labels: [
                 {
@@ -718,17 +730,19 @@ function build(f: FlightResult) {
         {
             id: 'departure',
             number: '07',
+            primary: { label: 'escape', text: 'View Trajectory' },
             title: 'Earth Departure',
             short: 'Departure',
             summary: 'The upper stage restarts, then the solid kick stage fires: the stack leaves Earth on an escape trajectory towards Jupiter.',
             why: 'Leaving Earth needs more energy than reaching orbit; the departure burn sets the whole path to the outer planets.',
+            // Cinematic: the coast in the parking orbit, the upper-stage restart, the kick stage, then the
+            // stack climbing away as the Earth recedes, ending just before spacecraft separation (chapter 08).
             segments: [
-                span(seco1 + 300, restart, 6, 'departure', 'departureWide', 'trajectory'),
+                span(seco1 + 300, restart, 6, 'departure', 'orbitFollow'),
                 span(restart, seco2, 9, 'departure', 'burnChase', 'engines'),
                 span(seco2, kickIgn, 4, 'departure', 'kick', 'kick'),
                 span(kickIgn, burnout + 4, 8, 'departure', 'kick', 'kick'),
-                span(burnout + 4, burnout + 7200, 8, 'departure', 'departureWide', 'trajectory'),
-                hold(burnout + 86400, 9, 'cruise', 'cruiseDepart', 'trajectory'),
+                span(burnout + 4, scSep - 25, 9, 'departure', 'departRecede'),
             ],
             telemetry: ['speed', 'escapeSpeed', 'c3', 'earthDistance'],
             labels: [
@@ -808,6 +822,7 @@ function build(f: FlightResult) {
         {
             id: 'deploy',
             number: '08',
+            primary: { label: 'rtg-boom', text: 'Watch RTG Deployment' },
             title: 'Spacecraft Separation and Deployment',
             short: 'Deployment',
             summary: 'The spacecraft separates from the spent kick stage, stabilises, deploys its booms and makes first contact with Earth.',

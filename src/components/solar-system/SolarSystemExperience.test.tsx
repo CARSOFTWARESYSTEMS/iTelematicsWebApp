@@ -38,7 +38,7 @@ describe('Solar System experience', () => {
         expect(screen.queryByRole('group', { name: /topics/ })).toBeNull();
     });
 
-    it('lists every stage, and each stage shows three to six topics, at most four readings and the rest under More topics', () => {
+    it('the default stage view is a compact caption with a guided action; Investigate opens three to six topics, two to four readings and More topics', () => {
         render(<SolarSystemExperience />);
         fireEvent.click(screen.getByRole('button', { name: 'Explore Mission Stages' }));
         const nav = screen.getByRole('navigation', { name: 'Mission stages' });
@@ -51,6 +51,10 @@ describe('Solar System experience', () => {
         for (const [i, c] of chapters.entries()) {
             fireEvent.click(screen.getByRole('button', { name: `Stage ${c.number}: ${c.title}` }));
             expect(screen.getByRole('heading', { name: c.title })).toBeInTheDocument();
+            // Cinematic default: no topic list until the visitor investigates.
+            expect(screen.queryByRole('group', { name: `${c.title}: topics` })).toBeNull();
+            if (c.primary) expect(screen.getByRole('button', { name: c.primary.text })).toBeInTheDocument();
+            fireEvent.click(screen.getByRole('button', { name: `Investigate (${c.labels.length})` }));
             const main = within(screen.getByRole('group', { name: `${c.title}: topics` })).getAllByRole('button');
             const topics = main.filter((b) => !/^More topics/.test(b.textContent ?? ''));
             expect(topics.length).toBeGreaterThanOrEqual(3);
@@ -72,13 +76,14 @@ describe('Solar System experience', () => {
     it('a topic explains what happens and why it matters, with readings, Learn more and a way back', () => {
         render(<SolarSystemExperience />);
         fireEvent.click(screen.getByRole('button', { name: 'Stage 03: Atmospheric Ascent' }));
+        fireEvent.click(screen.getByRole('button', { name: /^Investigate/ }));
         fireEvent.click(within(screen.getByRole('group', { name: 'Atmospheric Ascent: topics' })).getByRole('button', { name: 'Maximum Dynamic Pressure' }));
         expect(screen.getByRole('heading', { name: 'Maximum Dynamic Pressure' })).toBeInTheDocument();
         for (const q of ['What happens', 'Why it matters']) expect(screen.getByText(q)).toBeInTheDocument();
         expect(screen.getByText('Learn more')).toBeInTheDocument();
         expect(screen.getByText('Dynamic pressure')).toBeInTheDocument();
         expect(within(screen.getByRole('group', { name: 'Atmospheric Ascent: topics' })).getByRole('button', { name: 'Maximum Dynamic Pressure' })).toHaveAttribute('aria-pressed', 'true');
-        fireEvent.click(screen.getByRole('button', { name: '← Return to mission' }));
+        fireEvent.click(screen.getByRole('button', { name: '← Return to mission view' }));
         expect(screen.getByRole('heading', { name: 'Atmospheric Ascent' })).toBeInTheDocument();
     });
 
