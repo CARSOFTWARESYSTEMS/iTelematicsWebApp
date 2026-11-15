@@ -111,7 +111,7 @@ export default function TermsPage() {
                             and does not imply endorsement by NASA.
                         </li>
                         <li>
-                            Sun and Jupiter maps in the Solar System experience:{' '}
+                            Maps of the Sun, Mercury, Venus, the Moon, Mars, Jupiter, Saturn and its rings, Uranus and Neptune in the Solar System experience:{' '}
                             <ExternalLink href="https://www.solarsystemscope.com/textures/" trackName="Image credits: Solar System Scope planets">
                                 Solar System Scope
                             </ExternalLink>

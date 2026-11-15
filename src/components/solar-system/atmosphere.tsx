@@ -1,4 +1,4 @@
-"use client";
+'use client';
 // Physically based sky for the launch and ascent: single scattering of sunlight by air molecules
 // (Rayleigh, which makes the sky blue) and aerosols (Mie, the bright halo around the Sun and the hazy
 // horizon), integrated along each view ray through an exponential atmosphere (scale heights 8 km and
@@ -81,7 +81,12 @@ export const ATMOSPHERE_GLSL = /* glsl */ `
             sumMie += dMie * att;
         }
         trans = exp(-(K_MIE * 1.1 * odMie + K_RAY * odRay));
-        return SUN_I * (pRay * K_RAY * sumRay + pMie * K_MIE * sumMie);
+        vec3 single = SUN_I * (pRay * K_RAY * sumRay + pMie * K_MIE * sumMie);
+        // Light scattered more than once: single scattering alone leaves long horizontal paths too dark
+        // and too warm. Approximated as isotropic skylight added where the path has lost light.
+        float sunUp = clamp(dot(normalize(o), sun) * 2.0 + 0.2, 0.0, 1.0);
+        vec3 multiple = vec3(0.42, 0.52, 0.66) * (vec3(1.0) - trans) * 0.55 * sunUp;
+        return single + multiple;
     }
 `;
 

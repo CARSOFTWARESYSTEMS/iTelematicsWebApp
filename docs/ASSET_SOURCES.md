@@ -5,7 +5,7 @@ unknown origin, scraped, "free wallpaper", non-commercial (CC BY-NC), editorial-
 games or other products is used. Add a row here before adding a file. The public credit line lives on
 `/policies/terms#image-credits`.
 
-Last reviewed: 14 November 2026.
+Last reviewed: 15 November 2026.
 
 ## Rules for new assets
 
@@ -44,6 +44,14 @@ Last reviewed: 14 November 2026.
 | `public/images/solar-system/corrugated.jpg`, `corrugated-normal.jpg` | Poly Haven "Corrugated Iron 02" (`corrugated_iron_02_diff_1k.jpg`, `…_nor_gl_1k.jpg`) | CC0 | Poly Haven | Recompressed. Original 7a7b4309…, 9743c936… |
 | `public/images/solar-system/sun-2k.jpg` | Solar System Scope `2k_sun.jpg`: https://www.solarsystemscope.com/textures/download/2k_sun.jpg (14 Nov 2026) | CC BY 4.0 | "Solar System Scope, CC BY 4.0" on Terms | Recompressed (q80). Original ff0f076b…a0c8816, published 1341d139…dc9e34 |
 | `public/images/solar-system/jupiter-2k.jpg` | Solar System Scope `2k_jupiter.jpg` (14 Nov 2026) | CC BY 4.0 | "Solar System Scope, CC BY 4.0" on Terms | Recompressed (q82). Original b0f04d00…f2ab33baf, published 40dcc223…b2262b1c |
+| `public/images/solar-system/mercury-2k.jpg` | Solar System Scope `2k_mercury.jpg`: https://www.solarsystemscope.com/textures/download/2k_mercury.jpg (15 Nov 2026) | CC BY 4.0 (licence confirmed on https://www.solarsystemscope.com/textures/, 15 Nov 2026) | "Solar System Scope, CC BY 4.0" on Terms | Recompressed (q80). Original 5a5c8060…2b38e48a, published 8d0866d8…b68cce3a |
+| `public/images/solar-system/venus-2k.jpg` | Solar System Scope `2k_venus_atmosphere.jpg`: https://www.solarsystemscope.com/textures/download/2k_venus_atmosphere.jpg (15 Nov 2026) | CC BY 4.0 (licence confirmed on https://www.solarsystemscope.com/textures/, 15 Nov 2026) | "Solar System Scope, CC BY 4.0" on Terms | Recompressed (q80). Original 225012ad…7d6991ac, published 04d19c8b…0ce0b767 |
+| `public/images/solar-system/moon-2k.jpg` | Solar System Scope `2k_moon.jpg`: https://www.solarsystemscope.com/textures/download/2k_moon.jpg (15 Nov 2026) | CC BY 4.0 (licence confirmed on https://www.solarsystemscope.com/textures/, 15 Nov 2026) | "Solar System Scope, CC BY 4.0" on Terms | Recompressed (q80). Original 2764ba65…a7fd92bd, published bb71a831…f564ddc9 |
+| `public/images/solar-system/mars-2k.jpg` | Solar System Scope `2k_mars.jpg`: https://www.solarsystemscope.com/textures/download/2k_mars.jpg (15 Nov 2026) | CC BY 4.0 (licence confirmed on https://www.solarsystemscope.com/textures/, 15 Nov 2026) | "Solar System Scope, CC BY 4.0" on Terms | Recompressed (q80). Original 2d187f3e…bc3f8e01, published ef283875…a494489a |
+| `public/images/solar-system/saturn-2k.jpg` | Solar System Scope `2k_saturn.jpg`: https://www.solarsystemscope.com/textures/download/2k_saturn.jpg (15 Nov 2026) | CC BY 4.0 (licence confirmed on https://www.solarsystemscope.com/textures/, 15 Nov 2026) | "Solar System Scope, CC BY 4.0" on Terms | Recompressed (q80). Original 54a900ca…bcd3bbac, published b2def682…d7d797e5 |
+| `public/images/solar-system/saturn-ring.png` | Solar System Scope `2k_saturn_ring_alpha.png`: https://www.solarsystemscope.com/textures/download/2k_saturn_ring_alpha.png (15 Nov 2026) | CC BY 4.0 (licence confirmed on https://www.solarsystemscope.com/textures/, 15 Nov 2026) | "Solar System Scope, CC BY 4.0" on Terms | Re-saved (PNG, optimised). Original 4b0644b2…650d7334, published ca225070…c30fc791 |
+| `public/images/solar-system/uranus-2k.jpg` | Solar System Scope `2k_uranus.jpg`: https://www.solarsystemscope.com/textures/download/2k_uranus.jpg (15 Nov 2026) | CC BY 4.0 (licence confirmed on https://www.solarsystemscope.com/textures/, 15 Nov 2026) | "Solar System Scope, CC BY 4.0" on Terms | Recompressed (q80). Original d15239d4…1204a09d, published 63bca663…ad53364c |
+| `public/images/solar-system/neptune-2k.jpg` | Solar System Scope `2k_neptune.jpg`: https://www.solarsystemscope.com/textures/download/2k_neptune.jpg (15 Nov 2026) | CC BY 4.0 (licence confirmed on https://www.solarsystemscope.com/textures/, 15 Nov 2026) | "Solar System Scope, CC BY 4.0" on Terms | Recompressed (q80). Original cb42ea82…00977df6, published ec4c1261…3ebe1896 |
 | Inter, JetBrains Mono (via `next/font/google`, self-hosted at build) | Google Fonts | SIL Open Font License 1.1 | `/policies/terms` | |
 | npm runtime dependencies: next, react, react-dom, three, @react-three/fiber, @react-three/drei | npm | MIT | Licence files ship in `node_modules` | Checked 14 Nov 2026. |
 
@@ -55,7 +63,8 @@ Last reviewed: 14 November 2026.
   - `public/images/og/*.jpg`
 
   These contain the Earth imagery above, so they carry its credits.
-- **Drawn in code at runtime:** the solar cell, insulation and radiator textures (`src/components/space-twin/textures.ts`), and the Solar System experience's launch vehicle, spacecraft, launch site, plumes, smoke and sky (`src/components/solar-system/`). No files.
+- **Drawn in code at runtime:** the solar cell, insulation and radiator textures (`src/components/space-twin/textures.ts`), and the Solar System experience's launch vehicle, spacecraft, launch site, plumes, smoke and sky, with their surface detail maps (`src/components/solar-system/textures.ts`: paint and weld seams, carbon composite, foam insulation, nozzle cooling tubes, markings, multi-layer insulation, building cladding). No files.
+- **Not imagery:** Pluto and the Galilean moons are drawn as plain coloured spheres and are labelled "Illustrative surface (not imagery)" in the interface; the asteroid and Kuiper belts are labelled "Illustrative distribution".
 - **Supplied by the organisations concerned:**
   - `public/images/gamyaa-digital-twin-research.webp` (Gamyaa AeroSystems poster)
   - `public/images/ev-engineer-fai-card.webp` (EV.ENGINEER™ card)
@@ -64,7 +73,7 @@ Last reviewed: 14 November 2026.
 
   The owner confirms the right to publish them. The certificates contain students' names and registration numbers.
 
-## Planned: Solar System experience (option 06)
+## Solar System experience (option 06): planet maps
 
 **Planet maps** come from [Solar System Scope](https://www.solarsystemscope.com/textures/).
 - Licence: CC BY 4.0, "for any purpose, even commercially". Their maps are based on NASA mission data.
@@ -73,4 +82,6 @@ Last reviewed: 14 November 2026.
 **Pluto, Charon and the major moons** come from public-domain USGS Astrogeology / NASA mission mosaics.
 - Credit them to the mission, e.g. "NASA/JHUAPL/SwRI, USGS Astrogeology".
 
-Each file is added to the table above when it is downloaded, with its URL and SHA-256.
+Each file is added to the table above when it is downloaded, with its URL and SHA-256. On 15 November 2026 the maps of Mercury, Venus (cloud tops), the Moon, Mars, Saturn, Saturn's rings, Uranus and Neptune were added. Pluto and moon mosaics have not been downloaded yet (see docs/SOLAR_SYSTEM.md, open items).
+
+**Science data (not files):** planetary positions use the published approximate Keplerian elements (E. M. Standish, JPL Solar System Dynamics, https://ssd.jpl.nasa.gov/planets/approx_pos.html); test fixtures are JPL Horizons vectors fetched 15 November 2026 (https://ssd.jpl.nasa.gov/api/horizons.api). Physical data come from the NSSDCA planetary fact sheets (https://nssdc.gsfc.nasa.gov/planetary/factsheet/). These are cited here and in the code, not named in the interface (site content rule).

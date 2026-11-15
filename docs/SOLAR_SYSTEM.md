@@ -1,7 +1,9 @@
 # Solar System — From Earth Launch to Deep Space Exploration (option 06)
 
 This is the sixth Space Digital Twin option, on the homepage and `/research-lab`. Phase A, built 14 November 2026, covers
-the reference mission from the launch pad to Earth departure and spacecraft deployment.
+the reference mission from the launch pad to Earth departure and spacecraft deployment. On 15 November 2026 the visual quality
+and the interface were rebuilt (see **Visual quality recovery**) and Phase B was added: the cruise, the Jupiter encounter and
+gravity assist, Saturn and deep space (physics mode) and the Solar System Discovery tour (cinematic mode).
 
 All values are **SIMULATED — Conceptual reference mission SOL-1**. The launch vehicle and the spacecraft are conceptual: no real vehicle is
 modelled or named. This is a physics-based visual simulation, not a validated digital twin.
@@ -11,7 +13,8 @@ modelled or named. This is a physics-based visual simulation, not a validated di
 | Phase | Scope | Status |
 |---|---|---|
 | A | Launch vehicle preparation, ignition and liftoff, atmospheric ascent, staging, fairing separation, orbit insertion, Earth departure, spacecraft separation and deployment; Sun-centred view of the transfer | Built |
-| B | Interplanetary cruise; the Sun, eight planets, Moon, major moons, rings, asteroid and Kuiper belts (Mode A, Guided Discovery); a Lambert/ephemeris Jupiter–Saturn trajectory (Mode B); gravity assist; deep-space operations; three fault scenarios | Next |
+| B | Interplanetary cruise (09); Jupiter encounter and gravity assist (10); Saturn and deep space (11): a Lambert/ephemeris Earth–Jupiter–Saturn trajectory. Solar System Discovery (12): the Sun, eight planets, Moon, Pluto, asteroid and Kuiper belts | Built 15 Nov 2026 |
+| B (rest) | Fault scenarios (launch-vehicle performance anomaly, power degradation, communication interruption); Pluto and moon imagery; a designed Saturn flyby | Open |
 
 ## Integration (additive)
 
@@ -189,3 +192,142 @@ The tests also check:
 - Poster: `public/images/space-twin/poster-solar-system.jpg`, rendered from this scene.
 - Vehicle, spacecraft, pad and plume are built from code, with no downloaded models.
 - Launch site surfaces (Poly Haven, CC0) and the Sun and Jupiter maps (Solar System Scope, CC BY 4.0) are in `public/images/solar-system/` (1.6 MB, loaded only when this experience opens). They are registered in `docs/ASSET_SOURCES.md` and credited on `/policies/terms`.
+
+
+## Visual quality recovery (15 November 2026)
+
+### Why the first version looked like a prototype (audit of the code and renders)
+
+- **Camera.** The opening was an 8 s globe shot, then a distant aerial in which the vehicle was about a quarter of the frame
+  height over a large empty apron. Chapter 01 ended on a close shot through a *translucent* fairing.
+- **Geometry and materials.** The vehicle was plain cylinders with one flat panel texture; the tower was red instanced boxes; the
+  launch mount a black slab on posts; buildings were untextured boxes; the "trench" a dark box.
+- **Environment.** A flat circular ground fading to a single colour; the ocean lay behind the camera in every pad shot; no
+  propellant farm, piping, lightning protection or relief.
+- **Interface.** A permanent 360 px side panel, every topic of a chapter at once (6–8), 5–6 readings, 0.62 rem text over the
+  scene.
+
+### What changed
+
+- **Layout** (`SolarSystemExperience.tsx`, `.module.css`). The scene fills the width (16:9; 4:5 on phones). On top: the stage,
+  the mission time or date, and "Simulated · SOL-1". One contextual card: title, *What happens*, *Why it matters*, two to four
+  readings, *Learn more*, and the stage's three to six main topics (the rest under *More topics*: all 49 Phase A topics are kept).
+  Below: a timeline of the twelve stages with Previous, Play/Pause, Next, Replay and Back. On wide screens the card floats on the
+  left and the hardware is framed right of centre (a camera view offset); on phones the card is a sheet under the scene. Full screen
+  uses the same layout.
+- **Opening** (`mission.ts` intro, `SolarScene.tsx`). Five continuous shots: establishing view of the whole complex → slow
+  approach along the vehicle → the closed fairing → back to the full vehicle → ready (the Start Mission button is emphasised).
+  Pad compositions are aspect-aware and keep the whole 69 m vehicle and table in frame.
+- **Explore Spacecraft Payload.** Approach with the fairing highlighted → an engineering section cut opens towards the camera
+  (clipping planes; the fairing is never translucent) → part names (antenna, RTGs, magnetometer boom, kick stage, adapter, fairing
+  lining) → the cut closes on the way back to the full vehicle. The interstage and tank topics use the same kind of cut.
+- **Launch vehicle** (`LaunchVehicle.tsx`, same `STACK` dimensions). Engine bay with heat shield, turbopumps, turbine exhaust ducts,
+  gimbal actuators and regeneratively cooled nozzles; weld lands and panel joints on the tank barrels; ribbed intertank; carbon
+  interstage with four separation motors and a polished separation ring; foam-insulated hydrogen upper stage with a
+  niobium-tinted nozzle extension; roll-tracking band and the RLV-1 name; raceways, clamps, pressurisation line and umbilical
+  plates; opaque fairing with seam rails and an acoustic lining. Surface detail is procedural (`textures.ts`), no downloaded models.
+- **Launch complex** (`LaunchSite.tsx`). Raised hardstand with a flame trench running north and a steel deflector; launch table
+  with hold-down clamps, tail-service masts and deluge headers; grey steel umbilical tower with platforms, elevator core and three
+  swing arms carrying umbilical lines; catenary lightning protection; sound-suppression water tower; liquid-oxygen and
+  liquid-hydrogen spheres, kerosene tanks and pipe racks; floodlight towers, perimeter road, gravel apron, buildings; coastal
+  terrain with relief, dunes and a beach; the ocean (with surf) now behind the pad in the opening shots.
+- **Ignition and liftoff.** The green TEA–TEB igniter flash, wider sooty kerosene plumes, a deflected exhaust jet out of the trench
+  while the vehicle is low, self-lit steam that bursts at ignition. Pad readings show air-relative speed and "On the pad" for
+  acceleration until release (the simulation's sensed acceleration excludes the clamp reaction).
+- **Sky.** An approximate multiple-scattering term removes the brown, too-dark horizon of single scattering.
+- **Spacecraft RSC-1** (`Spacecraft.tsx`). Decagonal bus in gold and black multi-layer insulation, radiator louvres, star trackers,
+  Sun sensors, thruster clusters; ribbed 3.7 m dish with tripod subreflector, feed and low-gain antenna; two finned RTGs with end caps
+  on their boom; a coilable lattice magnetometer boom; the science boom's scan platform with camera and spectrometers. Still no
+  solar arrays.
+- **Staging, fairing separation** cameras widened so both stages, and both fairing halves, stay in frame.
+- **Readings.** "Suborbital" instead of a negative perigee during the ascent.
+
+The flight simulation, atmosphere, orbit, vehicle, spacecraft and clock modules are unchanged (byte-identical to the previous
+commit). Visual changes do not alter any engineering result.
+
+## Phase B: physics mode (chapters 09–11)
+
+**Ephemeris** (`ephemeris.ts`). Published approximate Keplerian elements for 1800–2050 (E. M. Standish, JPL Solar System Dynamics),
+J2000 ecliptic. Checked against JPL Horizons vectors (fixtures in `ephemeris.test.ts`): Earth–Moon barycentre within 0.0001 AU,
+Jupiter 0.004 AU, Saturn 0.022 AU, inside the stated accuracy.
+
+**Lambert and propagation** (`lambert.ts`). Universal-variable Lambert solver (bisection on z, single revolution, prograde) and a
+universal Kepler propagator; tests propagate each solution to its end point (relative error < 1e-7) and check energy conservation.
+
+**Trajectory design** (`trajectory.ts`). Grid search over launch dates 2030–2045 for Earth → Jupiter → Saturn, patched conics:
+- departure C3 ≤ 113.6 km²/s² (what the simulated SOL-1 launch delivers);
+- Jupiter periapsis ≥ 4 Jupiter radii;
+- periapsis burn ≤ 80 m/s (RSC-1 carries 45 kg of hydrazine);
+- Saturn within 9 years.
+
+The flyby periapsis is solved from δ = asin(1/e_in) + asin(1/e_out). The best window is mid-2034, and a refined 1/2/4-day search selects:
+
+| Quantity | Value |
+|---|---|
+| Launch | 25 June 2034 (window 23 May – 22 July 2034) |
+| Departure energy | C3 = 79.6 km²/s² (Hohmann reference 77.3) |
+| Departure declination (DLA) | 3.9°, inside the ±10° reachable from the 10° parking orbit |
+| Jupiter flyby | 3 July 2037 (3.02 years); periapsis 4.07 Jupiter radii (≈ 220,000 km above the cloud tops); v∞ 5.97 km/s; turn 135°; periapsis trim 1.9 m/s |
+| Gravity assist | Heliocentric velocity change 11.04 km/s |
+| Saturn | 28 November 2040 (6.43 years); v∞ 8.94 km/s; heliocentric speed 13.69 km/s vs solar escape 13.57 km/s there (just above escape) |
+| RTG power | 490 W at launch, 467 W at Jupiter, 442 W at Saturn |
+| One-way light time | 51.4 min at Jupiter, 85.6 min at Saturn |
+
+`trajectory.test.ts` re-runs the refined search and checks that it returns these dates, that the window is bounded where stated,
+and every constraint. **Compatibility with Phase A:** the launch delivers C3 = 113.6 because every stage burns to depletion; a real
+mission would shut the upper stage down early at 79.6. That cut-off is not modelled.
+
+**Scenes** (`PlanetViews.tsx`).
+- **Cruise:** Sun-centred, orbits to scale, planets placed by the ephemeris on the date shown. Bodies and the spacecraft are
+  markers.
+- **Jupiter encounter:** Jupiter-centred and to scale. Jupiter is oblate and rotating, lit from the Sun's true direction, with its
+  IAU pole. The Galilean moons are on to-scale orbits; their phases are illustrative and their surfaces are plain colours. The
+  hyperbola comes from the solved flyby. RSC-1 points its dish sunward, which is within about 11° of the Earth.
+- **Saturn:** rings to scale and oriented by Saturn's IAU pole. The spacecraft's pass is a cinematic placement, labelled as such.
+
+## Phase B: Discovery mode (chapter 12)
+
+A guided tour of 13 destinations: Sun, Mercury, Venus, Earth, Moon, Mars, asteroid belt, Jupiter, Saturn, Uranus, Neptune, Pluto
+and the Kuiper belt. Six are main topics and the rest sit under *More topics*.
+- **Camera:** it travels from a 50 AU overview to each destination along a logarithmic approach. A floating origin keeps full
+  precision at true size.
+- **Labelling:** the view is labelled "Cinematic Scale — Not to Scale · a guided tour, not a spacecraft trajectory". Planet
+  positions are those of 1 January 2035.
+- **Data:** `bodies.ts`, rounded values from the NSSDCA planetary fact sheets.
+- **Imagery:** each destination states its imagery: a map from mission data (Solar System Scope), Earth imagery, an illustrative
+  surface (Pluto) or an illustrative distribution (the belts).
+
+## Validation
+
+- **Tests:** 233 site tests pass, 42 of them in the Solar System experience and libraries. The Phase A flight and mission tests
+  are unchanged. New tests cover:
+  - ephemeris vs Horizons;
+  - Lambert and propagation;
+  - trajectory search and constraints;
+  - flyby hyperbola geometry;
+  - every Phase B reading free of gaps;
+  - the interface: 3–6 topics, ≤ 4 readings, all topics reachable, payload exploration, cinematic labelling.
+- **Lint and build:** ESLint is clean; the production build succeeds (the experience is lazy-loaded; homepage first load 146 kB).
+- **Visual review:** rendered with GPU WebGL (Chrome for Testing, ANGLE/Metal) on desktop (1440×900), in full screen and on a
+  phone (390×844). Reviewed at the opening, the payload cutaway, countdown, ignition, liftoff, tracking, ascent, staging, fairing
+  separation, orbit insertion, the parking orbit, departure, deployment, cruise, the Jupiter approach, closest approach and wide
+  view, Saturn, and Discovery destinations. The frame rate was 60 fps at about 210,000 triangles and 520 draw calls (headless,
+  Apple GPU).
+
+## Known limitations and open items (15 November 2026)
+
+- **Realism ceiling.** The vehicle, spacecraft and pad are detailed, code-built models with physically based materials and
+  procedural detail maps. They are not photogrammetry or artist-made production assets, and the opening still reads as high-end
+  CG rather than photography. The ground near the pad is sparse, the plume is a shader model (no volumetric simulation), and there
+  is no post-processing (bloom, ambient occlusion).
+- **Not built yet:**
+  - the three fault scenarios (Workstream E);
+  - imagery for Pluto, Charon and the Galilean moons (USGS mosaics not downloaded);
+  - a designed Saturn flyby and the trajectory beyond;
+  - trajectory-correction manoeuvres and launch-window width analysis beyond the date grid;
+  - thermal and data-rate models;
+  - the radiation dose at Jupiter.
+- **Not measured:** performance on real phones and in Safari (only headless Chrome on an Apple GPU was used); the mobile layout
+  was checked at 390 px only.
+- **Scope note on the opening:** the brief's establishing → reveal → payload → full vehicle → ready sequence replaces the previous
+  globe intro; the globe now appears from the ascent onwards.

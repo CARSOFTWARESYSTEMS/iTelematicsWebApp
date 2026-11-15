@@ -1,25 +1,63 @@
-"use client";
-// The conceptual coastal launch site, built for realism from licensed photographic surfaces
-// (Poly Haven, CC0; see docs/ASSET_SOURCES.md): grass-and-rock terrain with sandy patches and a beach,
-// an ocean with sun glints to the east, a concrete pad with a sooted flame trench and an open launch
-// mount, a lattice umbilical tower whose service arms swing away before ignition, lightning masts and
-// corrugated-metal buildings. Everything is lit by the Sun and the sky, casts and receives shadows near
-// the pad and fades into haze with distance. The ignition cloud and the exhaust trail are pure
-// functions of mission time (seeded), so replays and jumps look the same every time.
+'use client';
+// The conceptual coastal launch complex, laid out as one engineering facility:
+// - a raised concrete hardstand with a flame trench running north under the launch table and a steel
+//   flame deflector, so the exhaust is turned away from the vehicle and out of the trench;
+// - the launch table on four pedestals with hold-down clamps and two tail-service masts;
+// - a fixed umbilical tower (steel lattice, platforms, an elevator core and three service arms whose
+//   umbilical lines swing away before ignition), topped by a lightning mast;
+// - catenary lightning protection (three masts and their wires), the sound-suppression water tower;
+// - the propellant farm: liquid-oxygen and liquid-hydrogen spheres and kerosene tanks, piped to the pad;
+// - lighting towers, a perimeter road, the pad terminal, a service building and, further away, the
+//   vehicle integration hangar and the launch control centre;
+// - coastal terrain with gentle relief, a beach and dunes, and the ocean to the east, the direction of
+//   launch.
+// Surfaces are licensed photographs (Poly Haven, CC0; docs/ASSET_SOURCES.md) or drawn in code
+// (textures.ts). The ignition cloud and the exhaust trail are pure functions of mission time (seeded),
+// so replays and jumps look the same every time.
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { BufferGeometry, CanvasTexture, Color, DoubleSide, Float32BufferAttribute, FogExp2, InstancedMesh, MeshStandardMaterial, Object3D, RepeatWrapping, ShaderMaterial, SRGBColorSpace, TextureLoader, Vector2, Vector3, type Group, type Mesh, type Texture } from 'three';
+import {
+    BufferGeometry,
+    CanvasTexture,
+    CatmullRomCurve3,
+    Color,
+    DoubleSide,
+    Float32BufferAttribute,
+    FogExp2,
+    InstancedMesh,
+    Line,
+    LineBasicMaterial,
+    MeshStandardMaterial,
+    Object3D,
+    RepeatWrapping,
+    ShaderMaterial,
+    SRGBColorSpace,
+    TextureLoader,
+    Vector3,
+    type Group,
+    type Mesh,
+    type Texture,
+} from 'three';
 import { R_EARTH } from '@/lib/solar-system/constants';
-import { flight } from '@/lib/solar-system/flight';
+import { flight, sampleAt } from '@/lib/solar-system/flight';
+import { Plume } from './LaunchVehicle';
 import { LOGDEPTH } from './environment';
+import { cladding, paintedSteel, repeated, type SurfaceSet } from './textures';
 
-/** Height of the launch mount deck: the vehicle's base sits here. */
+/** Height of the launch table deck: the vehicle's base sits here. */
 export const MOUNT_TOP = 7.4;
-const TOWER_X = -9.5; // tower beside the vehicle, west side
-const TOWER_H = 74;
-const TRENCH_EXIT = new Vector3(-62, 0.5, 0); // flame trench opening, towards the west
+/** Hardstand deck level. */
+export const DECK = 3.0;
+const TOWER_X = -13.5; // tower centre, west of the vehicle
+const TOWER_H = 74; // above the deck
+const TRENCH_HALF = 6; // half width of the flame trench (it runs north, along −z)
+const TRENCH_EXIT = new Vector3(0, 0.6, -52);
 const GROUND_RADIUS = 60000;
 const SUN_SITE = new Vector3(0.814, 0.5, 0.296).normalize();
+
+/** The coastline (east of the pad), x as a function of z; the same formula is used in the shaders. */
+export const coastX = (z: number) => 720 + 170 * Math.sin(z * 0.00042 + 0.6) + 80 * Math.sin(z * 0.0013 + 2.1);
+const COAST_GLSL = /* glsl */ `float coastAt(float z) { return 720.0 + 170.0 * sin(z * 0.00042 + 0.6) + 80.0 * sin(z * 0.0013 + 2.1); }`;
 
 // ── Licensed surfaces ─────────────────────────────────────────────────────
 
@@ -81,9 +119,23 @@ function useRepeat(t: Texture | undefined, x: number, y: number) {
 }
 
 function useMat(params: ConstructorParameters<typeof MeshStandardMaterial>[0], deps: unknown[] = []) {
-    const m = useMemo(() => new MeshStandardMaterial(params), deps); // the material is rebuilt when its maps arrive
+    const m = useMemo(() => new MeshStandardMaterial(params), deps);
     useEffect(() => () => m.dispose(), [m]);
     return m;
+}
+
+/** A procedural surface set with its own repeat, released with the component. */
+function useSurface(make: () => SurfaceSet, x = 1, y = 1) {
+    const set = useMemo(() => (typeof document === 'undefined' ? null : repeated(make(), x, y)), [x, y]);
+    useEffect(
+        () => () => {
+            set?.map.dispose();
+            set?.normalMap.dispose();
+            set?.roughnessMap.dispose();
+        },
+        [set],
+    );
+    return set;
 }
 
 const NOISE_GLSL = /* glsl */ `
@@ -91,60 +143,125 @@ const NOISE_GLSL = /* glsl */ `
     float vnoise(vec2 p) { vec2 i = floor(p); vec2 f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);
         return mix(mix(h21(i), h21(i + vec2(1, 0)), u.x), mix(h21(i + vec2(0, 1)), h21(i + vec2(1, 1)), u.x), u.y); }
     float fbm(vec2 p) { float a = 0.5; float s = 0.0; for (int i = 0; i < 5; i++) { s += a * vnoise(p); p *= 2.03; a *= 0.5; } return s; }
-    float coastAt(float z) { return 2600.0 + 900.0 * (fbm(vec2(z * 0.0004, 3.1)) - 0.5) * 2.0; }
+    ${COAST_GLSL}
 `;
+
+// ── Terrain ───────────────────────────────────────────────────────────────
+
+/** Ground height (m): flat around the pad, low dunes behind the beach, rolling country inland. */
+export function terrainHeight(x: number, z: number) {
+    const d = Math.hypot(x, z);
+    const toCoast = coastX(z) - x; // metres inland from the shoreline
+    if (toCoast < 0) return -1.2;
+    // The beach rises from just above the waterline to the general ground level 80 m inland.
+    const beach = toCoast < 80 ? -0.4 + (toCoast / 80) * 0.4 : 0;
+    const dunes = toCoast < 420 ? (1 - toCoast / 420) * (2.2 + 1.8 * Math.sin(z * 0.021) * Math.sin(x * 0.017 + 1.3)) * Math.min(1, toCoast / 40) : 0;
+    const inland = Math.max(0, Math.min(1, (toCoast - 300) / 900));
+    const away = Math.max(0, Math.min(1, (d - 650) / 2600));
+    const rolling = (Math.sin(x * 0.0011 + 0.7) * Math.sin(z * 0.0009 + 2.3) + 0.6 * Math.sin(x * 0.0023 - z * 0.0017 + 4.1) + 0.35 * Math.sin(x * 0.0051 + z * 0.0043)) * 18 + 14;
+    const far = Math.max(0, Math.min(1, (d - 7000) / 16000));
+    const hills = (Math.sin(x * 0.00027 + 1.9) * Math.sin(z * 0.00031 + 0.4) + 0.7) * 150;
+    return beach + dunes + inland * away * rolling + inland * far * hills;
+}
+
+/** A polar grid (dense near the pad, sparse far away) displaced by the terrain height. */
+function terrainGeometry() {
+    const rings = 96;
+    const sectors = 220;
+    const pos: number[] = [];
+    const index: number[] = [];
+    const radius = (i: number) => (i === 0 ? 0 : 40 * Math.pow(GROUND_RADIUS / 40, (i - 1) / (rings - 1)));
+    for (let i = 0; i <= rings; i++) {
+        const r = radius(i);
+        for (let j = 0; j < sectors; j++) {
+            const a = (j / sectors) * Math.PI * 2;
+            const x = r * Math.cos(a);
+            const z = r * Math.sin(a);
+            pos.push(x, r < 70 ? 0 : terrainHeight(x, z), z);
+        }
+    }
+    for (let i = 0; i < rings; i++)
+        for (let j = 0; j < sectors; j++) {
+            const a = i * sectors + j;
+            const b = i * sectors + ((j + 1) % sectors);
+            const c = (i + 1) * sectors + j;
+            const d = (i + 1) * sectors + ((j + 1) % sectors);
+            // Counter-clockwise seen from above, so the surface faces up.
+            index.push(a, b, c, b, d, c);
+        }
+    const g = new BufferGeometry();
+    g.setAttribute('position', new Float32BufferAttribute(pos, 3));
+    g.setIndex(index);
+    g.computeVertexNormals();
+    return g;
+}
 
 /**
  * Land: photographic grass-and-rock terrain sampled at two scales (no visible tiling from afar), sandy
- * patches and a beach towards the coast, large-scale variation, lit and shadowed like any surface and
- * hazed by the scene fog. East of the coastline the land is cut away to show the ocean beneath.
+ * patches and a beach towards the coast, scrub darkening in hollows, lit and shadowed like any surface
+ * and hazed by the scene fog. East of the coastline the land is cut away to show the ocean.
  */
 function Land({ opacity }: { opacity: () => number }) {
     const maps = useContext(MapsContext);
     const ref = useRef<Mesh>(null);
-    const normal = useRepeat(maps?.grassN, (GROUND_RADIUS * 2) / 18, (GROUND_RADIUS * 2) / 18);
+    const geometry = useMemo(() => terrainGeometry(), []);
+    useEffect(() => () => geometry.dispose(), [geometry]);
     const material = useMemo(() => {
-        const m = new MeshStandardMaterial({ color: '#ffffff', roughness: 0.96, metalness: 0, map: maps?.grass ?? null, normalMap: normal ?? null, normalScale: new Vector2(0.9, 0.9), transparent: true });
+        const m = new MeshStandardMaterial({ color: '#ffffff', roughness: 0.97, metalness: 0, map: maps?.grass ?? null, transparent: true });
         m.onBeforeCompile = (shader) => {
             shader.uniforms.uBeach = { value: maps?.beach ?? null };
             shader.uniforms.uOpacity = { value: 1 };
             m.userData.shader = shader;
-            shader.vertexShader = shader.vertexShader
-                .replace('#include <common>', '#include <common>\nvarying vec3 vWorldP;')
-                .replace('#include <begin_vertex>', '#include <begin_vertex>\nvWorldP = (modelMatrix * vec4(transformed, 1.0)).xyz;');
-            shader.fragmentShader = shader.fragmentShader
-                .replace('#include <common>', `#include <common>\nvarying vec3 vWorldP;\nuniform sampler2D uBeach;\nuniform float uOpacity;\n${NOISE_GLSL}`)
-                .replace(
-                    '#include <map_fragment>',
-                    /* glsl */ `
+            shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vWorldP;').replace('#include <begin_vertex>', '#include <begin_vertex>\nvWorldP = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+            shader.fragmentShader = shader.fragmentShader.replace('#include <common>', `#include <common>\nvarying vec3 vWorldP;\nuniform sampler2D uBeach;\nuniform float uOpacity;\n${NOISE_GLSL}`).replace(
+                '#include <map_fragment>',
+                /* glsl */ `
                     vec2 wp = vWorldP.xz;
-                    if (wp.x > coastAt(wp.y)) discard;
+                    float coast = coastAt(wp.y);
+                    if (wp.x > coast + 2.0) discard;
                     float camDist = length(cameraPosition - vWorldP);
-                    // Anti-tiling: two samples at different rotations and scales, blended by low-frequency noise,
-                    // so the photograph's repeat never lines up into a grid.
+                    // Anti-tiling: two samples at different rotations and scales, blended by low-frequency noise.
                     float w = smoothstep(0.3, 0.7, fbm(wp * 0.012));
                     vec2 r1 = mat2(0.8, -0.6, 0.6, 0.8) * wp;
-                    vec3 gA = texture2D(map, wp / 18.0).rgb;
-                    vec3 gB = texture2D(map, r1 / 23.0 + 0.41).rgb;
+                    #ifdef USE_MAP
+                    vec3 gA = texture2D(map, wp / 16.0).rgb;
+                    vec3 gB = texture2D(map, r1 / 21.0 + 0.41).rgb;
                     vec3 gNear = mix(gA, gB, w);
-                    vec3 gFar = texture2D(map, (mat2(0.6, 0.8, -0.8, 0.6) * wp) / 260.0 + 0.37).rgb;
+                    vec3 gFar = texture2D(map, (mat2(0.6, 0.8, -0.8, 0.6) * wp) / 240.0 + 0.37).rgb;
                     vec3 grass = mix(gNear, gFar, smoothstep(80.0, 700.0, camDist) * 0.7);
-                    vec3 sand = texture2D(uBeach, wp / 34.0).rgb;
-                    float coast = coastAt(wp.y);
-                    float beach = smoothstep(coast - 240.0, coast - 30.0, wp.x);
-                    float patches = smoothstep(0.58, 0.8, fbm(wp * 0.0035 + 7.0)) * 0.6;
+                    vec3 sand = texture2D(uBeach, wp / 30.0).rgb;
+                    #else
+                    // Until the photographs arrive: their average colours.
+                    vec3 grass = vec3(0.3, 0.29, 0.19) * (0.85 + 0.3 * w);
+                    vec3 sand = vec3(0.62, 0.57, 0.45);
+                    #endif
+                    float beach = smoothstep(coast - 200.0, coast - 25.0, wp.x);
+                    float patches = smoothstep(0.6, 0.82, fbm(wp * 0.0035 + 7.0)) * 0.55;
+                    // Low coastal scrub: darker, greener patches in a broken pattern.
+                    float scrub = smoothstep(0.45, 0.75, fbm(wp * 0.006 + 3.0)) * (1.0 - beach);
                     vec3 col = mix(grass, sand, max(beach, patches));
+                    col = mix(col, col * vec3(0.62, 0.72, 0.5), scrub * 0.55);
+                    // Crushed-stone apron inside the perimeter road, kept clear of vegetation.
+                    float r = length(wp);
+                    float apron = 1.0 - smoothstep(128.0, 150.0, r + (fbm(wp * 0.08) - 0.5) * 14.0);
+                    vec3 gravel = sand * vec3(0.86, 0.86, 0.88) * (0.85 + 0.3 * fbm(wp * 0.4));
+                    col = mix(col, gravel, apron);
+                    scrub *= 1.0 - apron;
                     // From afar the texture's repeat would show: fade to its average colour, varied by large-scale noise.
-                    vec3 avg = mix(vec3(0.3, 0.29, 0.19), vec3(0.62, 0.56, 0.44), max(beach, patches));
+                    vec3 avg = mix(vec3(0.29, 0.29, 0.18), vec3(0.62, 0.57, 0.45), max(beach, patches));
+                    avg = mix(avg, avg * vec3(0.7, 0.8, 0.62), scrub * 0.6);
+                    avg = mix(avg, vec3(0.55, 0.52, 0.47), apron);
                     col = mix(col, avg, smoothstep(350.0, 2600.0, camDist));
-                    col *= (0.8 + 0.42 * fbm(wp * 0.0009)) * 1.18;
+                    col *= (0.8 + 0.42 * fbm(wp * 0.0009)) * 1.12;
+                    // Wet sand darkens at the waterline.
+                    col *= 1.0 - 0.35 * smoothstep(coast - 12.0, coast, wp.x);
                     diffuseColor.rgb *= col;
                     diffuseColor.a *= uOpacity;
                     `,
-                );
+            );
         };
         return m;
-    }, [maps, normal]);
+    }, [maps]);
     useEffect(() => () => material.dispose(), [material]);
     useFrame(() => {
         const o = opacity();
@@ -153,14 +270,10 @@ function Land({ opacity }: { opacity: () => number }) {
         material.depthWrite = o > 0.99;
         if (ref.current) ref.current.visible = o > 0.003;
     });
-    return (
-        <mesh ref={ref} rotation={[-Math.PI / 2, 0, 0]} material={material} receiveShadow renderOrder={-5}>
-            <circleGeometry args={[GROUND_RADIUS, 128]} />
-        </mesh>
-    );
+    return <mesh ref={ref} geometry={geometry} material={material} receiveShadow renderOrder={-5} />;
 }
 
-/** The ocean east of the coast: Fresnel reflection of the sky, wind waves, the Sun's glitter, haze. */
+/** The ocean east of the coast: Fresnel reflection of the sky, wind waves, surf, the Sun's glitter, haze. */
 function Ocean({ opacity }: { opacity: () => number }) {
     const ref = useRef<Mesh>(null);
     const scene = useThree((s) => s.scene);
@@ -196,9 +309,14 @@ function Ocean({ opacity }: { opacity: () => number }) {
                         float fres = 0.02 + 0.98 * pow(1.0 - max(dot(n, v), 0.0), 5.0);
                         vec3 r = reflect(-v, n);
                         vec3 sky = mix(vec3(0.62, 0.72, 0.84), vec3(0.2, 0.36, 0.66), clamp(r.y * 1.8, 0.0, 1.0));
-                        vec3 deep = vec3(0.012, 0.055, 0.075) * (0.55 + 0.6 * max(uSun.y, 0.0));
+                        float off = p.x - coastAt(p.y);
+                        // Shallow water is greener and brighter near the shore.
+                        vec3 deep = mix(vec3(0.03, 0.12, 0.13), vec3(0.012, 0.05, 0.075), smoothstep(10.0, 260.0, off)) * (0.55 + 0.6 * max(uSun.y, 0.0));
                         vec3 col = mix(deep, sky, fres);
                         col += vec3(1.0, 0.95, 0.85) * pow(max(dot(r, uSun), 0.0), 380.0) * 6.0;
+                        // Surf: breaking bands parallel to the beach.
+                        float surf = smoothstep(0.55, 0.9, sin(off * 0.16 - uTime * 1.2 + vnoise(p * 0.05) * 3.0)) * (1.0 - smoothstep(4.0, 70.0, off));
+                        col = mix(col, vec3(0.86, 0.9, 0.92), surf * 0.7 * (1.0 - calm));
                         float f = 1.0 - exp(-pow(uFogDensity * dist, 2.0));
                         col = mix(col, uFog, clamp(f, 0.0, 1.0));
                         gl_FragColor = vec4(col, uOpacity);
@@ -228,70 +346,148 @@ function Ocean({ opacity }: { opacity: () => number }) {
     );
 }
 
-/** Lattice tower: four corner columns and cross-bracing, instanced. */
-function Lattice({ height, width, material }: { height: number; width: number; material: MeshStandardMaterial }) {
+// ── Structural helpers ────────────────────────────────────────────────────
+
+type Beam = { from: [number, number, number]; to: [number, number, number]; w: number };
+
+/** Many straight members (columns, girts, braces) as one instanced mesh of unit boxes. */
+function Members({ beams, material, cast = true }: { beams: Beam[]; material: MeshStandardMaterial; cast?: boolean }) {
     const ref = useRef<InstancedMesh>(null);
-    const count = useMemo(() => {
-        const bays = Math.round(height / 4);
-        return 4 + bays * 8;
-    }, [height]);
     useEffect(() => {
         const mesh = ref.current;
         if (!mesh) return;
         const o = new Object3D();
-        let i = 0;
-        const h = width / 2;
-        const corners: [number, number][] = [
-            [-h, -h],
-            [h, -h],
-            [h, h],
-            [-h, h],
-        ];
-        for (const [x, z] of corners) {
-            o.position.set(x, height / 2, z);
-            o.rotation.set(0, 0, 0);
-            o.scale.set(0.35, height, 0.35);
+        const a = new Vector3();
+        const b = new Vector3();
+        const up = new Vector3(0, 1, 0);
+        beams.forEach((m, i) => {
+            a.fromArray(m.from);
+            b.fromArray(m.to);
+            const len = a.distanceTo(b);
+            o.position.copy(a).add(b).multiplyScalar(0.5);
+            o.quaternion.setFromUnitVectors(up, b.clone().sub(a).normalize());
+            o.scale.set(m.w, len, m.w);
             o.updateMatrix();
-            mesh.setMatrixAt(i++, o.matrix);
-        }
-        const bays = Math.round(height / 4);
-        const diag = Math.hypot(width, 4);
-        const ang = Math.atan2(4, width);
-        for (let b = 0; b < bays; b++) {
-            const y = b * 4 + 2;
-            for (let side = 0; side < 4; side++) {
-                const rot = (side * Math.PI) / 2;
-                const cx = Math.round(Math.sin(rot) * 1e6) / 1e6;
-                const cz = Math.round(Math.cos(rot) * 1e6) / 1e6;
-                // Horizontal girt
-                o.position.set(cx * h, b * 4, cz * h);
-                o.rotation.set(0, rot, 0);
-                o.scale.set(width, 0.22, 0.22);
-                o.updateMatrix();
-                mesh.setMatrixAt(i++, o.matrix);
-                // Diagonal brace
-                o.position.set(cx * h, y, cz * h);
-                o.rotation.set(0, rot, (b % 2 ? 1 : -1) * ang);
-                o.scale.set(diag, 0.16, 0.16);
-                o.updateMatrix();
-                mesh.setMatrixAt(i++, o.matrix);
-            }
-        }
-        mesh.count = i;
+            mesh.setMatrixAt(i, o.matrix);
+        });
+        mesh.count = beams.length;
         mesh.instanceMatrix.needsUpdate = true;
-        // Bounds from every beam, not just the base box: otherwise the whole tower is culled whenever
-        // the camera looks up the vehicle and the tower's foot leaves the frame.
+        // Bounds from every member, so the structure is not culled when its foot leaves the frame.
         mesh.computeBoundingBox();
         mesh.computeBoundingSphere();
-    }, [height, width, count]);
+    }, [beams]);
     return (
-        <instancedMesh ref={ref} args={[undefined, material, count]} castShadow receiveShadow>
+        <instancedMesh ref={ref} args={[undefined, material, beams.length]} castShadow={cast} receiveShadow>
             <boxGeometry args={[1, 1, 1]} />
         </instancedMesh>
     );
 }
 
-/** The ignition cloud: seeded particles whose state is a function of mission time only. */
+/** Members of a square lattice tower of side `w` and height `h`: columns, girts and X bracing per bay. */
+function latticeBeams(w: number, h: number, bay: number, col: number, brace: number, offset: [number, number, number] = [0, 0, 0]): Beam[] {
+    const out: Beam[] = [];
+    const s = w / 2;
+    const [ox, oy, oz] = offset;
+    const P = (x: number, y: number, z: number): [number, number, number] => [x + ox, y + oy, z + oz];
+    const corners: [number, number][] = [
+        [-s, -s],
+        [s, -s],
+        [s, s],
+        [-s, s],
+    ];
+    for (const [x, z] of corners) out.push({ from: P(x, 0, z), to: P(x, h, z), w: col });
+    const bays = Math.round(h / bay);
+    for (let k = 0; k <= bays; k++) {
+        const y = Math.min(h, k * bay);
+        for (let c = 0; c < 4; c++) {
+            const [x0, z0] = corners[c];
+            const [x1, z1] = corners[(c + 1) % 4];
+            out.push({ from: P(x0, y, z0), to: P(x1, y, z1), w: brace * 1.2 });
+            if (k < bays) {
+                const y1 = Math.min(h, y + bay);
+                out.push({ from: P(x0, y, z0), to: P(x1, y1, z1), w: brace });
+                out.push({ from: P(x1, y, z1), to: P(x0, y1, z0), w: brace });
+            }
+        }
+    }
+    return out;
+}
+
+/** A sagging cable between two points (for catenary wires and umbilical lines). */
+function sagPoints(a: Vector3, b: Vector3, sag: number, n = 24) {
+    return Array.from({ length: n + 1 }, (_, i) => {
+        const t = i / n;
+        return a
+            .clone()
+            .lerp(b, t)
+            .add(new Vector3(0, -sag * 4 * t * (1 - t), 0));
+    });
+}
+
+function Wires({ spans, color = '#3b4048', opacity = 0.75 }: { spans: Vector3[][]; color?: string; opacity?: number }) {
+    const lines = useMemo(
+        () =>
+            spans.map((pts) => {
+                const l = new Line(new BufferGeometry().setFromPoints(pts), new LineBasicMaterial({ color, transparent: true, opacity }));
+                l.frustumCulled = false;
+                return l;
+            }),
+        [spans, color, opacity],
+    );
+    useEffect(
+        () => () =>
+            lines.forEach((l) => {
+                l.geometry.dispose();
+                (l.material as LineBasicMaterial).dispose();
+            }),
+        [lines],
+    );
+    return (
+        <group>
+            {lines.map((l, i) => (
+                <primitive key={i} object={l} />
+            ))}
+        </group>
+    );
+}
+
+/** A box with a photographic material whose texture repeats every `tile` metres. */
+function SurfaceBox({
+    size,
+    at,
+    tile,
+    map,
+    normal,
+    color = '#ffffff',
+    roughness = 0.9,
+    metalness = 0,
+    castShadow = true,
+    rotation,
+}: {
+    size: [number, number, number];
+    at: [number, number, number];
+    tile: number;
+    map?: Texture;
+    normal?: Texture;
+    color?: string;
+    roughness?: number;
+    metalness?: number;
+    castShadow?: boolean;
+    rotation?: [number, number, number];
+}) {
+    const rx = Math.max(1, size[0] / tile);
+    const ry = Math.max(1, Math.max(size[1], size[2]) / tile);
+    const m = useRepeat(map, rx, ry);
+    const nm = useRepeat(normal, rx, ry);
+    const material = useMat({ color, roughness, metalness, map: m ?? undefined, normalMap: nm ?? undefined }, [m, nm, color, roughness, metalness]);
+    return (
+        <mesh position={at} rotation={rotation} material={material} castShadow={castShadow} receiveShadow>
+            <boxGeometry args={size} />
+        </mesh>
+    );
+}
+
+// ── Exhaust ───────────────────────────────────────────────────────────────
 
 /** A cloudy puff texture (value-noise turbulence with a soft edge), drawn once. */
 function puffTexture() {
@@ -338,13 +534,20 @@ function puffTexture() {
     return t;
 }
 
-/** The ignition cloud: seeded particles whose state is a function of mission time only. */
+/**
+ * The ignition cloud: seeded particles whose state is a function of mission time only. Steam from the
+ * sound-suppression water and exhaust billow out of the trench's north exit and rise around the table.
+ */
 function ExhaustCloud({ met, quality }: { met: () => number; quality: 'high' | 'low' }) {
-    const count = quality === 'high' ? 320 : 140;
+    const count = quality === 'high' ? 340 : 150;
     const ref = useRef<InstancedMesh>(null);
     const camera = useThree((s) => s.camera);
     const texture = useMemo(() => puffTexture(), []);
-    const material = useMemo(() => new MeshStandardMaterial({ color: '#eceef0', map: texture ?? undefined, transparent: true, depthWrite: false, roughness: 1, metalness: 0, opacity: 0.75 }), [texture]);
+    // Steam and exhaust products are bright on their shaded side too (they scatter skylight): partly self-lit.
+    const material = useMemo(
+        () => new MeshStandardMaterial({ color: '#eceef0', emissive: '#aab4bf', emissiveIntensity: 0.45, emissiveMap: texture ?? undefined, map: texture ?? undefined, transparent: true, depthWrite: false, roughness: 1, metalness: 0, opacity: 0.8 }),
+        [texture],
+    );
     useEffect(
         () => () => {
             material.dispose();
@@ -358,7 +561,8 @@ function ExhaustCloud({ met, quality }: { met: () => number; quality: 'high' | '
             s = (s * 1664525 + 1013904223) >>> 0;
             return s / 4294967296;
         };
-        return Array.from({ length: count }, () => ({ birth: -3 + rnd() * 16, a: rnd() * Math.PI * 2, spread: rnd(), up: rnd(), size: 0.6 + rnd() * 0.8, life: 16 + rnd() * 10, spin: (rnd() - 0.5) * 0.3, rot: rnd() * Math.PI * 2 }));
+        // Births weighted towards ignition: the steam bursts out in the first seconds.
+        return Array.from({ length: count }, () => ({ birth: -2.6 + rnd() ** 1.8 * 16, a: rnd() * Math.PI * 2, spread: rnd(), up: rnd(), size: 0.6 + rnd() * 0.8, life: 16 + rnd() * 10, spin: (rnd() - 0.5) * 0.3, rot: rnd() * Math.PI * 2 }));
     }, [count]);
     const o = useMemo(() => new Object3D(), []);
     const dir = useMemo(() => new Vector3(), []);
@@ -370,14 +574,15 @@ function ExhaustCloud({ met, quality }: { met: () => number; quality: 'high' | '
         for (const p of seeds) {
             const age = t - p.birth;
             if (age < 0 || age > p.life) continue;
-            // Out of the trench westwards and up, slowing with age (drag), growing as it mixes.
-            const travel = 140 * (1 - Math.exp(-age / 3.5));
-            dir.set(-Math.cos(p.a * 0.35) * 0.9, 0, Math.sin(p.a) * 0.9);
+            // Out of the trench northwards and up, slowing with age (drag), growing as it mixes.
+            const travel = 150 * (1 - Math.exp(-age / 3.5));
+            dir.set(Math.sin(p.a) * 0.9, 0, -Math.cos(p.a * 0.35) * 0.9);
             o.position.copy(TRENCH_EXIT).addScaledVector(dir, travel * (0.4 + p.spread));
             o.position.y += 5 + age * (1.8 + 3.2 * p.up);
-            // A little steam also rises around the mount itself.
-            if (p.spread < 0.07) o.position.set(Math.cos(p.a) * (8 + age * 2), 3 + age * 2.4, Math.sin(p.a) * (8 + age * 2));
-            const s = (p.spread < 0.07 ? 4 + age * 2.5 : 8 + age * 5.2) * p.size;
+            // Steam from the deluge water also rises around the launch table itself.
+            const table = p.spread < 0.22;
+            if (table) o.position.set(Math.cos(p.a) * (8 + age * 2.2), DECK + 2 + age * 2.6, Math.sin(p.a) * (8 + age * 2.2));
+            const s = (table ? 4 + age * 2.8 : 8 + age * 5.2) * p.size;
             o.scale.setScalar(s);
             o.quaternion.copy(camera.quaternion);
             o.rotateZ(p.rot + age * p.spin);
@@ -448,7 +653,7 @@ function ExhaustTrail({ met, head }: { met: () => number; head: () => Vector3 })
     const material = useMemo(
         () =>
             new ShaderMaterial({
-                uniforms: { uMet: { value: 0 }, uHead: { value: new Vector3() }, uSun: { value: new Vector3(0.814, 0.5, 0.296).normalize() } },
+                uniforms: { uMet: { value: 0 }, uHead: { value: new Vector3() }, uSun: { value: SUN_SITE.clone() } },
                 vertexShader: /* glsl */ `${LOGDEPTH.vPars}
                     attribute vec3 aDir; attribute float aTime; attribute float aAlt; uniform float uMet; uniform vec3 uHead;
                     varying float vAge; varying float vAlt; varying vec3 vN; varying vec3 vPos;
@@ -493,34 +698,377 @@ function ExhaustTrail({ met, head }: { met: () => number; head: () => Vector3 })
     return <mesh geometry={geometry} material={material} frustumCulled={false} renderOrder={4} />;
 }
 
-
-/** A box with a photographic material whose texture repeats every `tile` metres. */
-function SurfaceBox({ size, at, tile, map, normal, color = '#ffffff', roughness = 0.9, metalness = 0, castShadow = true }: { size: [number, number, number]; at: [number, number, number]; tile: number; map?: Texture; normal?: Texture; color?: string; roughness?: number; metalness?: number; castShadow?: boolean }) {
-    const rx = Math.max(1, size[0] / tile);
-    const ry = Math.max(1, Math.max(size[1], size[2]) / tile);
-    const m = useRepeat(map, rx, ry);
-    const nm = useRepeat(normal, rx, ry);
-    const material = useMat({ color, roughness, metalness, map: m ?? undefined, normalMap: nm ?? undefined }, [m, nm, color, roughness, metalness]);
+/**
+ * The exhaust turned by the flame deflector: a flattened jet running north along the trench and out of
+ * its exit while the vehicle is low (thrust from the flight simulation; it fades as the vehicle climbs).
+ */
+function TrenchJet({ met }: { met: () => number }) {
+    const power = () => {
+        const s = sampleAt(met());
+        if (s.phase !== 'ignition' && s.phase !== 'stage1') return 0;
+        return s.throttle * Math.max(0, 1 - Math.max(0, s.altitude) / 55) * 0.9;
+    };
     return (
-        <mesh position={at} material={material} castShadow={castShadow} receiveShadow>
-            <boxGeometry args={size} />
-        </mesh>
+        <group position={[0, 2.4, 1]} scale={[1, 0.42, 1]}>
+            <group rotation={[Math.PI / 2, 0, 0]}>
+                <Plume power={power} length={() => 62} radius={() => 5.2} core="#fff0c4" edge="#d9702c" diamonds={0} soot={1} />
+                <Plume power={() => power() * 0.7} length={() => 26} radius={() => 3.2} core="#fffaf0" edge="#ffb347" additive />
+            </group>
+        </group>
+    );
+}
+
+// ── Facility parts ────────────────────────────────────────────────────────
+
+/** Soot and scorch on the deck around the table and at the trench exit: soft dark decals. */
+function Scorch() {
+    const texture = useMemo(() => {
+        if (typeof document === 'undefined') return null;
+        const c = document.createElement('canvas');
+        c.width = c.height = 128;
+        const g = c.getContext('2d')!;
+        const grad = g.createRadialGradient(64, 64, 4, 64, 64, 64);
+        grad.addColorStop(0, 'rgba(20,18,16,0.75)');
+        grad.addColorStop(0.5, 'rgba(30,27,24,0.35)');
+        grad.addColorStop(1, 'rgba(30,27,24,0)');
+        g.fillStyle = grad;
+        g.fillRect(0, 0, 128, 128);
+        const t = new CanvasTexture(c);
+        t.colorSpace = SRGBColorSpace;
+        return t;
+    }, []);
+    const material = useMemo(() => new MeshStandardMaterial({ map: texture, transparent: true, depthWrite: false, roughness: 1, polygonOffset: true, polygonOffsetFactor: -4 }), [texture]);
+    useEffect(
+        () => () => {
+            material.dispose();
+            texture?.dispose();
+        },
+        [material, texture],
+    );
+    const spots: [number, number, number, number][] = [
+        [0, DECK + 0.02, 0, 36],
+        [0, DECK + 0.02, -30, 30],
+        [0, 0.08, -60, 70],
+        [10, 0.08, -78, 50],
+    ];
+    return (
+        <group>
+            {spots.map(([x, y, z, s], i) => (
+                <mesh key={i} position={[x, y, z]} rotation={[-Math.PI / 2, 0, i]} material={material} renderOrder={1} receiveShadow>
+                    <planeGeometry args={[s, s]} />
+                </mesh>
+            ))}
+        </group>
+    );
+}
+
+/** Hardstand, flame trench, deflector and launch table. */
+function Pad({ concrete, concreteN, steel, dark }: { concrete?: Texture; concreteN?: Texture; steel: MeshStandardMaterial; dark: MeshStandardMaterial }) {
+    const soot = useMat({ color: '#2d2a27', roughness: 0.95, metalness: 0 });
+    const W = TRENCH_HALF;
+    return (
+        <group>
+            {/* Raised hardstand in three blocks around the trench, which runs north under the table. */}
+            <SurfaceBox size={[39, DECK, 84]} at={[-25.5, DECK / 2, -2]} tile={12} map={concrete} normal={concreteN} color="#e9e6df" />
+            <SurfaceBox size={[39, DECK, 84]} at={[25.5, DECK / 2, -2]} tile={12} map={concrete} normal={concreteN} color="#e9e6df" />
+            <SurfaceBox size={[2 * W, DECK, 34]} at={[0, DECK / 2, 23]} tile={12} map={concrete} normal={concreteN} color="#e9e6df" />
+            {/* Ramps down to grade on the west (access road) and east sides */}
+            <SurfaceBox size={[30, 0.6, 14]} at={[-55, DECK / 2 - 0.3, 18]} rotation={[0, 0, 0.1]} tile={12} map={concrete} normal={concreteN} color="#dcd8d0" castShadow={false} />
+            {/* Trench floor and sooty walls */}
+            <mesh position={[0, 0.06, -20]} rotation={[-Math.PI / 2, 0, 0]} material={soot} receiveShadow>
+                <planeGeometry args={[2 * W, 76]} />
+            </mesh>
+            {[-1, 1].map((s) => (
+                <mesh key={s} position={[s * (W - 0.02), DECK / 2, -19]} rotation={[0, (-s * Math.PI) / 2, 0]} material={soot}>
+                    <planeGeometry args={[50, DECK]} />
+                </mesh>
+            ))}
+            {/* Flame deflector: a steel wedge under the table that turns the exhaust north */}
+            <mesh position={[0, DECK / 2 + 0.2, 1.2]} rotation={[-0.62, 0, 0]} material={dark} castShadow receiveShadow>
+                <boxGeometry args={[2 * W - 0.4, 0.5, 9]} />
+            </mesh>
+            {/* Launch table on four pedestals, with the exhaust opening in the middle */}
+            {[
+                [-8, -5],
+                [8, -5],
+                [8, 5],
+                [-8, 5],
+            ].map(([x, z]) => (
+                <SurfaceBox key={`${x},${z}`} size={[2.4, MOUNT_TOP - 1.4 - DECK, 2.4]} at={[x, DECK + (MOUNT_TOP - 1.4 - DECK) / 2, z]} tile={3} map={concrete} normal={concreteN} color="#bdbab4" />
+            ))}
+            {[
+                [0, -4.4, 20, 3.2],
+                [0, 4.4, 20, 3.2],
+                [-6.8, 0, 6.4, 5.6],
+                [6.8, 0, 6.4, 5.6],
+            ].map(([x, z, w, d]) => (
+                <mesh key={`${x},${z}`} position={[x, MOUNT_TOP - 0.7, z]} material={steel} castShadow receiveShadow>
+                    <boxGeometry args={[w, 1.4, d]} />
+                </mesh>
+            ))}
+            {/* Hold-down clamps: four arms that grip the aft skirt until thrust is confirmed */}
+            {[0, 1, 2, 3].map((k) => {
+                const a = (k / 4) * Math.PI * 2 + Math.PI / 4;
+                return (
+                    <group key={k} position={[Math.cos(a) * 2.55, MOUNT_TOP, Math.sin(a) * 2.55]} rotation={[0, -a, 0]}>
+                        <mesh position={[0, 0.45, 0]} material={dark} castShadow>
+                            <boxGeometry args={[0.9, 0.9, 0.7]} />
+                        </mesh>
+                        <mesh position={[-0.45, 1.05, 0]} material={steel} castShadow>
+                            <boxGeometry args={[0.5, 0.35, 0.45]} />
+                        </mesh>
+                    </group>
+                );
+            })}
+            {/* Tail-service masts on the tower side */}
+            {[-1.9, 1.9].map((z) => (
+                <group key={z} position={[-4.2, MOUNT_TOP, z]}>
+                    <mesh position={[0, 2.2, 0]} material={steel} castShadow>
+                        <boxGeometry args={[0.9, 4.4, 0.9]} />
+                    </mesh>
+                    <mesh position={[0.9, 3.3, 0]} rotation={[0, 0, -0.45]} material={dark} castShadow>
+                        <boxGeometry args={[1.8, 0.35, 0.5]} />
+                    </mesh>
+                </group>
+            ))}
+            {/* Water deluge headers along the table */}
+            {[-1, 1].map((s) => (
+                <mesh key={s} position={[s * 9.4, MOUNT_TOP - 1.1, 0]} rotation={[Math.PI / 2, 0, 0]} material={steel} castShadow>
+                    <cylinderGeometry args={[0.35, 0.35, 16, 14]} />
+                </mesh>
+            ))}
+            {/* Guard rails along the deck edge of the trench */}
+            {[-1, 1].map((s) => (
+                <mesh key={s} position={[s * (W + 0.3), DECK + 0.55, -24]} material={steel}>
+                    <boxGeometry args={[0.08, 1.1, 28]} />
+                </mesh>
+            ))}
+        </group>
+    );
+}
+
+/** The fixed umbilical tower with platforms, an elevator core, a top mast and three service arms. */
+function UmbilicalTower({ met, steel, dark, hose }: { met: () => number; steel: MeshStandardMaterial; dark: MeshStandardMaterial; hose: MeshStandardMaterial }) {
+    const arms = useRef<Group>(null);
+    const beams = useMemo(() => latticeBeams(9, TOWER_H, 4, 0.65, 0.24), []);
+    // Platform grating every 8 m, with toe rails (part of the same instanced set).
+    const decks = useMemo(() => Array.from({ length: Math.floor(TOWER_H / 8) }, (_, i) => 8 * (i + 1)), []);
+    // Service arms: [height above the vehicle base, reach]: tail, oxygen fill-and-drain, upper stage.
+    // Reach: from the tower face (4.5 m east of its centre) to just short of the vehicle skin.
+    const armDefs: [number, number][] = [
+        [30.4, 6.85],
+        [35.2, 6.85],
+        [45, 7.2],
+    ];
+    const armBeams = useMemo(() => {
+        return armDefs.map(([, reach]) => {
+            const out: Beam[] = [];
+            const L = reach;
+            // A Warren truss: top and bottom chords, diagonals, on two sides.
+            for (const z of [-0.7, 0.7]) {
+                out.push({ from: [0, 0, z], to: [L, 0, z], w: 0.22 });
+                out.push({ from: [0, 1.6, z], to: [L - 0.6, 1.6, z], w: 0.2 });
+                for (let k = 0; k < 5; k++) {
+                    const x0 = (k / 5) * (L - 0.6);
+                    const x1 = ((k + 1) / 5) * (L - 0.6);
+                    out.push({ from: [x0, k % 2 ? 1.6 : 0, z], to: [x1, k % 2 ? 0 : 1.6, z], w: 0.12 });
+                }
+            }
+            for (let k = 0; k <= 5; k++) out.push({ from: [(k / 5) * (L - 0.6), 0, -0.7], to: [(k / 5) * (L - 0.6), 0, 0.7], w: 0.12 });
+            return out;
+        });
+    }, []);
+    // Umbilical lines hanging from each arm to its plate on the vehicle (in arm coordinates).
+    const hoses = useMemo(
+        () =>
+            armDefs.map(([, reach]) => {
+                const curve = new CatmullRomCurve3([new Vector3(0.8, 0.0, 0.35), new Vector3(reach * 0.5, -1.3, 0.38), new Vector3(reach - 0.5, 0.3, 0.3), new Vector3(reach + 0.1, 1.4, 0)]);
+                return curve;
+            }),
+        [],
+    );
+    useFrame(() => {
+        const t = met();
+        // Service arms swing away from T−60 s to T−40 s (the tail masts stay until liftoff).
+        const swing = Math.min(1, Math.max(0, (t + 60) / 20));
+        if (arms.current) arms.current.children.forEach((arm) => (arm.rotation.y = (-Math.PI / 2) * (0.5 - 0.5 * Math.cos(Math.PI * swing)) * 0.95));
+    });
+    return (
+        <group position={[TOWER_X, DECK, 0]}>
+            <Members beams={beams} material={steel} />
+            {decks.map((y) => (
+                <mesh key={y} position={[0, y, 0]} material={dark} receiveShadow castShadow>
+                    <boxGeometry args={[9.3, 0.18, 9.3]} />
+                </mesh>
+            ))}
+            {/* Elevator core (enclosed shaft) on the west side, and the stair tower beside it */}
+            <mesh position={[-2.2, TOWER_H / 2 + 1, -1.8]} material={dark} castShadow receiveShadow>
+                <boxGeometry args={[3, TOWER_H + 2, 3]} />
+            </mesh>
+            {/* Roof, crane rail and lightning mast */}
+            <mesh position={[0, TOWER_H + 0.6, 0]} material={steel} castShadow>
+                <boxGeometry args={[10, 1.2, 10]} />
+            </mesh>
+            <mesh position={[0, TOWER_H + 1.8, 0]} material={dark} castShadow>
+                <boxGeometry args={[3, 1.2, 3]} />
+            </mesh>
+            <mesh position={[0, TOWER_H + 12, 0]} material={steel} castShadow>
+                <cylinderGeometry args={[0.12, 0.4, 20, 10]} />
+            </mesh>
+            {/* Service arms, hinged at the tower's east face (vehicle side) */}
+            <group ref={arms}>
+                {armDefs.map(([h, reach], i) => (
+                    <group key={h} position={[4.5, MOUNT_TOP - DECK + h - 1.4, 0]}>
+                        <ArmTruss beams={armBeams[i]} steel={steel} />
+                        <mesh position={[reach - 0.25, 1.4, 0]} material={dark} castShadow>
+                            <boxGeometry args={[0.6, 1.4, 1.6]} />
+                        </mesh>
+                        <mesh material={hose} castShadow>
+                            <tubeGeometry args={[hoses[i], 32, 0.16, 8, false]} />
+                        </mesh>
+                    </group>
+                ))}
+            </group>
+        </group>
+    );
+}
+
+function ArmTruss({ beams, steel }: { beams: Beam[]; steel: MeshStandardMaterial }) {
+    return <Members beams={beams} material={steel} />;
+}
+
+/** A sphere on legs (cryogenic storage dewar). */
+function Sphere({ at, r, paint, steel }: { at: [number, number, number]; r: number; paint: MeshStandardMaterial; steel: MeshStandardMaterial }) {
+    const legs = 8;
+    return (
+        <group position={at}>
+            <mesh position={[0, r + 3.5, 0]} material={paint} castShadow receiveShadow>
+                <sphereGeometry args={[r, 48, 32]} />
+            </mesh>
+            <mesh position={[0, r + 3.5, 0]} material={steel}>
+                <cylinderGeometry args={[r * 1.005, r * 1.005, 0.3, 48, 1, true]} />
+            </mesh>
+            {Array.from({ length: legs }, (_, i) => {
+                const a = (i / legs) * Math.PI * 2;
+                return (
+                    <mesh key={i} position={[Math.cos(a) * r * 0.86, (r + 3.5) / 2, Math.sin(a) * r * 0.86]} material={steel} castShadow>
+                        <cylinderGeometry args={[0.32, 0.4, r + 3.5, 8]} />
+                    </mesh>
+                );
+            })}
+            <mesh position={[r * 0.7, (r + 3.5) / 2 + r * 0.4, 0]} rotation={[0, 0, 0.25]} material={steel}>
+                <boxGeometry args={[0.9, r * 2 + 4, 0.9]} />
+            </mesh>
+        </group>
+    );
+}
+
+/** A pipe rack: a bundle of pipes on T-supports from `a` to `b` (ground coordinates, y = height). */
+function PipeRack({ a, b, steel, pipe }: { a: [number, number]; b: [number, number]; steel: MeshStandardMaterial; pipe: MeshStandardMaterial }) {
+    const from = new Vector3(a[0], 0, a[1]);
+    const to = new Vector3(b[0], 0, b[1]);
+    const len = from.distanceTo(to);
+    const mid = from.clone().add(to).multiplyScalar(0.5);
+    const ang = Math.atan2(to.x - from.x, to.z - from.z);
+    const supports = Math.max(2, Math.round(len / 12));
+    return (
+        <group position={[mid.x, 0, mid.z]} rotation={[0, ang, 0]}>
+            {[-0.45, 0, 0.45].map((x, i) => (
+                <mesh key={x} position={[x, 1.7 + (i % 2) * 0.1, 0]} rotation={[Math.PI / 2, 0, 0]} material={pipe} castShadow>
+                    <cylinderGeometry args={[0.2 - i * 0.03, 0.2 - i * 0.03, len, 10]} />
+                </mesh>
+            ))}
+            {Array.from({ length: supports + 1 }, (_, k) => (
+                <group key={k} position={[0, 0, -len / 2 + (k / supports) * len]}>
+                    <mesh position={[0, 0.75, 0]} material={steel} castShadow>
+                        <boxGeometry args={[0.25, 1.5, 0.25]} />
+                    </mesh>
+                    <mesh position={[0, 1.5, 0]} material={steel}>
+                        <boxGeometry args={[1.6, 0.18, 0.3]} />
+                    </mesh>
+                </group>
+            ))}
+        </group>
+    );
+}
+
+/** A building with clad walls, a roof cap and a parapet. */
+function Building({ at, size, clad, roof, rotation = 0 }: { at: [number, number]; size: [number, number, number]; clad: SurfaceSet | null; roof: MeshStandardMaterial; rotation?: number }) {
+    const [w, h, d] = size;
+    const material = useMat({ color: '#ffffff', roughness: 1, metalness: 0.2, ...(clad ? { map: clad.map, normalMap: clad.normalMap, roughnessMap: clad.roughnessMap } : {}) }, [clad]);
+    return (
+        <group position={[at[0], 0, at[1]]} rotation={[0, rotation, 0]}>
+            <mesh position={[0, h / 2, 0]} material={material} castShadow receiveShadow>
+                <boxGeometry args={[w, h, d]} />
+            </mesh>
+            <mesh position={[0, h + 0.4, 0]} material={roof} castShadow receiveShadow>
+                <boxGeometry args={[w + 0.6, 0.8, d + 0.6]} />
+            </mesh>
+            {/* Rooftop plant */}
+            <mesh position={[w * 0.2, h + 1.6, -d * 0.15]} material={roof} castShadow>
+                <boxGeometry args={[Math.min(6, w * 0.2), 1.8, Math.min(4, d * 0.2)]} />
+            </mesh>
+        </group>
+    );
+}
+
+/** A floodlight tower: a tapered mast with a lamp head. */
+function LightTower({ at, steel, dark }: { at: [number, number]; steel: MeshStandardMaterial; dark: MeshStandardMaterial }) {
+    return (
+        <group position={[at[0], 0, at[1]]}>
+            <mesh position={[0, 17, 0]} material={steel} castShadow>
+                <cylinderGeometry args={[0.35, 0.7, 34, 10]} />
+            </mesh>
+            <mesh position={[0, 34.4, 0]} material={steel} castShadow>
+                <boxGeometry args={[3.2, 1.4, 0.6]} />
+            </mesh>
+            {[-1, 0, 1].map((k) => (
+                <mesh key={k} position={[k * 1.05, 34.4, 0.32]} material={dark}>
+                    <boxGeometry args={[0.8, 1.0, 0.05]} />
+                </mesh>
+            ))}
+        </group>
     );
 }
 
 export default function LaunchSite({ met, head, groundOpacity, quality }: { met: () => number; head: () => Vector3; groundOpacity: () => number; quality: 'high' | 'low' }) {
     const maps = useContext(MapsContext);
-    const steel = useMat({ color: '#80858d', roughness: 0.45, metalness: 0.8 });
-    const towerPaint = useMat({ color: '#a2462c', roughness: 0.62, metalness: 0.35 });
-    const tankPaint = useMat({ color: '#e8e9ea', roughness: 0.55, metalness: 0.15 });
-    const arms = useRef<Group>(null);
+    const towerSteel = useSurface(() => paintedSteel([172, 176, 182], 43), 4, 4);
+    const darkSteel = useSurface(() => paintedSteel([70, 74, 80], 47), 4, 4);
+    const whitePaint = useSurface(() => paintedSteel([226, 228, 230], 49), 3, 3);
+    const cladA = useSurface(() => cladding([206, 210, 214], 2, 71), 3, 1);
+    const cladB = useSurface(() => cladding([178, 184, 190], 1, 73), 4, 1);
+    const cladC = useSurface(() => cladding([226, 228, 230], 0, 75), 6, 2);
+    const steel = useMat({ color: '#ffffff', roughness: 1, metalness: 0.55, ...(towerSteel ? { map: towerSteel.map, normalMap: towerSteel.normalMap, roughnessMap: towerSteel.roughnessMap } : {}) }, [towerSteel]);
+    const dark = useMat({ color: '#ffffff', roughness: 1, metalness: 0.5, ...(darkSteel ? { map: darkSteel.map, normalMap: darkSteel.normalMap, roughnessMap: darkSteel.roughnessMap } : {}) }, [darkSteel]);
+    const tankPaint = useMat({ color: '#ffffff', roughness: 1, metalness: 0.15, ...(whitePaint ? { map: whitePaint.map, normalMap: whitePaint.normalMap, roughnessMap: whitePaint.roughnessMap } : {}) }, [whitePaint]);
+    const pipe = useMat({ color: '#c3c7cc', roughness: 0.35, metalness: 0.85 });
+    const hose = useMat({ color: '#e9e9e6', roughness: 0.6, metalness: 0.1 });
+    const roof = useMat({ color: '#6c7178', roughness: 0.75, metalness: 0.3 });
+    const asphalt = useMat({ color: '#3d3e40', roughness: 0.95, metalness: 0, polygonOffset: true, polygonOffsetFactor: -1 });
     const site = useRef<Group>(null);
 
+    // Catenary lightning protection: three masts around the pad with wires between their tops and
+    // down to ground anchors outside them.
+    const masts: [number, number][] = [
+        [-46, -38],
+        [52, -30],
+        [40, 52],
+    ];
+    const MAST_H = 104;
+    const spans = useMemo(() => {
+        const tops = masts.map(([x, z]) => new Vector3(x, MAST_H, z));
+        const out: Vector3[][] = [];
+        for (let i = 0; i < tops.length; i++) out.push(sagPoints(tops[i], tops[(i + 1) % tops.length], 9));
+        const towerTop = new Vector3(TOWER_X, DECK + TOWER_H + 20, 0);
+        for (const t of tops) out.push(sagPoints(t, towerTop, 6));
+        return out;
+    }, []);
+
+    // Sound-suppression water tower: a tank on a braced lattice.
+    const waterBeams = useMemo(() => latticeBeams(10, 52, 6.5, 0.7, 0.28, [-118, 0, -118]), []);
+
     useFrame(() => {
-        const t = met();
-        // Service arms swing away from T−60 s to T−40 s.
-        const swing = Math.min(1, Math.max(0, (t + 60) / 20));
-        if (arms.current) arms.current.children.forEach((arm) => (arm.rotation.y = (-Math.PI / 2) * swing));
         if (site.current) site.current.visible = groundOpacity() > 0.003;
     });
 
@@ -529,99 +1077,74 @@ export default function LaunchSite({ met, head, groundOpacity, quality }: { met:
             <Ocean opacity={groundOpacity} />
             <Land opacity={groundOpacity} />
             <group ref={site}>
-                {/* Pad deck, apron and the access road, in concrete */}
-                <SurfaceBox size={[110, 1.2, 80]} at={[-20, 0.6, 0]} tile={14} map={maps?.concrete} normal={maps?.concreteN} color="#f2f0ea" />
-                <SurfaceBox size={[260, 0.25, 200]} at={[-40, 0.12, 0]} tile={16} map={maps?.concrete} normal={maps?.concreteN} color="#e2dfd8" castShadow={false} />
-                <SurfaceBox size={[1300, 0.2, 9]} at={[-820, 0.1, 0]} tile={9} map={maps?.concrete} normal={maps?.concreteN} color="#a9a6a0" castShadow={false} />
-                {/* Flame trench running west: sooted concrete walls and floor below the deck level */}
-                <SurfaceBox size={[46, 1.3, 12]} at={[-40, 0.66, 0]} tile={6} map={maps?.concrete} normal={maps?.concreteN} color="#4a4844" castShadow={false} />
-                {/* Launch mount: an open frame on four legs over the trench (the exhaust passes through), with hold-down posts */}
-                {[
-                    [0, -4.6, 11, 1.8],
-                    [0, 4.6, 11, 1.8],
-                    [-4.6, 0, 1.8, 7.4],
-                    [4.6, 0, 1.8, 7.4],
-                ].map(([x, z, w, d]) => (
-                    <mesh key={`${x},${z}`} position={[x, MOUNT_TOP - 0.5, z]} material={steel} castShadow receiveShadow>
-                        <boxGeometry args={[w, 1, d]} />
-                    </mesh>
-                ))}
-                {[
-                    [-4.6, -4.6],
-                    [4.6, -4.6],
-                    [4.6, 4.6],
-                    [-4.6, 4.6],
-                ].map(([x, z]) => (
-                    <SurfaceBox key={`${x},${z}`} size={[1.6, MOUNT_TOP - 1.4, 1.6]} at={[x, (MOUNT_TOP - 1.4) / 2 + 1.2, z]} tile={2} map={maps?.concrete} normal={maps?.concreteN} color="#9a9792" />
-                ))}
-                {[0, 1, 2, 3].map((k) => {
-                    const a = (k / 4) * Math.PI * 2 + Math.PI / 4;
-                    return (
-                        <mesh key={k} position={[Math.cos(a) * 2.2, MOUNT_TOP + 0.5, Math.sin(a) * 2.2]} material={steel} castShadow>
-                            <boxGeometry args={[0.6, 1.0, 0.6]} />
+                <Pad concrete={maps?.concrete} concreteN={maps?.concreteN} steel={steel} dark={dark} />
+                <Scorch />
+                <UmbilicalTower met={met} steel={steel} dark={dark} hose={hose} />
+                {/* Lightning protection */}
+                {masts.map(([x, z]) => (
+                    <group key={`${x},${z}`} position={[x, 0, z]}>
+                        <mesh position={[0, MAST_H / 2 - 6, 0]} material={steel} castShadow>
+                            <cylinderGeometry args={[0.55, 1.4, MAST_H - 12, 12]} />
                         </mesh>
-                    );
-                })}
-                {/* Umbilical tower with three service arms */}
-                <group position={[TOWER_X - 4, 1.2, 0]}>
-                    <Lattice height={TOWER_H} width={8} material={towerPaint} />
-                    {[16, 32, 48, 64].map((y) => (
-                        <mesh key={y} position={[0, y, 0]} material={steel} receiveShadow castShadow>
-                            <boxGeometry args={[8.4, 0.25, 8.4]} />
+                        <mesh position={[0, MAST_H - 6, 0]} material={hose} castShadow>
+                            <cylinderGeometry args={[0.18, 0.4, 12, 10]} />
                         </mesh>
-                    ))}
-                    <mesh position={[0, TOWER_H + 1.5, 0]} material={steel} castShadow>
-                        <boxGeometry args={[9, 3, 9]} />
-                    </mesh>
-                    <group ref={arms}>
-                        {[20, 36, 52].map((y) => (
-                            <group key={y} position={[4, y, 0]}>
-                                <mesh position={[2.5, 0, 0]} material={towerPaint} castShadow>
-                                    <boxGeometry args={[5.6, 1.2, 1.6]} />
-                                </mesh>
-                            </group>
+                    </group>
+                ))}
+                <Wires spans={spans} />
+                {/* Water tower */}
+                <Members beams={waterBeams} material={steel} />
+                <mesh position={[-118, 61, -118]} material={tankPaint} castShadow receiveShadow>
+                    <cylinderGeometry args={[9, 9, 17, 48]} />
+                </mesh>
+                <mesh position={[-118, 70.5, -118]} material={tankPaint} castShadow>
+                    <sphereGeometry args={[9, 48, 16, 0, Math.PI * 2, 0, Math.PI / 2]} />
+                </mesh>
+                <PipeRack a={[-112, -112]} b={[-20, -20]} steel={dark} pipe={pipe} />
+                {/* Propellant farm: liquid oxygen (east), liquid hydrogen (north-west), kerosene (south-east) */}
+                <Sphere at={[118, 0, -96]} r={9} paint={tankPaint} steel={steel} />
+                <Sphere at={[-52, 0, -178]} r={10.5} paint={tankPaint} steel={steel} />
+                {[0, 1].map((k) => (
+                    <group key={k} position={[96 + k * 7, 0, 74]}>
+                        <mesh position={[0, 3.6, 0]} rotation={[Math.PI / 2, 0, 0]} material={tankPaint} castShadow receiveShadow>
+                            <cylinderGeometry args={[2.6, 2.6, 22, 32]} />
+                        </mesh>
+                        {[-7, 0, 7].map((z) => (
+                            <mesh key={z} position={[0, 1.2, z]} material={steel} castShadow>
+                                <boxGeometry args={[4, 2.4, 0.8]} />
+                            </mesh>
                         ))}
                     </group>
-                </group>
-                {/* Lightning masts */}
-                {[
-                    [-30, -38],
-                    [36, -30],
-                    [-6, 42],
-                ].map(([x, z]) => (
-                    <mesh key={`${x},${z}`} position={[x, 45, z]} material={steel} castShadow>
-                        <cylinderGeometry args={[0.35, 0.8, 90, 10]} />
-                    </mesh>
                 ))}
-                {/* Water tower */}
-                <group position={[-160, 0, 60]}>
-                    {[
-                        [-6, -6],
-                        [6, -6],
-                        [6, 6],
-                        [-6, 6],
-                    ].map(([x, z]) => (
-                        <mesh key={`${x},${z}`} position={[x, 25, z]} material={steel} castShadow>
-                            <cylinderGeometry args={[0.6, 0.6, 50, 8]} />
-                        </mesh>
-                    ))}
-                    <mesh position={[0, 55, 0]} material={tankPaint} castShadow>
-                        <sphereGeometry args={[11, 32, 20]} />
-                    </mesh>
-                </group>
-                {/* Corrugated-metal support buildings and the tall vehicle assembly building */}
+                <PipeRack a={[108, -86]} b={[22, -12]} steel={dark} pipe={pipe} />
+                <PipeRack a={[-46, -164]} b={[-22, -24]} steel={dark} pipe={pipe} />
+                <PipeRack a={[94, 62]} b={[22, 12]} steel={dark} pipe={pipe} />
+                {/* Lighting towers at the corners of the hardstand */}
                 {(
                     [
-                        [-280, -110, 64, 18, 40, '#c9ccd0'],
-                        [-320, 80, 44, 13, 30, '#b9bec4'],
-                        [-430, -30, 96, 24, 52, '#d3d5d8'],
-                        [-760, 140, 120, 62, 90, '#e1e3e5'],
-                    ] as const
-                ).map(([x, z, w, h, d, c]) => (
-                    <SurfaceBox key={`${x},${z}`} size={[w, h, d]} at={[x, h / 2, z]} tile={4} normal={maps?.metalN} color={c} roughness={0.55} metalness={0.25} />
+                        [-70, 62],
+                        [74, 64],
+                        [76, -70],
+                        [-74, -66],
+                    ] as [number, number][]
+                ).map((p) => (
+                    <LightTower key={p.join(',')} at={p} steel={steel} dark={dark} />
                 ))}
+                {/* Perimeter road and the access road from the west */}
+                <mesh position={[0, 0.06, 0]} rotation={[-Math.PI / 2, 0, 0]} material={asphalt} receiveShadow>
+                    <ringGeometry args={[150, 158, 128]} />
+                </mesh>
+                <mesh position={[-900, 0.06, 14]} rotation={[-Math.PI / 2, 0, 0]} material={asphalt} receiveShadow>
+                    <planeGeometry args={[1500, 10]} />
+                </mesh>
+                {/* Pad terminal, service building, integration hangar, launch control */}
+                <Building at={[-96, 52]} size={[34, 7, 20]} clad={cladA} roof={roof} />
+                <Building at={[-205, -40]} size={[46, 16, 30]} clad={cladB} roof={roof} rotation={0.1} />
+                <Building at={[-720, 230]} size={[150, 42, 90]} clad={cladC} roof={roof} rotation={0.05} />
+                <Building at={[-2300, 1300]} size={[80, 14, 50]} clad={cladA} roof={roof} rotation={-0.3} />
             </group>
             <ExhaustCloud met={met} quality={quality} />
+            <TrenchJet met={met} />
             <ExhaustTrail met={met} head={head} />
         </group>
     );

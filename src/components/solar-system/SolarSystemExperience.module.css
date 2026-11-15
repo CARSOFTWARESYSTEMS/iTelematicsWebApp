@@ -1,21 +1,16 @@
 /* Solar System — From Earth Launch to Deep Space Exploration (sixth Space Digital Twin option).
-   Site tokens only; the same layout and look as the fifth option, kept in its own module so the two
-   experiences stay independent. */
+   Site tokens only (colours, fonts, radii, easing); kept in its own module so the experiences stay
+   independent. The 3D scene is the hero: one status line on top, one contextual card, and a slim
+   timeline with the transport controls below the scene. */
 
 .solar {
     display: grid;
+    min-width: 0;
 }
 
-@media (min-width: 1100px) {
-    .solar {
-        grid-template-columns: minmax(0, 1fr) 360px;
-    }
-}
-
-.stage {
+.stageWrap {
     position: relative;
     display: grid;
-    align-content: start;
     min-width: 0;
 }
 
@@ -23,11 +18,11 @@
 
 .viewport {
     position: relative;
-    aspect-ratio: 16 / 11;
-    max-height: min(78vh, 700px);
+    aspect-ratio: 16 / 9;
+    max-height: min(80vh, 760px);
     width: 100%;
     overflow: hidden;
-    background: radial-gradient(80% 60% at 70% 20%, rgba(34, 211, 238, 0.05), transparent 70%), #03050a;
+    background: #03050a;
 }
 
 .poster {
@@ -38,7 +33,7 @@
     position: absolute;
     inset: 0;
     opacity: 0;
-    transition: opacity 0.6s var(--ease);
+    transition: opacity 0.8s var(--ease);
 }
 
 .viewport[data-ready] .canvas {
@@ -50,114 +45,546 @@
     inset: 0;
 }
 
-.hud {
+/* A soft vignette at the top and bottom so overlays stay readable on a bright sky. */
+.shade {
     position: absolute;
     inset: 0;
     pointer-events: none;
+    background:
+        linear-gradient(to bottom, rgba(3, 6, 12, 0.5), rgba(3, 6, 12, 0) 18%),
+        linear-gradient(to top, rgba(3, 6, 12, 0.45), rgba(3, 6, 12, 0) 22%);
 }
 
-.titleChip {
+.solar[data-mode='intro'] .shade {
+    background:
+        linear-gradient(to bottom, rgba(3, 6, 12, 0.5), rgba(3, 6, 12, 0) 18%),
+        linear-gradient(to right, rgba(3, 6, 12, 0.62), rgba(3, 6, 12, 0.18) 42%, rgba(3, 6, 12, 0) 60%);
+}
+
+/* ---------- Top status line ---------- */
+
+.topBar {
     position: absolute;
-    top: 16px;
-    left: 16px;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 20px;
+    pointer-events: none;
+}
+
+.where {
     display: grid;
     gap: 2px;
-    max-width: calc(100% - 32px);
-    padding: 8px 14px 10px;
-    border-radius: var(--radius-control);
-    background: rgba(5, 10, 16, 0.72);
-    border: 1px solid var(--border-strong);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    min-width: 0;
 }
 
-.titleNum {
+.whereNum {
     font-family: var(--font-mono);
-    font-size: 0.68rem;
+    font-size: 0.72rem;
     letter-spacing: 0.08em;
     color: var(--telemetry);
+}
+
+.whereTitle {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text);
+    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.55);
+}
+
+.status {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+}
+
+.met,
+.sim {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border-strong);
+    background: rgba(5, 10, 16, 0.6);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    color: var(--text-2);
+    white-space: nowrap;
+}
+
+.met {
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+}
+
+.simDot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--solar);
+}
+
+.scale {
+    position: absolute;
+    right: 20px;
+    bottom: 14px;
+    max-width: calc(100% - 40px);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
+    color: rgba(226, 232, 240, 0.78);
+    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    pointer-events: none;
 }
 
-.titleText {
-    font-size: 0.86rem;
-    font-weight: 560;
+/* ---------- Opening title and calls to action ---------- */
+
+.hero {
+    position: absolute;
+    left: clamp(20px, 4vw, 48px);
+    bottom: clamp(48px, 9%, 84px);
+    max-width: min(520px, calc(100% - 40px));
+}
+
+.heroKicker {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--telemetry);
+    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.6);
+}
+
+.heroTitle {
+    margin-top: 10px;
+    font-size: clamp(2.2rem, 1.5rem + 2.6vw, 3.6rem);
+    font-weight: 650;
+    line-height: 1.02;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    text-shadow: 0 2px 22px rgba(0, 0, 0, 0.55);
+}
+
+.heroLine {
+    margin-top: 12px;
+    font-size: 1.02rem;
+    line-height: 1.5;
+    color: rgba(241, 245, 249, 0.9);
+    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.7);
+}
+
+.heroActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 22px;
+}
+
+.cta {
+    min-height: 44px;
+}
+
+/* Shot 05, mission ready: the Start Mission call to action is drawn to the eye. */
+.heroActions[data-ready] .cta:first-child {
+    box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.18), 0 8px 30px rgba(34, 211, 238, 0.25);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .heroActions[data-ready] .cta:first-child {
+        animation: ready 2.4s var(--ease) infinite;
+    }
+}
+
+@keyframes ready {
+    50% {
+        box-shadow: 0 0 0 8px rgba(34, 211, 238, 0.06), 0 8px 30px rgba(34, 211, 238, 0.32);
+    }
+}
+
+/* ---------- Mission stage list (from Explore Mission Stages) ---------- */
+
+.stages {
+    position: absolute;
+    top: 64px;
+    right: 20px;
+    width: min(320px, calc(100% - 40px));
+    max-height: calc(100% - 100px);
+    overflow-y: auto;
+    padding: 8px;
+    border-radius: var(--radius-card);
+    border: 1px solid var(--border-strong);
+    background: rgba(5, 10, 16, 0.84);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.stages ol {
+    list-style: none;
+    display: grid;
+    gap: 2px;
+}
+
+.stages button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 40px;
+    padding: 6px 10px;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-2);
+    font-size: 0.92rem;
+    text-align: left;
+    cursor: pointer;
+}
+
+.stages button:hover,
+.stages button[aria-current] {
+    color: var(--text);
+    background: var(--surface-2);
+}
+
+.stageNum {
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    color: var(--telemetry);
+}
+
+/* ---------- Contextual card ---------- */
+
+.card {
+    display: grid;
+    gap: 10px;
+    padding: 14px 16px 16px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+}
+
+@media (min-width: 900px) {
+    .card {
+        position: absolute;
+        left: 20px;
+        top: 76px;
+        bottom: 20px;
+        width: 360px;
+        height: max-content;
+        max-height: calc(100% - 96px);
+        margin-top: auto;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        border: 1px solid var(--border-strong);
+        border-radius: var(--radius-card);
+        background: rgba(5, 10, 16, 0.78);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        scrollbar-width: thin;
+    }
+}
+
+.cardKicker {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    color: var(--telemetry);
+}
+
+.cardTitle {
+    margin-top: -6px;
+    font-size: 1.25rem;
+    font-weight: 620;
+    line-height: 1.25;
     color: var(--text);
 }
 
-.bar {
+.facts {
+    display: grid;
+    gap: 8px;
+}
+
+.facts dt {
+    font-size: 0.78rem;
+    font-weight: 560;
+    color: var(--text-3);
+}
+
+.facts dd {
+    margin-top: 2px;
+    font-size: 0.92rem;
+    line-height: 1.45;
+    color: var(--text);
+}
+
+.facts div + div dd {
+    color: var(--text-2);
+}
+
+.readings {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1px;
+    overflow: hidden;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-control);
+    background: var(--border-strong);
+}
+
+.readings > div {
+    display: grid;
+    gap: 1px;
+    padding: 7px 10px;
+    background: rgba(8, 17, 27, 0.92);
+}
+
+.readings > div:last-child:nth-child(odd) {
+    grid-column: span 2;
+}
+
+.readings dt {
+    font-size: 0.74rem;
+    color: var(--text-3);
+}
+
+.readings dd {
+    font-size: 0.98rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+}
+
+.learn summary {
+    min-height: 40px;
+    font-size: 0.9rem;
+}
+
+.learnBody {
+    display: grid;
+    gap: 8px;
+    font-size: 0.88rem;
+    line-height: 1.55;
+    color: var(--text-2);
+}
+
+.learnBody strong {
+    color: var(--text);
+    font-weight: 600;
+}
+
+.inScene {
+    color: var(--text-3);
+}
+
+.topics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.topic {
+    min-height: 34px;
+    padding: 5px 11px;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-2);
+    font-size: 0.86rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.2s var(--ease), background-color 0.2s var(--ease), border-color 0.2s var(--ease);
+}
+
+.topic:hover {
+    color: var(--text);
+    border-color: rgba(148, 163, 184, 0.4);
+}
+
+.topic[aria-pressed='true'] {
+    color: var(--text);
+    background: var(--surface-2);
+    border-color: rgba(34, 211, 238, 0.55);
+}
+
+.moreBtn {
+    border-style: dashed;
+    color: var(--text-3);
+}
+
+.returnBtn {
+    justify-self: start;
+    min-height: 36px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--telemetry);
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+/* ---------- Dock: transport controls and the chapter timeline ---------- */
+
+.dock {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 16px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    min-width: 0;
+}
+
+.transport {
+    display: flex;
+    gap: 6px;
+    flex: 0 0 auto;
+}
+
+.tool {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid var(--border-strong);
+    background: transparent;
+    color: var(--text-2);
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: color 0.2s var(--ease), border-color 0.2s var(--ease);
+}
+
+.tool:hover {
+    color: var(--text);
+    border-color: rgba(148, 163, 184, 0.4);
+}
+
+.tool:disabled,
+.backBtn:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.tool[aria-pressed='true'] {
+    color: var(--telemetry);
+}
+
+.timeline {
+    list-style: none;
+    display: flex;
+    flex: 1 1 auto;
+    gap: 4px;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.timeline::-webkit-scrollbar {
+    display: none;
+}
+
+.timeline li {
+    flex: 1 1 0;
+    min-width: 44px;
+}
+
+.timeline button {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: baseline;
+    column-gap: 6px;
+    row-gap: 6px;
+    width: 100%;
+    min-height: 44px;
+    padding: 6px 4px 4px;
+    border: 0;
+    background: transparent;
+    color: var(--text-3);
+    text-align: left;
+    cursor: pointer;
+}
+
+.timeline button:hover {
+    color: var(--text);
+}
+
+.tlNum {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+}
+
+.tlName {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 0.8rem;
+}
+
+.tlBar {
+    grid-column: 1 / -1;
     display: block;
-    height: 2px;
-    margin-top: 6px;
+    height: 3px;
     border-radius: 2px;
-    background: rgba(148, 163, 184, 0.16);
+    background: rgba(148, 163, 184, 0.18);
     overflow: hidden;
 }
 
-.fill {
+.tlFill {
     display: block;
     height: 100%;
     background: var(--telemetry);
     transform-origin: left;
 }
 
-.dataLabel {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    padding: 5px 10px;
-    border-radius: 999px;
-    border: 1px solid var(--border-strong);
-    background: rgba(5, 10, 16, 0.72);
-    font-family: var(--font-mono);
-    font-size: 0.62rem;
-    letter-spacing: 0.1em;
-    color: var(--text-2);
+.timeline li[data-done] .tlFill {
+    background: rgba(34, 211, 238, 0.5);
 }
 
-.message {
-    position: absolute;
-    left: 20px;
-    bottom: 20px;
-    max-width: min(520px, calc(100% - 40px));
-    padding: 16px 18px;
-    border-radius: var(--radius-card);
-    background: rgba(5, 10, 16, 0.72);
-    border: 1px solid var(--border-strong);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+.timeline li[data-current] button {
+    color: var(--text);
 }
 
-.messageTitle {
-    font-family: var(--font-mono);
-    font-size: 0.78rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
+.timeline li[data-current] .tlNum {
     color: var(--telemetry);
 }
 
-.messageText {
-    margin-top: 8px;
-    font-size: 0.98rem;
-    line-height: 1.5;
+.backBtn {
+    flex: 0 0 auto;
+    min-height: 40px;
+    padding: 0 16px;
+    border-radius: 999px;
+    border: 1px solid var(--border-strong);
+    background: transparent;
+    color: var(--text-2);
+    font-size: 0.88rem;
+    cursor: pointer;
+}
+
+.backBtn:not(:disabled):hover {
     color: var(--text);
 }
 
-.messageSecondary {
-    margin-top: 6px;
-    font-size: 0.86rem;
-    color: var(--text-2);
-}
-
+/* Scene labels (anchored to hardware). */
 .chip {
     padding: 4px 10px;
     border-radius: 999px;
-    background: rgba(5, 10, 16, 0.78);
-    border: 1px solid rgba(34, 211, 238, 0.45);
+    background: rgba(5, 10, 16, 0.8);
+    border: 1px solid rgba(34, 211, 238, 0.5);
     color: var(--text);
-    font-size: 0.72rem;
+    font-size: 0.8rem;
     font-weight: 560;
     white-space: nowrap;
 }
@@ -170,399 +597,123 @@
     position: absolute;
     left: 16px;
     right: 16px;
-    bottom: 16px;
+    bottom: 40px;
     padding: 8px 12px;
     border-radius: var(--radius-sm);
     background: rgba(5, 10, 16, 0.8);
     color: var(--text-2);
-    font-size: 0.8rem;
+    font-size: 0.85rem;
 }
 
-/* ---------- Navigation under the viewport ---------- */
-
-.controls {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-    padding: 0.75rem 1rem;
-    border-top: 1px solid var(--border);
-}
-
-.tool,
-.toolWide {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    height: 40px;
-    border: 1px solid var(--border-strong);
-    background: transparent;
-    color: var(--text-2);
-    cursor: pointer;
-    transition: color 0.2s var(--ease), border-color 0.2s var(--ease);
-}
-
-.tool {
-    width: 40px;
-    border-radius: 50%;
-    font-size: 0.95rem;
-}
-
-.toolWide {
-    padding: 0 0.9rem;
-    border-radius: 999px;
-    font-size: 0.84rem;
-    font-weight: 500;
-}
-
-.tool:hover,
-.toolWide:hover {
-    color: var(--text);
-    border-color: rgba(148, 163, 184, 0.4);
-}
-
-.tool[aria-pressed='true'],
-.toolWide[aria-pressed='true'] {
-    color: var(--telemetry);
-}
-
-.toolWide:disabled {
-    opacity: 0.45;
-    cursor: default;
-}
-
-/* ---------- Side panel ---------- */
-
-.side {
-    border-top: 1px solid var(--border);
-    min-width: 0;
-}
-
-.sideScroll {
-    display: grid;
-    align-content: start;
-    gap: 1rem;
-    padding: 1rem 1.1rem 1.2rem;
-}
-
-@media (min-width: 1100px) {
-    /* The panel takes the height of the 3D view and its controls, and scrolls inside it. */
-    .side {
-        position: relative;
-        border-top: 0;
-        border-left: 1px solid var(--border);
-    }
-
-    .sideScroll {
-        position: absolute;
-        inset: 0;
-        overflow-y: auto;
-        overscroll-behavior: contain;
-    }
-}
-
-.primary {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-}
-
-.primaryBtn {
-    flex: 1 1 auto;
-    min-height: 40px;
-    padding: 0 0.9rem;
-    font-size: 0.86rem;
-}
-
-.list {
-    list-style: none;
-    display: grid;
-    gap: 0.25rem;
-}
+/* ---------- Tablets ---------- */
 
 @media (max-width: 1099px) {
-    /* A compact horizontal selector on tablets and phones. */
-    .list {
-        display: flex;
-        overflow-x: auto;
-        scrollbar-width: none;
-        gap: 0.4rem;
-        padding-bottom: 0.25rem;
-    }
-
-    .list::-webkit-scrollbar {
+    .tlName {
         display: none;
     }
 
-    .list li {
-        flex-shrink: 0;
+    .timeline button {
+        justify-items: center;
+        grid-template-columns: 1fr;
+        text-align: center;
     }
-}
-
-.item {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    width: 100%;
-    min-height: 40px;
-    padding: 0.4rem 0.75rem;
-    border: 1px solid transparent;
-    border-radius: var(--radius-control);
-    background: transparent;
-    color: var(--text-2);
-    font-size: 0.88rem;
-    font-weight: 500;
-    text-align: left;
-    cursor: pointer;
-    transition: color 0.2s var(--ease), background-color 0.2s var(--ease), border-color 0.2s var(--ease);
-}
-
-@media (max-width: 1099px) {
-    .item {
-        border-color: var(--border);
-        border-radius: 999px;
-        white-space: nowrap;
-    }
-}
-
-.item:hover {
-    color: var(--text);
-}
-
-.item[aria-pressed='true'] {
-    color: var(--text);
-    background: var(--surface-2);
-    border-color: rgba(34, 211, 238, 0.45);
-}
-
-.itemNum {
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    color: var(--text-3);
-}
-
-.item[aria-pressed='true'] .itemNum {
-    color: var(--telemetry);
-}
-
-.info {
-    display: grid;
-    gap: 0.85rem;
-}
-
-.kicker {
-    font-family: var(--font-mono);
-    font-size: 0.68rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--telemetry);
-}
-
-.infoTitle {
-    font-size: 1.15rem;
-    line-height: 1.3;
-}
-
-.text,
-.note {
-    font-size: 0.9rem;
-    line-height: 1.55;
-}
-
-.note {
-    color: var(--text-3);
-    font-size: 0.82rem;
-}
-
-.story {
-    list-style: none;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.3rem;
-}
-
-.story li {
-    padding: 0.2rem 0.55rem;
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius-sm);
-    font-size: 0.76rem;
-    color: var(--text-2);
-}
-
-.story li + li::before {
-    content: '→ ';
-    color: var(--text-3);
-}
-
-.facts {
-    display: grid;
-    gap: 0.6rem;
-}
-
-.facts dt,
-.telemetry dt,
-.outcome dt {
-    font-size: 0.78rem;
-    color: var(--text-3);
-}
-
-.facts dd {
-    margin-top: 0.15rem;
-    font-size: 0.9rem;
-    line-height: 1.5;
-    color: var(--text-2);
-}
-
-.telemetry,
-.outcome {
-    padding: 0.75rem 0.85rem;
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius-card);
-    background: rgba(5, 10, 16, 0.4);
-}
-
-.telemetryHead {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-bottom: 0.5rem;
-    font-family: var(--font-mono);
-    font-size: 0.64rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--telemetry);
-}
-
-.dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: currentColor;
-}
-
-.telemetry dl,
-.outcome dl {
-    display: grid;
-    gap: 4px;
-}
-
-.telemetry dl > div,
-.outcome dl > div {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 12px;
-}
-
-.telemetry dd,
-.outcome dd {
-    font-size: 0.84rem;
-    font-weight: 560;
-    font-variant-numeric: tabular-nums;
-    text-align: right;
-    color: var(--text);
-}
-
-.outcome dd {
-    font-weight: 500;
-    max-width: 62%;
-}
-
-.health {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    font-size: 0.82rem;
-    color: var(--text-3);
-}
-
-.insight {
-    padding: 0.6rem 0.8rem;
-    border-left: 2px solid var(--telemetry);
-    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-    background: var(--accent-soft);
-    font-size: 0.88rem;
-    line-height: 1.55;
-    color: var(--text-2);
-}
-
-.insight strong {
-    color: var(--text);
-    font-weight: 600;
-}
-
-.question {
-    font-size: 0.86rem;
-    font-style: italic;
-    color: var(--text-2);
-}
-
-.more summary {
-    min-height: 44px;
-    font-size: 0.9rem;
-}
-
-.formulas,
-.notes {
-    display: grid;
-    gap: 0.4rem;
-    padding-left: 1rem;
-    font-size: 0.84rem;
-    color: var(--text-2);
-}
-
-.formulas code {
-    font-family: var(--font-mono);
-    font-size: 0.8rem;
-    color: var(--text);
-}
-
-.notes {
-    margin-top: 0.6rem;
 }
 
 /* ---------- Phones ---------- */
 
 @media (max-width: 640px) {
     .viewport {
-        aspect-ratio: 1 / 1;
-        max-height: none;
+        aspect-ratio: 4 / 5;
+        max-height: 72vh;
     }
 
-    .titleChip {
-        top: 10px;
-        left: 10px;
-        max-width: calc(100% - 20px);
+    .topBar {
+        padding: 12px;
     }
 
-    .dataLabel {
-        top: auto;
-        bottom: 10px;
-        right: 10px;
+    .whereTitle {
+        font-size: 0.98rem;
     }
 
-    .message {
-        left: 10px;
-        right: 10px;
-        bottom: 44px;
-        max-width: none;
-        padding: 12px 14px;
-    }
-
-    /* On phones the sentence is in the panel below; keep the station visible. */
-    .messageText {
+    .sim {
         display: none;
     }
 
-    .controls {
-        padding: 0.65rem 0.85rem;
+    .hero {
+        left: 16px;
+        right: 16px;
+        bottom: 36px;
+        max-width: none;
+    }
+
+    .heroLine {
+        font-size: 0.95rem;
+    }
+
+    .heroActions .cta {
+        flex: 1 1 auto;
+    }
+
+    .solar[data-mode='intro'] .shade {
+        background:
+            linear-gradient(to bottom, rgba(3, 6, 12, 0.5), rgba(3, 6, 12, 0) 18%),
+            linear-gradient(to top, rgba(3, 6, 12, 0.78), rgba(3, 6, 12, 0.25) 45%, rgba(3, 6, 12, 0) 62%);
+    }
+
+    .scale {
+        left: 12px;
+        right: 12px;
+        bottom: 10px;
+        font-size: 0.64rem;
+    }
+
+    .solar[data-mode='intro'] .scale {
+        display: none;
+    }
+
+    .stages {
+        top: 56px;
+        right: 12px;
+        left: 12px;
+        width: auto;
+    }
+
+    .card {
+        padding: 14px 16px 16px;
+    }
+
+    .dock {
+        flex-wrap: wrap;
+        gap: 8px 10px;
+        padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+    }
+
+    .timeline {
+        order: -1;
+        flex: 1 1 100%;
+    }
+
+    .timeline li {
+        min-width: 24px;
+    }
+
+    .timeline {
+        gap: 3px;
+    }
+
+    .heroKicker {
+        display: none;
+    }
+
+    .transport {
+        flex: 1 1 auto;
     }
 }
 
 /* ---------- Full screen (presenting) ----------
-   When the Space Digital Twin viewer is in full screen (data-present on the viewer), the 3D view fills
-   the height, its controls stay along the bottom, and the investigation panel keeps its place beside
-   it on wide screens (below it, scrolling, on narrow ones). */
+   With the Space Digital Twin viewer in full screen (data-present on the viewer), the scene fills the
+   height, the dock stays along the bottom and the card floats over the scene on wide screens; on
+   narrow ones it becomes a short scrolling sheet so it never covers the hardware. */
 
 :global([data-present]) .solar {
     flex: 1 1 auto;
@@ -570,9 +721,9 @@
     grid-template-rows: minmax(0, 1fr) auto;
 }
 
-:global([data-present]) .stage {
-    grid-template-rows: minmax(0, 1fr) auto;
+:global([data-present]) .stageWrap {
     min-height: 0;
+    grid-template-rows: minmax(0, 1fr);
 }
 
 :global([data-present]) .viewport {
@@ -581,218 +732,21 @@
     max-height: none;
 }
 
-:global([data-present]) .side {
-    max-height: 34vh;
-    overflow-y: auto;
-}
-
-@media (min-width: 1100px) {
-    :global([data-present]) .solar {
-        grid-template-rows: minmax(0, 1fr);
+@media (max-width: 899px) {
+    :global([data-present]) .stageWrap {
+        grid-template-rows: minmax(0, 1fr) auto;
     }
 
-    :global([data-present]) .side {
-        max-height: none;
-        overflow: visible;
-    }
-}
-
-/* Phones held sideways: the panel moves beside the 3D view and scrolls, so its buttons stay reachable. */
-@media (max-height: 560px) and (min-width: 640px) and (max-width: 1099px) {
-    :global([data-present]) .solar {
-        grid-template-columns: minmax(0, 1fr) 300px;
-        grid-template-rows: minmax(0, 1fr);
-    }
-
-    :global([data-present]) .side {
-        max-height: none;
-        border-top: 0;
-        border-left: 1px solid var(--border);
+    :global([data-present]) .card {
+        max-height: 30vh;
+        overflow-y: auto;
     }
 }
 
 @media (prefers-reduced-motion: reduce) {
     .canvas,
     .tool,
-    .toolWide,
-    .item {
+    .topic {
         transition: none;
-    }
-}
-
-/* ---------- Solar System additions ---------- */
-
-.scaleLabel,
-.metChip {
-    position: absolute;
-    padding: 5px 10px;
-    border-radius: 999px;
-    border: 1px solid var(--border-strong);
-    background: rgba(5, 10, 16, 0.72);
-    font-family: var(--font-mono);
-    font-size: 0.62rem;
-    letter-spacing: 0.08em;
-    color: var(--text-2);
-    white-space: nowrap;
-}
-
-.scaleLabel {
-    right: 16px;
-    bottom: 16px;
-    max-width: calc(100% - 32px);
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.metChip {
-    top: 52px;
-    right: 16px;
-    color: var(--text);
-    font-variant-numeric: tabular-nums;
-}
-
-/* The opening title over the 3D view. */
-.hero {
-    position: absolute;
-    left: 24px;
-    bottom: 24px;
-    max-width: min(560px, calc(100% - 48px));
-    pointer-events: none;
-}
-
-.heroTitle {
-    font-size: clamp(2rem, 1.4rem + 2.4vw, 3.4rem);
-    font-weight: 650;
-    letter-spacing: 0.02em;
-    line-height: 1;
-    text-transform: uppercase;
-    color: var(--text);
-    text-shadow: 0 2px 18px rgba(0, 0, 0, 0.55);
-}
-
-.heroSubtitle {
-    margin-top: 10px;
-    font-family: var(--font-mono);
-    font-size: clamp(0.72rem, 0.66rem + 0.3vw, 0.9rem);
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--telemetry);
-    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.6);
-}
-
-.heroLine {
-    margin-top: 12px;
-    font-size: 0.95rem;
-    line-height: 1.5;
-    color: var(--text-2);
-    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.6);
-}
-
-.chapters {
-    list-style: none;
-    display: grid;
-    gap: 0.25rem;
-}
-
-.labels {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-}
-
-.label {
-    min-height: 36px;
-    padding: 0.3rem 0.8rem;
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    background: transparent;
-    color: var(--text-2);
-    font-size: 0.82rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: color 0.2s var(--ease), background-color 0.2s var(--ease), border-color 0.2s var(--ease);
-}
-
-.label:hover {
-    color: var(--text);
-}
-
-.label[aria-pressed='true'] {
-    color: var(--text);
-    background: var(--surface-2);
-    border-color: rgba(34, 211, 238, 0.45);
-}
-
-.answers {
-    display: grid;
-    gap: 0.55rem;
-}
-
-.answers dt {
-    font-family: var(--font-mono);
-    font-size: 0.64rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--text-3);
-}
-
-.answers dd {
-    margin-top: 0.15rem;
-    font-size: 0.88rem;
-    line-height: 1.55;
-    color: var(--text-2);
-}
-
-.next {
-    font-size: 0.84rem;
-    color: var(--text-3);
-}
-
-.next button {
-    padding: 0;
-    border: 0;
-    background: none;
-    color: var(--telemetry);
-    font: inherit;
-    cursor: pointer;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-}
-
-@media (max-width: 640px) {
-    /* Phones: title chip and mission time on top, scale above the simulated-data label at the bottom. */
-    .titleChip {
-        max-width: calc(100% - 112px);
-    }
-
-    .metChip {
-        top: 10px;
-        right: 10px;
-    }
-
-    .scaleLabel {
-        right: auto;
-        left: 10px;
-        bottom: 38px;
-        max-width: calc(100% - 20px);
-    }
-
-    .dataLabel {
-        left: 10px;
-        right: auto;
-        max-width: calc(100% - 20px);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .hero {
-        left: 14px;
-        bottom: 74px;
-        max-width: calc(100% - 28px);
-    }
-
-    .heroLine {
-        display: none;
     }
 }

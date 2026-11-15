@@ -15,20 +15,29 @@ import { eventTime, flight, sampleAt, type FlightResult } from './flight';
 import { EARTH_JUPITER, circularSpeed, elements, escapeSpeed } from './orbit';
 import { attitudeAt, boomsAt, healthAt, linkAt, powerAt } from './spacecraft';
 import { FAIRING, FIRST_STAGE, KICK_STAGE, LIFTOFF_MASS, SPACECRAFT, UPPER_STAGE, VEHICLE } from './vehicle';
+import type { BodyId } from './bodies';
 
 export const TITLE = 'Solar System';
 export const SUBTITLE = 'From Earth Launch to Deep Space Exploration';
 export const SUPPORT = 'Every journey into the Solar System begins with understanding how we leave Earth.';
-export const DESCRIPTION =
-    'Experience the complete journey of space exploration. Discover how a rocket launches, how a spacecraft reaches orbit, how it travels between planets, and how engineering systems make deep-space missions possible.';
+export const DESCRIPTION = 'Experience the complete journey of space exploration. Discover how a rocket launches, how a spacecraft reaches orbit, how it travels between planets, and how engineering systems make deep-space missions possible.';
 export const SIGNATURE = 'Explore the Solar System. Understand the science. Experience the mission.';
 export const DATA_LABEL = 'SIMULATED — Conceptual reference mission SOL-1';
 
-export type SceneId = 'intro' | 'pad' | 'ascent' | 'orbit' | 'departure' | 'deploy' | 'helio';
+export type SceneId = 'intro' | 'pad' | 'ascent' | 'orbit' | 'departure' | 'deploy' | 'helio' | 'cruise' | 'jupiter' | 'saturn' | 'tour';
 
 /** Camera programmes, implemented by the scene (SolarScene.tsx). */
 export type ShotId =
     | 'earthApproach'
+    | 'establish'
+    | 'reveal'
+    | 'payloadId'
+    | 'fullVehicle'
+    | 'ready'
+    | 'payloadApproach'
+    | 'payloadCut'
+    | 'payloadHold'
+    | 'payloadReturn'
     | 'padReveal'
     | 'padWide'
     | 'padTour'
@@ -56,7 +65,19 @@ export type ShotId =
     | 'eps'
     | 'antenna'
     | 'computer'
-    | 'helio';
+    | 'helio'
+    // Phase B (phaseB.ts)
+    | 'cruiseDepart'
+    | 'cruiseWide'
+    | 'cruiseFollow'
+    | 'cruiseOuter'
+    | 'jupiterApproach'
+    | 'jupiterClose'
+    | 'jupiterWide'
+    | 'saturnClose'
+    | 'tourOverview'
+    | 'tourTravel'
+    | 'tourBody';
 
 /** A stretch of story mapped onto mission time: `seconds` of story show MET a → b. */
 export interface Segment {
@@ -66,27 +87,11 @@ export interface Segment {
     shot: ShotId;
     /** Highlighted hardware while this segment plays. */
     focus?: Focus;
+    /** Discovery tour destination (Phase B). */
+    body?: BodyId;
 }
 
-export type Focus =
-    | 'vehicle'
-    | 'stage1'
-    | 'upper'
-    | 'engines'
-    | 'tanks'
-    | 'fairing'
-    | 'payload'
-    | 'tower'
-    | 'plume'
-    | 'kick'
-    | 'spacecraft'
-    | 'rtg'
-    | 'eps'
-    | 'antenna'
-    | 'computer'
-    | 'thrusters'
-    | 'booms'
-    | 'trajectory';
+export type Focus = 'vehicle' | 'stage1' | 'upper' | 'engines' | 'tanks' | 'fairing' | 'payload' | 'tower' | 'plume' | 'kick' | 'spacecraft' | 'rtg' | 'eps' | 'antenna' | 'computer' | 'thrusters' | 'booms' | 'trajectory';
 
 export type TKey =
     | 'met'
@@ -126,11 +131,34 @@ export type TKey =
     | 'attitude'
     | 'link'
     | 'health'
-    | 'transfer';
+    | 'transfer'
+    // Phase B readings (phaseB.ts)
+    | 'missionDate'
+    | 'sunDist'
+    | 'earthDist'
+    | 'lightTimeB'
+    | 'rtgB'
+    | 'sunlight'
+    | 'helioSpeed'
+    | 'escapeSun'
+    | 'jupDist'
+    | 'jupSpeed'
+    | 'assist'
+    | 'c3Need'
+    | 'dla'
+    | 'bRadius'
+    | 'bDistance'
+    | 'bYear'
+    | 'bDay'
+    | 'bTilt'
+    | 'bAtmos'
+    | 'bImagery';
 
 export interface Label {
     id: string;
     title: string;
+    /** Listed under "More topics" rather than among the chapter's three to six main topics. */
+    more?: boolean;
     focus?: Focus;
     /** Replays this window (or holds on it) when chosen. */
     segments: readonly Segment[];
@@ -149,6 +177,8 @@ export interface Chapter {
     /** Short name for the chapter list. */
     short: string;
     summary: string;
+    /** One sentence: why this stage matters. */
+    why: string;
     segments: readonly Segment[];
     labels: readonly Label[];
     telemetry: readonly TKey[];
@@ -202,7 +232,9 @@ function build(f: FlightResult) {
     const c3 = f.c3 / 1e6;
     const t = (n: number, d = 0) => n.toFixed(d);
 
-    const intro: Segment[] = [hold(PAD, 8, 'intro', 'earthApproach'), hold(PAD, 7, 'pad', 'padReveal')];
+    // Opening, as a documentary would shoot it: the whole launch complex, a slow approach that shows the
+    // vehicle's scale, a look at the (closed) payload fairing, back to the full vehicle, then ready.
+    const intro: Segment[] = [hold(PAD, 5, 'pad', 'establish'), hold(PAD, 7, 'pad', 'reveal'), hold(PAD, 5, 'pad', 'payloadId'), hold(PAD, 5, 'pad', 'fullVehicle'), hold(PAD, 8, 'pad', 'ready')];
 
     const chapters: Chapter[] = [
         {
@@ -210,9 +242,10 @@ function build(f: FlightResult) {
             number: '01',
             title: 'Launch Vehicle Preparation',
             short: 'Preparation',
-            summary: `${VEHICLE.name} stands on the pad: a first stage, an upper stage and, under the fairing, a solid kick stage and the spacecraft.`,
-            segments: [hold(PAD, 6, 'pad', 'padWide'), hold(PAD, 9, 'pad', 'padTour', 'vehicle'), hold(PAD, 5, 'pad', 'fairingOpen', 'payload')],
-            telemetry: ['liftoffMass', 'payloadMass', 'stages', 'liftoffThrust', 'readiness'],
+            summary: `${VEHICLE.name} stands on the pad: a first stage, an upper stage and, under the closed fairing, a solid kick stage and the spacecraft.`,
+            why: 'Everything that follows depends on a vehicle whose mass, thrust and propellant are known before the engines start.',
+            segments: [hold(PAD, 6, 'pad', 'padWide'), hold(PAD, 10, 'pad', 'padTour'), hold(PAD, 5, 'pad', 'fullVehicle')],
+            telemetry: ['liftoffMass', 'liftoffThrust', 'payloadMass', 'readiness'],
             labels: [
                 {
                     id: 'explore-rocket',
@@ -246,7 +279,7 @@ function build(f: FlightResult) {
                     what: 'A restartable liquid-hydrogen / liquid-oxygen stage above the interstage.',
                     does: 'Finishes the climb to orbit, then restarts in orbit for the departure burn.',
                     why: 'Hydrogen engines are the most efficient chemical engines, which matters most once the vehicle is light and high.',
-                    happening: 'The interstage turns translucent to show the upper stage inside the stack.',
+                    happening: 'An engineering cutaway opens the interstage to show the upper-stage engines inside the stack.',
                     learn: `${t(UPPER_STAGE.propellantMass / 1000, 1)} t of propellant, ${t(UPPER_STAGE.dryMass / 1000, 2)} t dry, ${UPPER_STAGE.engines} engines of ${t(UPPER_STAGE.thrustVac / UPPER_STAGE.engines / 1000, 1)} kN; specific impulse ${UPPER_STAGE.ispVac} s.`,
                     telemetry: ['stages', 'payloadMass', 'liftoffMass'],
                 },
@@ -270,7 +303,7 @@ function build(f: FlightResult) {
                     what: 'Thin-walled tanks that make up most of each stage’s length.',
                     does: 'Hold fuel and oxidiser at controlled pressure and feed the engines.',
                     why: 'Propellant is about 92 % of the liftoff mass; light tanks are what make orbit possible.',
-                    happening: 'The stage walls turn translucent: fuel tank, oxidiser tank and the domes between them.',
+                    happening: 'An engineering cutaway opens the stage wall: kerosene tank, oxygen tank and the domes between them.',
                     learn: `First stage: ${t(FIRST_STAGE.propellantMass / 1000)} t of kerosene and liquid oxygen. Upper stage: ${t(UPPER_STAGE.propellantMass / 1000, 1)} t of liquid hydrogen and oxygen, kept near −253 °C and −183 °C.`,
                     telemetry: ['liftoffMass', 'stages'],
                 },
@@ -278,23 +311,23 @@ function build(f: FlightResult) {
                     id: 'fairing',
                     title: 'Payload Fairing',
                     focus: 'fairing',
-                    segments: [hold(PAD, 8, 'pad', 'fairingOpen', 'fairing')],
+                    segments: [hold(PAD, 3.5, 'pad', 'payloadApproach', 'fairing'), hold(PAD, 3, 'pad', 'payloadCut', 'fairing'), hold(PAD, 5, 'pad', 'payloadHold', 'fairing'), hold(PAD, 3.5, 'pad', 'payloadReturn', 'fairing')],
                     what: `A ${t(FAIRING.diameter, 1)} m wide, ${t(FAIRING.length, 1)} m long aerodynamic shell in two halves.`,
                     does: 'Protects the spacecraft from air pressure, heating and acoustic noise during the climb through the atmosphere.',
                     why: 'A spacecraft is built for space, not for flying through air at several times the speed of sound.',
-                    happening: 'The fairing turns translucent to show the spacecraft inside: a cutaway view, since on the pad the fairing stays closed.',
+                    happening: 'The closed fairing is highlighted, then an engineering cutaway shows its shell, acoustic lining and the spacecraft inside. On the pad the real fairing stays closed.',
                     learn: `The fairing (${FAIRING.mass} kg) is dropped as soon as aerodynamic heating falls below about 1,135 W/m²; on this flight at T+${t(fair)} s, ${t(sampleAt(fair, f).altitude / 1000)} km up.`,
                     telemetry: ['payloadMass', 'stages'],
                 },
                 {
                     id: 'payload',
-                    title: 'Spacecraft Payload',
+                    title: 'Explore Spacecraft Payload',
                     focus: 'payload',
-                    segments: [hold(PAD, 8, 'pad', 'payload', 'payload')],
+                    segments: [hold(PAD, 3.5, 'pad', 'payloadApproach', 'fairing'), hold(PAD, 3, 'pad', 'payloadCut', 'payload'), hold(PAD, 8, 'pad', 'payloadHold', 'payload'), hold(PAD, 4, 'pad', 'payloadReturn', 'payload')],
                     what: `${SPACECRAFT.name}, a ${SPACECRAFT.mass} kg outer-planet flyby spacecraft, on a solid kick stage.`,
                     does: 'Carries the science instruments, a 3.7 m high-gain antenna and two radioisotope power generators.',
                     why: 'Everything else on the vehicle exists to deliver this spacecraft onto its path to Jupiter.',
-                    happening: 'The camera moves to the top of the vehicle; through the translucent fairing, the spacecraft sits on its kick stage.',
+                    happening: 'The camera approaches the fairing, an engineering cutaway reveals the stowed spacecraft on its kick stage with its main parts named, then the view returns to the full vehicle.',
                     learn: `Main systems: high-gain antenna, two RTGs (${SPACECRAFT.rtgPowerBOL} W each at launch), magnetometer and science booms, hydrazine thrusters (${SPACECRAFT.hydrazine} kg), flight computer and a ${SPACECRAFT.batteryWh} Wh battery for peaks.`,
                     telemetry: ['payloadMass', 'stages'],
                 },
@@ -318,13 +351,9 @@ function build(f: FlightResult) {
             title: 'Engine Ignition and Liftoff',
             short: 'Liftoff',
             summary: 'Countdown, ignition, thrust build-up and release: the vehicle rises once thrust exceeds its weight.',
-            segments: [
-                span(-10, -3, 5, 'ascent', 'liftoff'),
-                span(-3, 2, 6, 'ascent', 'engineClose', 'engines'),
-                span(2, 12, 7, 'ascent', 'liftoff'),
-                span(12, 40, 9, 'ascent', 'track'),
-            ],
-            telemetry: ['met', 'altitude', 'speed', 'acceleration', 'thrust', 'propellant'],
+            why: 'The engines are proven at full thrust while the vehicle is still held down, so a bad start never leaves the pad.',
+            segments: [span(-10, -3, 5, 'ascent', 'liftoff'), span(-3, 2, 6, 'ascent', 'engineClose', 'engines'), span(2, 12, 7, 'ascent', 'liftoff'), span(12, 40, 9, 'ascent', 'track')],
+            telemetry: ['altitude', 'airspeed', 'acceleration', 'thrust'],
             labels: [
                 {
                     id: 'countdown',
@@ -357,7 +386,7 @@ function build(f: FlightResult) {
                     does: 'Starts the climb; the rocket clears the tower a few seconds later.',
                     why: 'Liftoff happens only when thrust exceeds weight; the excess sets the initial acceleration.',
                     happening: `The vehicle climbs vertically and clears the ${t(75)} m tower at T+${t(ev('towerClear'), 1)} s.`,
-                    learn: `Net force F = T − D − m·g. At liftoff that is ${t((FIRST_STAGE.thrustSL - LIFTOFF_MASS * 9.80665) / 1000)} kN, giving ${t((FIRST_STAGE.thrustSL / LIFTOFF_MASS - 9.80665), 1)} m/s² upwards.`,
+                    learn: `Net force F = T − D − m·g. At liftoff that is ${t((FIRST_STAGE.thrustSL - LIFTOFF_MASS * 9.80665) / 1000)} kN, giving ${t(FIRST_STAGE.thrustSL / LIFTOFF_MASS - 9.80665, 1)} m/s² upwards.`,
                     telemetry: ['met', 'altitude', 'speed', 'acceleration'],
                 },
                 {
@@ -402,8 +431,9 @@ function build(f: FlightResult) {
             title: 'Atmospheric Ascent',
             short: 'Ascent',
             summary: 'Through the thinning atmosphere: air resistance peaks at Max Q, then falls away as the vehicle climbs.',
+            why: 'The ascent trades climbing out of the air against building the horizontal speed an orbit needs.',
             segments: [span(30, 90, 12, 'ascent', 'chase'), span(90, 160, 9, 'ascent', 'onboard'), span(160, meco - 6, 9, 'ascent', 'high')],
-            telemetry: ['met', 'altitude', 'speed', 'q', 'mach'],
+            telemetry: ['altitude', 'speed', 'acceleration', 'q'],
             labels: [
                 {
                     id: 'layers',
@@ -480,9 +510,10 @@ function build(f: FlightResult) {
             number: '04',
             title: 'First-Stage Cutoff and Separation',
             short: 'Staging',
-            summary: 'The first stage is empty: its engines shut down, it separates, and the upper stage ignites.',
+            summary: 'The first stage separates after completing its powered ascent, and the upper stage ignites.',
+            why: 'Discarding empty stage structure reduces the mass carried by the upper stage.',
             segments: [span(meco - 6, meco + 1, 5, 'ascent', 'chase'), span(meco + 1, usIgn + 3, 12, 'ascent', 'staging', 'upper')],
-            telemetry: ['met', 'mass', 'speed', 'altitude', 'thrust'],
+            telemetry: ['altitude', 'speed', 'mass', 'thrust'],
             labels: [
                 {
                     id: 'meco',
@@ -510,7 +541,7 @@ function build(f: FlightResult) {
                 },
                 {
                     id: 'us-ignition',
-                    title: 'Upper-Stage Ignition',
+                    title: 'Upper-Stage Engine',
                     focus: 'upper',
                     segments: [span(usIgn - 3, usIgn + 12, 8, 'ascent', 'staging', 'upper')],
                     what: 'The hydrogen-oxygen engines of the upper stage start.',
@@ -522,7 +553,7 @@ function build(f: FlightResult) {
                 },
                 {
                     id: 'why-stages',
-                    title: 'Why Multiple Stages?',
+                    title: 'Why Staging Matters',
                     segments: [span(meco - 2, usIgn + 4, 10, 'ascent', 'staging', 'stage1')],
                     what: 'Discarding empty tanks and engines during the flight.',
                     does: 'Each stage only accelerates what is still useful.',
@@ -550,8 +581,9 @@ function build(f: FlightResult) {
             title: 'Payload Fairing Separation',
             short: 'Fairing',
             summary: 'Above the dense atmosphere the fairing is no longer needed: its two halves separate and the spacecraft is exposed to space.',
+            why: 'The fairing protected the spacecraft from air loads; carrying it any further would only cost performance.',
             segments: [span(usIgn - 1, fair - 0.5, 5, 'ascent', 'fairingSep', 'fairing'), span(fair - 0.5, fair + 14, 11, 'ascent', 'fairingSep', 'payload')],
-            telemetry: ['met', 'altitude', 'heating', 'speed'],
+            telemetry: ['altitude', 'heating', 'speed', 'mass'],
             labels: [
                 {
                     id: 'fairing-2',
@@ -609,8 +641,9 @@ function build(f: FlightResult) {
             title: 'Earth Orbit Insertion',
             short: 'Orbit',
             summary: 'The upper stage flies until the trajectory becomes an orbit, then shuts down in a 185 km parking orbit.',
+            why: 'Orbit is a matter of horizontal speed: about 7.8 km/s at this height, enough to keep falling around the Earth.',
             segments: [span(fair + 14, seco1 - 25, 10, 'ascent', 'insertion'), span(seco1 - 25, seco1 + 5, 8, 'ascent', 'insertion'), span(seco1 + 5, restart - 30, 10, 'orbit', 'orbitWide', 'trajectory')],
-            telemetry: ['met', 'altitude', 'orbitalSpeed', 'perigee', 'apogee'],
+            telemetry: ['altitude', 'orbitalSpeed', 'perigee', 'apogee'],
             labels: [
                 {
                     id: 'orbital-velocity',
@@ -637,7 +670,7 @@ function build(f: FlightResult) {
                 },
                 {
                     id: 'orbital-altitude',
-                    title: 'Orbital Altitude',
+                    title: 'Perigee and Apogee',
                     segments: [span(seco1, restart - 30, 9, 'orbit', 'orbitWide', 'trajectory')],
                     what: 'The height of the orbit above the surface.',
                     does: 'Sets the orbital speed and period, and how quickly residual air slows the vehicle.',
@@ -688,15 +721,16 @@ function build(f: FlightResult) {
             title: 'Earth Departure',
             short: 'Departure',
             summary: 'The upper stage restarts, then the solid kick stage fires: the stack leaves Earth on an escape trajectory towards Jupiter.',
+            why: 'Leaving Earth needs more energy than reaching orbit; the departure burn sets the whole path to the outer planets.',
             segments: [
                 span(seco1 + 300, restart, 6, 'departure', 'departureWide', 'trajectory'),
                 span(restart, seco2, 9, 'departure', 'burnChase', 'engines'),
                 span(seco2, kickIgn, 4, 'departure', 'kick', 'kick'),
                 span(kickIgn, burnout + 4, 8, 'departure', 'kick', 'kick'),
                 span(burnout + 4, burnout + 7200, 8, 'departure', 'departureWide', 'trajectory'),
-                hold(burnout + 86400, 9, 'helio', 'helio', 'trajectory'),
+                hold(burnout + 86400, 9, 'cruise', 'cruiseDepart', 'trajectory'),
             ],
-            telemetry: ['met', 'speed', 'escapeSpeed', 'c3', 'earthDistance'],
+            telemetry: ['speed', 'escapeSpeed', 'c3', 'earthDistance'],
             labels: [
                 {
                     id: 'parking-2',
@@ -761,13 +795,13 @@ function build(f: FlightResult) {
                     id: 'sun-centred',
                     title: 'Sun-Centered Orbit',
                     focus: 'trajectory',
-                    segments: [hold(burnout + 86400, 12, 'helio', 'helio', 'trajectory')],
+                    segments: [hold(burnout + 86400, 12, 'cruise', 'cruiseDepart', 'trajectory')],
                     what: 'The spacecraft’s orbit around the Sun after it leaves Earth’s influence.',
                     does: 'Earth’s orbital speed plus v∞ puts the spacecraft on an ellipse reaching out to Jupiter.',
                     why: 'A spacecraft cannot fly straight to a planet: it follows an orbit around the Sun and meets the planet where its orbit crosses Jupiter’s.',
-                    happening: 'Scientific-scale view: orbits of Earth and Jupiter to scale; the Sun and planets are enlarged so they can be seen.',
-                    learn: `A minimum-energy (Hohmann) transfer needs C3 = ${t(EARTH_JUPITER.c3 / 1e6, 1)} km²/s² and takes ${t(EARTH_JUPITER.tofYears, 2)} years. With C3 = ${t(c3, 1)} km²/s² the transfer can be faster; the cruise is the subject of the next phase.`,
-                    telemetry: ['transfer', 'c3'],
+                    happening: 'Scientific-scale view: the planets’ orbits to scale, planets where the ephemeris places them on the launch date, and the designed trajectory.',
+                    learn: `A minimum-energy (Hohmann) transfer between circular orbits would need C3 = ${t(EARTH_JUPITER.c3 / 1e6, 1)} km²/s² and ${t(EARTH_JUPITER.tofYears, 2)} years. The designed SOL-1 trajectory (chapter 09) needs about 79.6 km²/s² and reaches Jupiter in 3.0 years. The simulated launch reaches C3 = ${t(c3, 1)} km²/s² because Phase A burns every stage to depletion; on a real mission the upper stage would shut down early at the energy the trajectory needs.`,
+                    telemetry: ['c3Need', 'c3'],
                 },
             ],
         },
@@ -777,12 +811,9 @@ function build(f: FlightResult) {
             title: 'Spacecraft Separation and Deployment',
             short: 'Deployment',
             summary: 'The spacecraft separates from the spent kick stage, stabilises, deploys its booms and makes first contact with Earth.',
-            segments: [
-                span(scSep - 20, scSep + 120, 8, 'deploy', 'sepClose', 'spacecraft'),
-                span(scSep + 120, scSep + 560, 10, 'deploy', 'deployWide', 'booms'),
-                span(scSep + 560, scSep + 900, 8, 'deploy', 'antenna', 'antenna'),
-            ],
-            telemetry: ['rtg', 'battery', 'busVolts', 'attitude', 'link', 'health'],
+            why: 'From here the spacecraft flies alone: it must stabilise, power itself and call home without help.',
+            segments: [span(scSep - 20, scSep + 120, 8, 'deploy', 'sepClose', 'spacecraft'), span(scSep + 120, scSep + 560, 10, 'deploy', 'deployWide', 'booms'), span(scSep + 560, scSep + 900, 8, 'deploy', 'antenna', 'antenna')],
+            telemetry: ['rtg', 'battery', 'attitude', 'link'],
             labels: [
                 {
                     id: 'sc-sep',
@@ -882,8 +913,15 @@ function build(f: FlightResult) {
             ],
         },
     ];
+    for (const c of chapters) for (const l of c.labels as Label[]) if (MORE_TOPICS.has(l.id)) l.more = true;
     return { chapters, intro };
 }
+
+/**
+ * Topics listed under "More topics": each chapter shows three to six main topics; the rest stay one
+ * click away (all 49 are kept).
+ */
+const MORE_TOPICS = new Set(['tanks', 'fairing', 'readiness', 'acceleration', 'gravity-turn-2', 'seco', 'parking-2', 'computer', 'first-contact', 'health-check']);
 
 // ── Telemetry ─────────────────────────────────────────────────────────────
 
@@ -928,6 +966,9 @@ export function reading(key: TKey, met: number): Reading {
         case 'airspeed':
             return { label: 'Speed relative to air', value: speedStr(s.airspeed) };
         case 'acceleration':
+            // Before release the vehicle is held on the pad: the simulation's sensed acceleration counts
+            // thrust and drag only, so it is not shown until liftoff.
+            if (met < 0) return { label: 'Acceleration', value: 'On the pad' };
             return { label: 'Acceleration', value: `${(s.acceleration / 9.80665).toFixed(2)} g` };
         case 'thrust':
             return { label: 'Engine thrust', value: s.thrust > 0 ? `${(s.thrust / 1000).toFixed(0)} kN` : 'Off' };
@@ -964,7 +1005,8 @@ export function reading(key: TKey, met: number): Reading {
         case 'readiness':
             return { label: 'Launch readiness', value: met < -3 ? 'GO (simulated)' : 'Committed', tone: 'nominal' };
         case 'perigee':
-            return { label: 'Perigee', value: el.energy < 0 ? km(el.rp - R_EARTH) : '—' };
+            // While the trajectory still intersects the Earth (lowest point below the surface) it is suborbital.
+            return { label: 'Perigee', value: el.energy >= 0 ? '—' : el.rp < R_EARTH ? 'Suborbital' : km(el.rp - R_EARTH) };
         case 'apogee':
             return { label: 'Apogee', value: el.energy < 0 ? km(el.ra - R_EARTH) : 'Escape' };
         case 'period':
@@ -1003,6 +1045,9 @@ export function reading(key: TKey, met: number): Reading {
         }
         case 'transfer':
             return { label: 'Minimum-energy transfer', value: `${EARTH_JUPITER.tofYears.toFixed(2)} years` };
+        default:
+            // Phase B readings are formatted by phaseB.ts (readingAny).
+            return { label: key, value: '—' };
     }
 }
 

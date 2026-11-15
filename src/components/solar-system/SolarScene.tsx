@@ -1,4 +1,4 @@
-"use client";
+'use client';
 // The Solar System experience's 3D scene and cinematic camera director. One mission clock drives
 // everything: the segment playing chooses the scene (intro, pad/ascent, orbit, departure, deployment,
 // Sun-centred) and the camera shot; mission time positions and configures the vehicle from the flight
@@ -21,10 +21,15 @@ import { VEHICLE } from '@/lib/solar-system/vehicle';
 import { Globe } from './environment';
 import { AtmosphereSky, SkyEnvironment } from './atmosphere';
 import { Reflections } from '@/components/space-twin/environment';
-import LaunchSite, { MOUNT_TOP } from './LaunchSite';
+import LaunchSite, { MOUNT_TOP, terrainHeight } from './LaunchSite';
 import LaunchVehicle, { KickStage, STACK, type VehicleState } from './LaunchVehicle';
 import SpacecraftModel from './Spacecraft';
 import { HelioView, Marker, Path, Stars } from './views';
+import { CruiseView, JupiterView, SaturnView, saturnCraft, toScene, TourView, tourDistance } from './PlanetViews';
+import { tourPosition } from '@/lib/solar-system/phaseB';
+import { dateOf } from '@/lib/solar-system/phaseB';
+import { flybyPosition, missionTrajectory, planetAt, R_JUPITER, R_SATURN, spacecraftAt } from '@/lib/solar-system/trajectory';
+import type { BodyId } from '@/lib/solar-system/bodies';
 import { useLabelAnchor } from '@/components/space-twin/labels';
 
 const Y = new Vector3(0, 1, 0);
@@ -47,7 +52,38 @@ function siteOrientation(latDeg: number, lonDeg: number) {
 const SITE_Q = siteOrientation(VEHICLE.siteLatitudeDeg, SITE_LON_DEG);
 
 const smooth = (x: number) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
+/** Ease in and out with a gentler start, for long camera moves. */
+const glide = (x: number) => (x <= 0 ? 0 : x >= 1 ? 1 : x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2);
 const v3 = (x: number, y: number, z: number) => new Vector3(x, y, z);
+const DEG = Math.PI / 180;
+
+/**
+ * A pad camera placed by azimuth A (degrees from south towards west, around the vehicle axis),
+ * horizontal distance d and height h, looking at height ty on the axis. The Sun is to the east-south-
+ * east, so azimuths of 10–30° see the vehicle lit from the right with soft shade on the left.
+ */
+interface PadCam {
+    A: number;
+    d: number;
+    h: number;
+    ty: number;
+    fov: number;
+}
+const padCam = (c: PadCam): Cam => ({ pos: v3(-c.d * Math.sin(c.A * DEG), c.h, c.d * Math.cos(c.A * DEG)), target: v3(0, c.ty, 0), fov: c.fov });
+const mixCam = (a: PadCam, b: PadCam, k: number): PadCam => ({ A: a.A + (b.A - a.A) * k, d: a.d * Math.pow(b.d / a.d, k), h: a.h + (b.h - a.h) * k, ty: a.ty + (b.ty - a.ty) * k, fov: a.fov + (b.fov - a.fov) * k });
+
+/** Key compositions of the pad (the vehicle and launch table are 69 m tall). */
+const PAD = {
+    establish: { A: 26, d: 320, h: 24, ty: 31, fov: 30 },
+    establishEnd: { A: 23, d: 305, h: 24, ty: 32, fov: 30 },
+    reveal: { A: 38, d: 118, h: 30, ty: 39, fov: 34 },
+    payloadId: { A: 2, d: 36, h: 64, ty: 62.5, fov: 36 },
+    full: { A: 18, d: 235, h: 10, ty: 34, fov: 30 },
+    fullEnd: { A: 15, d: 228, h: 10, ty: 34, fov: 30 },
+    fairing: { A: 0, d: 31, h: 63, ty: 62.5, fov: 40 },
+    payload: { A: 4, d: 21, h: 61.5, ty: 60.2, fov: 40 },
+    payloadEnd: { A: 14, d: 18.5, h: 61, ty: 59.8, fov: 40 },
+} satisfies Record<string, PadCam>;
 
 interface Frame {
     scene: SceneId;
@@ -55,6 +91,11 @@ interface Frame {
     focus?: Focus;
     progress: number;
     met: number;
+    /** Viewport width / height. */
+    aspect: number;
+    /** Phase B: discovery destination and the floating origin (scene metres) of the view. */
+    body?: BodyId;
+    origin: Vector3;
     /** Vehicle base and axis in the scene's frame. */
     P: Vector3;
     A: Vector3;
@@ -70,7 +111,19 @@ interface Cam {
     up?: Vector3;
 }
 
-const fit = (pos: Vector3, target: Vector3, size: number, max: number) => Math.min(max, Math.max(0.6, ((2 * Math.atan(size / pos.distanceTo(target))) * 180) / Math.PI));
+/** Hardstand deck height (LaunchSite.DECK). */
+const DECK_Y = 3;
+
+/**
+ * A pad composition adjusted to the viewport: on narrow (portrait) views the camera backs off so the
+ * whole vehicle still fits with a margin; wide views keep the composition as designed.
+ */
+function fitPad(c: PadCam, aspect: number): PadCam {
+    if (aspect >= 1.2) return c;
+    return { ...c, d: c.d * (1 + (1.2 - Math.max(0.55, aspect)) * 0.35) };
+}
+
+const fit = (pos: Vector3, target: Vector3, size: number, max: number) => Math.min(max, Math.max(0.6, (2 * Math.atan(size / pos.distanceTo(target)) * 180) / Math.PI));
 
 /** The camera programme for each shot. */
 function shotCamera(f: Frame): Cam {
@@ -87,39 +140,59 @@ function shotCamera(f: Frame): Cam {
                 fov: 36 - 6 * k,
             };
         }
-        case 'padReveal': {
-            const k = smooth(p);
-            return { pos: v3(560, 240, 700).lerp(v3(170, 30, 240), k), target: v3(0, 30, 0).lerp(v3(0, 36, 0), k), fov: 30 };
-        }
+        // ── Opening: one continuous documentary move (each shot starts where the last ended) ──
+        case 'establish':
+            return padCam(mixCam(fitPad(PAD.establish, f.aspect), fitPad(PAD.establishEnd, f.aspect), p));
+        case 'reveal':
+            return padCam(mixCam(fitPad(PAD.establishEnd, f.aspect), PAD.reveal, glide(p)));
+        case 'payloadId':
+            return padCam(mixCam(PAD.reveal, PAD.payloadId, glide(p)));
+        case 'fullVehicle':
+            return padCam(mixCam(PAD.payloadId, fitPad(PAD.full, f.aspect), glide(p)));
+        case 'ready':
+            return padCam(mixCam(fitPad(PAD.full, f.aspect), fitPad(PAD.fullEnd, f.aspect), p));
+        // ── Explore Spacecraft Payload: approach, open the fairing, name the parts, return ──
+        case 'payloadApproach':
+            return padCam(mixCam(fitPad(PAD.full, f.aspect), PAD.fairing, glide(p)));
+        case 'payloadCut':
+            return padCam(mixCam(PAD.fairing, PAD.payload, glide(p)));
+        case 'payloadHold':
+            return padCam(mixCam(PAD.payload, PAD.payloadEnd, p));
+        case 'payloadReturn':
+            return padCam(mixCam(PAD.payloadEnd, fitPad(PAD.full, f.aspect), glide(p)));
+        case 'padReveal':
+            return padCam(fitPad(PAD.full, f.aspect));
         case 'padWide':
-            return { pos: v3(170 - 20 * p, 18 + 5 * p, 250 - 25 * p), target: v3(0, 34, 0), fov: 32 };
+            return padCam(mixCam(fitPad({ A: 12, d: 210, h: 8, ty: 34, fov: 32 }, f.aspect), fitPad({ A: 16, d: 200, h: 9, ty: 34, fov: 32 }, f.aspect), p));
         case 'padTour': {
-            const h = 3 + 54 * smooth(p);
-            return { pos: ring(28, 0.6 + 0.5 * p, h), target: v3(0, MOUNT_TOP + h - 1, 0), fov: 40 };
+            // Up the vehicle from the engine section to the fairing, on the sunlit side.
+            const k = smooth(p);
+            const h = MOUNT_TOP + 2 + 55 * k;
+            return padCam({ A: 6 + 30 * p, d: 34, h, ty: h - 1, fov: 42 });
         }
         case 'engines':
-            // Beneath the launch mount between its legs, looking up at the two nozzles.
-            return { pos: ring(7.6, 0.05 + 0.25 * p, -3.4), target: v3(0, MOUNT_TOP - 1.4, 0), fov: 50 };
+            // On the deck under the launch table, looking up at the two nozzles in the exhaust opening.
+            return { pos: v3(6.8 - 0.6 * p, DECK_Y + 1.6, 3.4 + 1.2 * p), target: v3(0, MOUNT_TOP - 1.2, 0), fov: 52 };
         case 'stage1':
-            return { pos: ring(31, 0.8 + 0.15 * p, 17), target: v3(0, MOUNT_TOP + 16, 0), fov: 42 };
+            return padCam({ A: 18 + 6 * p, d: 52, h: 24, ty: 25, fov: 42 });
         case 'upper':
-            return { pos: ring(15, 0.9 + 0.2 * p, 41), target: v3(0, MOUNT_TOP + 40, 0), fov: 44 };
+            return padCam({ A: 10 + 10 * p, d: 19, h: 47, ty: 45.5, fov: 46 });
         case 'tanks':
-            return { pos: ring(34, 0.7 + 0.15 * p, 18), target: v3(0, MOUNT_TOP + 17, 0), fov: 44 };
+            return padCam({ A: 14 + 6 * p, d: 48, h: 24, ty: 24, fov: 44 });
         case 'fairingOpen':
             return { pos: ring(15, 0.8 + 0.2 * p, 58), target: v3(0, MOUNT_TOP + 53, 0), fov: 44 };
         case 'payload':
             return { pos: ring(6.5, 0.8 + 0.25 * p, 53), target: v3(0, MOUNT_TOP + 51.5, 0), fov: 48 };
         case 'liftoff': {
-            // A remote camera near the pad perimeter, low, looking up as the vehicle clears the tower.
-            const pos = v3(180, 3, 240);
-            const target = at(24, 0, 0);
-            return { pos, target, fov: fit(pos, target, 62, 34) };
+            // A remote camera at the perimeter road, low, looking up as the vehicle clears the tower.
+            const pos = v3(70, terrainHeight(70, 262) + 2.5, 262);
+            const target = at(26, 0, 0);
+            return { pos, target, fov: fit(pos, target, 64, 34) };
         }
-        case 'engineClose': {
-            const pos = v3(13, MOUNT_TOP + 1.2, 15 - 2 * p);
-            return { pos, target: at(-1.2, 0, 0), fov: 48 };
-        }
+        case 'engineClose':
+            // Low and close on the sunlit side: the engine section, the launch table and the steam, with
+            // the igniter flash and the exhaust visible under the table, and the trench exit behind.
+            return padCam({ A: 4 + 5 * p, d: 56, h: 7, ty: 15 + Math.max(0, f.P.y - MOUNT_TOP) * 0.8, fov: 34 });
         case 'track': {
             // A long-lens tracking camera 2.7 km from the pad, as in launch coverage: the vehicle and its
             // plume fill a good part of the frame.
@@ -142,9 +215,10 @@ function shotCamera(f: Frame): Cam {
             return { pos: at(-35, 110, -45), target: at(30, 0, 25), fov: 48 };
         case 'staging':
             // Ahead of the separation plane and to the side, looking back at the gap opening.
-            return { pos: at(48 - 4 * p, 26, -8), target: at(31, 0, 0), fov: 46 };
+            // Wide enough for both stages as the gap opens, then following the upper stage.
+            return { pos: at(44 - 2 * p, 52, -16), target: at(30 + 6 * smooth(p), 0, 0), fov: 46 };
         case 'fairingSep':
-            return { pos: at(56, 16, -7), target: at(51, 0, 0), fov: 52 };
+            return { pos: at(52, 34, -12), target: at(52, 0, 0), fov: 48 };
         case 'insertion':
             // Behind and above, looking along the orbit: the vehicle against the Earth and the horizon ahead.
             return { pos: at(-75, 35, -40), target: at(70, 0, 20), fov: 50 };
@@ -156,7 +230,15 @@ function shotCamera(f: Frame): Cam {
             // The Earth stays in frame while the escape path lengthens: the view widens with the distance flown.
             const reach = Math.max(3.4 * R, P.length() * 0.95);
             const target = P.clone().multiplyScalar(0.38);
-            return { pos: target.clone().add(v3(0.55, 0.45, 1).normalize().multiplyScalar(reach * 1.25)), target, fov: 42 };
+            return {
+                pos: target.clone().add(
+                    v3(0.55, 0.45, 1)
+                        .normalize()
+                        .multiplyScalar(reach * 1.25),
+                ),
+                target,
+                fov: 42,
+            };
         }
         case 'burnChase':
             return { pos: at(28, 32, -12), target: at(44, 0, 0), fov: 44 };
@@ -173,11 +255,141 @@ function shotCamera(f: Frame): Cam {
             return { pos: at(-4.5, 6, 6.5), target: at(1.8, 0, 0), fov: 42 };
         case 'computer':
             return { pos: at(1.6, 2.8, 2.2), target: at(0.9, 0, 0), fov: 48 };
+        // ── Phase B: cruise (Sun-centred) ──
+        case 'cruiseDepart': {
+            const m = missionTrajectory();
+            const e = toScene(planetAt('earth', m.launch));
+            const j = toScene(planetAt('jupiter', m.jupiter));
+            const target = e
+                .clone()
+                .multiplyScalar(0.55)
+                .lerp(j, 0.12 + 0.08 * p);
+            const away = e.clone().normalize();
+            return {
+                pos: target
+                    .clone()
+                    .addScaledVector(away, 1.6 * AU)
+                    .add(v3(0, 1.9 * AU + 0.4 * AU * p, 0)),
+                target,
+                fov: 42,
+            };
+        }
+        case 'cruiseWide': {
+            const m = missionTrajectory();
+            const mid = toScene(planetAt('earth', m.launch)).lerp(toScene(planetAt('jupiter', m.jupiter)), 0.5);
+            const off = v3(0.6 * AU, 7.8 * AU, 6.2 * AU).applyAxisAngle(Y, -0.2 + 0.25 * p);
+            return { pos: mid.clone().add(off), target: mid, fov: 40 };
+        }
+        case 'cruiseFollow': {
+            const m = missionTrajectory();
+            const s = toScene(spacecraftAt(dateOf(f.met)).r);
+            const j = toScene(planetAt('jupiter', m.jupiter));
+            const dir = j.clone().sub(s).normalize();
+            return {
+                pos: s
+                    .clone()
+                    .addScaledVector(dir, -1.1 * AU)
+                    .add(v3(0, 0.55 * AU, 0)),
+                target: j.clone().lerp(s, 0.25),
+                fov: 40,
+            };
+        }
+        case 'cruiseOuter': {
+            const m = missionTrajectory();
+            const mid = toScene(planetAt('jupiter', m.jupiter))
+                .lerp(toScene(planetAt('saturn', m.saturn)), 0.5)
+                .multiplyScalar(0.8);
+            const off = v3(1.5 * AU, 15 * AU, 11 * AU).applyAxisAngle(Y, -0.3 + 0.2 * p);
+            return { pos: mid.clone().add(off), target: mid, fov: 40 };
+        }
+        // ── Phase B: Jupiter encounter (Jupiter-centred, to scale) ──
+        case 'jupiterApproach':
+        case 'jupiterClose': {
+            const m = missionTrajectory();
+            const c = toScene(flybyPosition((dateOf(f.met) - m.jupiter) * 86400));
+            const back = c.clone().normalize();
+            const side = Y.clone().cross(back).normalize();
+            const close = f.shot === 'jupiterClose';
+            // Behind and beside the spacecraft, looking at Jupiter: RSC-1 in the foreground, Jupiter beyond.
+            const pos = c
+                .clone()
+                .addScaledVector(back, close ? 15 : 24)
+                .addScaledVector(side, close ? -7 : -4)
+                .add(v3(0, close ? 3.5 : 6.5, 0));
+            const target = close ? c.clone().multiplyScalar(0.35) : v3(0, 0, 0);
+            return { pos, target, fov: close ? 56 : 46 };
+        }
+        case 'jupiterWide': {
+            const R = R_JUPITER;
+            return { pos: v3(18 * R, 62 * R, 46 * R).applyAxisAngle(Y, 0.6 + 0.3 * p), target: v3(0, 0, 0), fov: 42 };
+        }
+        // ── Phase B: Saturn (Saturn-centred) ──
+        case 'saturnClose': {
+            const c = saturnCraft(p);
+            const back = c.clone().normalize();
+            const side = Y.clone().cross(back).normalize();
+            return {
+                pos: c
+                    .clone()
+                    .addScaledVector(back, 26 - 6 * p)
+                    .addScaledVector(side, -10)
+                    .add(v3(0, 5, 0)),
+                target: v3(0, -0.15 * R_SATURN, 0),
+                fov: 50,
+            };
+        }
+        // ── Phase B: Discovery tour (floating origin at the destination) ──
+        case 'tourOverview': {
+            return {
+                pos: v3(6 * AU, 30 * AU, 40 * AU)
+                    .applyAxisAngle(Y, 0.2 * p)
+                    .sub(f.origin),
+                target: f.origin.clone().negate(),
+                fov: 40,
+            };
+        }
+        case 'tourTravel':
+        case 'tourBody': {
+            const id = f.body ?? 'saturn';
+            const sunDir = f.origin.clone().negate().normalize(); // towards the Sun from the destination
+            const side = Y.clone().cross(sunDir).normalize();
+            const d = tourDistance(id);
+            // Three-quarter lit: between the Sun direction and the side, a little above the orbit plane.
+            const near = sunDir
+                .clone()
+                .multiplyScalar(0.55)
+                .addScaledVector(side, 0.8)
+                .add(v3(0, 0.22, 0))
+                .normalize()
+                .multiplyScalar(d);
+            if (id === 'sun') near.copy(v3(0.3, 0.25, 1).normalize().multiplyScalar(d));
+            if (f.shot === 'tourBody') return { pos: near.clone().applyAxisAngle(Y, 0.35 * p), target: v3(0, 0, 0), fov: 40 };
+            // Travel: from the overview to the destination along a logarithmic approach.
+            const from = v3(6 * AU, 30 * AU, 40 * AU).sub(f.origin);
+            const k = glide(p);
+            const dist = Math.exp(Math.log(from.length()) * (1 - k) + Math.log(d) * k);
+            const dir = from
+                .clone()
+                .normalize()
+                .lerp(near.clone().normalize(), smooth(p * 1.2))
+                .normalize();
+            return {
+                pos: dir.multiplyScalar(dist),
+                target: f.origin
+                    .clone()
+                    .negate()
+                    .lerp(v3(0, 0, 0), smooth(p * 3)),
+                fov: 40,
+            };
+        }
         case 'helio': {
             const k = smooth(p);
             const earth = v3(ORBIT_AU.earth * AU, 0, 0);
             return {
-                pos: earth.clone().add(v3(0.12 * AU, 0.35 * AU, 0.55 * AU)).lerp(v3(-0.6 * AU, 6.8 * AU, 6.4 * AU), k),
+                pos: earth
+                    .clone()
+                    .add(v3(0.12 * AU, 0.35 * AU, 0.55 * AU))
+                    .lerp(v3(-0.6 * AU, 6.8 * AU, 6.4 * AU), k),
                 target: earth.clone().lerp(v3(-1.6 * AU, 0, 0), k),
                 fov: 40,
             };
@@ -230,15 +442,32 @@ function readEvents() {
     };
 }
 
+/**
+ * Engineering cutaway for the pad topic views: which part is opened and how far. The fairing opens
+ * during the payload sequence (and closes again on the way back); the interstage and tank walls open
+ * at the start of their topic views. Chapters never cut anything away.
+ */
+function cutFor(shot: ShotId, progress: number, focus: Focus | undefined, met: number): { part: VehicleState['cut']['part']; amount: number } {
+    if (met > -3) return { part: null, amount: 0 };
+    if (shot === 'payloadCut') return { part: 'fairing', amount: smooth(progress) };
+    if (shot === 'payloadHold') return { part: 'fairing', amount: 1 };
+    if (shot === 'payloadReturn') return { part: 'fairing', amount: 1 - smooth(progress * 1.8) };
+    if (focus === 'upper' && shot === 'upper') return { part: 'interstage', amount: smooth(progress * 4) };
+    if (focus === 'tanks' && shot === 'tanks') return { part: 'tanks', amount: smooth(progress * 4) };
+    return { part: null, amount: 0 };
+}
+
 /** Configures the shared vehicle state from mission time. */
-function updateVehicle(state: VehicleState, met: number, focus: Focus | undefined, shot: ShotId, time: number) {
+function updateVehicle(state: VehicleState, met: number, focus: Focus | undefined, shot: ShotId, time: number, progress: number) {
     const e = EV();
     const s = sampleAt(met);
     state.time = time;
     state.focus = focus;
-    // Pad cutaways: the fairing turns translucent (it never opens on the pad); stage walls likewise.
-    const padFairing = met < -3 && (shot === 'fairingOpen' || shot === 'payload' || focus === 'fairing' || focus === 'payload');
-    state.xray = focus === 'upper' ? 'upper' : focus === 'tanks' ? 'tanks' : padFairing ? 'fairing' : null;
+    const cut = cutFor(shot, progress, focus, met);
+    state.cut.part = cut.part;
+    state.cut.amount = cut.amount;
+    // The green flash of the TEA–TEB igniter as the first-stage engines start.
+    state.igniter = Math.max(0, 1 - Math.abs(met + 2.7) / 0.4);
     // Liquid-oxygen frost: full on the pad, shedding in the first 25 s of flight.
     state.frost = met < 0 ? 1 : Math.max(0, 1 - met / 25);
     state.firing1 = s.phase === 'ignition' || s.phase === 'stage1' ? s.throttle : 0;
@@ -258,10 +487,15 @@ function updateVehicle(state: VehicleState, met: number, focus: Focus | undefine
     state.booms = boomsAtMet(met);
 }
 
-export default function SolarScene({ clock, quality, reducedMotion, focusOverride }: { clock: MissionClock; quality: 'high' | 'low'; reducedMotion: boolean; focusOverride?: Focus }) {
+export default function SolarScene({ clock, quality, reducedMotion, focusOverride, shift = 0, shiftY = 0 }: { clock: MissionClock; quality: 'high' | 'low'; reducedMotion: boolean; focusOverride?: Focus; shift?: number; shiftY?: number }) {
     const camera = useThree((s) => s.camera) as PerspectiveCamera;
+    const [payloadLabels, setPayloadLabels] = useState(false);
+    const shiftNow = useRef(shift);
+    const shiftYNow = useRef(shiftY);
+    const size = useThree((s) => s.size);
     const state = useRef<VehicleState>({
         firing1: 0,
+        igniter: 0,
         firing2: false,
         firingKick: false,
         pressure: 1,
@@ -272,12 +506,12 @@ export default function SolarScene({ clock, quality, reducedMotion, focusOverrid
         fairingAttached: true,
         upperAway: null,
         spin: 0,
-        xray: null,
+        cut: { part: null, amount: 0, azimuth: 0 },
         frost: 1,
         booms: { rtgBoom: 0, magnetometerBoom: 0, scienceBoom: 0 },
         time: 0,
     });
-    const frame = useRef<Frame>({ scene: 'intro', shot: 'earthApproach', progress: 0, met: -90, P: new Vector3(), A: Y.clone(), S: Z.clone(), O: new Vector3(1, 0, 0), altitude: 0 });
+    const frame = useRef<Frame>({ scene: 'pad', shot: 'establish', progress: 0, met: -90, aspect: 16 / 9, origin: new Vector3(), P: new Vector3(), A: Y.clone(), S: Z.clone(), O: new Vector3(1, 0, 0), altitude: 0 });
     const sceneRef = useRef<SceneId>('intro');
     const [, force] = useForce();
     const blend = useRef<{ from: ShotId | null; t: number }>({ from: null, t: 1 });
@@ -365,7 +599,15 @@ export default function SolarScene({ clock, quality, reducedMotion, focusOverrid
         f.focus = focusOverride;
         f.progress = loc.progress;
         f.met = met;
-        updateVehicle(state.current, met, f.focus, seg.shot, clock.time);
+        f.aspect = camera.aspect;
+        f.body = seg.body;
+        // Floating origin for the Discovery tour: the destination sits at the scene origin.
+        if (seg.scene === 'tour' && seg.shot !== 'tourOverview' && seg.body) toScene(tourPosition(seg.body), f.origin);
+        else f.origin.set(0, 0, 0);
+        updateVehicle(state.current, met, f.focus, seg.shot, clock.time, loc.progress);
+        // Part names appear while the payload cutaway is open.
+        const named = seg.shot === 'payloadHold' || (seg.shot === 'payloadCut' && loc.progress > 0.75);
+        if (named !== payloadLabels) setPayloadLabels(named);
 
         // Vehicle base and axis in the scene's frame.
         const s = sampleAt(met);
@@ -439,9 +681,22 @@ export default function SolarScene({ clock, quality, reducedMotion, focusOverrid
         if (Math.abs(camera.fov - cam.fov) > 1e-3) {
             camera.fov = cam.fov;
         }
+        // The cutaway opens towards the camera (azimuth about the vehicle axis, vehicle frame on the pad).
+        state.current.cut.azimuth = Math.atan2(camera.position.x - f.P.x, camera.position.z - f.P.z);
+        // Composition: on wide layouts the hardware sits right of centre, clear of the overlay card; on
+        // phones the opening title sits low, so the vehicle is framed higher. A view offset pans the
+        // image without turning the camera.
+        shiftNow.current += (shift - shiftNow.current) * Math.min(1, delta * 3);
+        shiftYNow.current += (shiftY - shiftYNow.current) * Math.min(1, delta * 3);
+        const sx = shiftNow.current;
+        const sy = shiftYNow.current;
+        if (Math.abs(sx) + Math.abs(sy) > 1e-4) camera.setViewOffset(size.width, size.height, -sx * size.width, sy * size.height, size.width, size.height);
+        else if (camera.view?.enabled) camera.clearViewOffset();
         const dist = cam.pos.distanceTo(cam.target);
-        camera.near = seg.scene === 'helio' ? 1e6 : Math.max(0.05, dist * 0.002);
-        camera.far = seg.scene === 'helio' ? 1e14 : 1e10;
+        // Near plane: the spacecraft can be metres from the camera while a planet is a million km away.
+        camera.near =
+            seg.scene === 'jupiter' || seg.scene === 'saturn' ? (seg.shot === 'jupiterWide' ? 1e5 : 0.5) : seg.scene === 'cruise' ? 1e7 : seg.scene === 'tour' ? Math.max(1, cam.pos.length() * 1e-4) : seg.scene === 'helio' ? 1e6 : Math.max(0.05, dist * 0.002);
+        camera.far = seg.scene === 'helio' || seg.scene === 'cruise' || seg.scene === 'tour' ? 1e15 : seg.scene === 'jupiter' || seg.scene === 'saturn' ? 1e13 : 1e10;
         camera.updateProjectionMatrix();
         if (process.env.NODE_ENV !== 'production') (window as Window & { __solarCam?: unknown }).__solarCam = { shot: seg.shot, scene: seg.scene, met, pos: camera.position.toArray(), target: cam.target.toArray(), fov: camera.fov, P: f.P.toArray() };
     });
@@ -470,12 +725,24 @@ export default function SolarScene({ clock, quality, reducedMotion, focusOverrid
                     <Haze altitude={camAltitude} />
                     <Stars count={quality === 'high' ? 2200 : 1100} brightness={() => smooth((camAltitude() - 40000) / 40000)} />
                     <SkyEnvironment sun={SUN} />
-                    <directionalLight position={[SUN.x * 400, SUN.y * 400, SUN.z * 400]} intensity={3.8} color="#fff5e8" castShadow={quality === 'high'} shadow-mapSize={[2048, 2048]} shadow-camera-left={-120} shadow-camera-right={120} shadow-camera-top={120} shadow-camera-bottom={-120} shadow-camera-near={10} shadow-camera-far={1000} />
+                    <directionalLight
+                        position={[SUN.x * 400, SUN.y * 400, SUN.z * 400]}
+                        intensity={3.8}
+                        color="#fff5e8"
+                        castShadow={quality === 'high'}
+                        shadow-mapSize={[2048, 2048]}
+                        shadow-camera-left={-120}
+                        shadow-camera-right={120}
+                        shadow-camera-top={120}
+                        shadow-camera-bottom={-120}
+                        shadow-camera-near={10}
+                        shadow-camera-far={1000}
+                    />
                     <HemiByAltitude altitude={camAltitude} />
                     <Globe radius={R_EARTH} position={[0, -R_EARTH - 40, 0]} orientation={SITE_Q} sun={sun} opacity={globeOpacity} />
                     <LaunchSite met={met} head={P} groundOpacity={groundOpacity} quality={quality} />
                     <VehicleAt P={P} A={() => frame.current.A}>
-                        <LaunchVehicle state={state} />
+                        <LaunchVehicle state={state} payloadLabels={payloadLabels} />
                     </VehicleAt>
                     <EngineLight state={state} P={P} />
                 </group>
@@ -488,6 +755,10 @@ export default function SolarScene({ clock, quality, reducedMotion, focusOverrid
                     <HelioView sunLight />
                 </>
             )}
+            {scene === 'cruise' && <CruiseView met={met} />}
+            {scene === 'jupiter' && <JupiterView met={met} />}
+            {scene === 'saturn' && <SaturnView progress={() => frame.current.progress} />}
+            {scene === 'tour' && <TourView dest={() => (frame.current.shot === 'tourOverview' ? undefined : frame.current.body)} origin={() => frame.current.origin} sunLit={() => frame.current.origin.clone().negate().normalize()} />}
         </>
     );
 }
@@ -559,7 +830,7 @@ function EngineLight({ state, P }: { state: MutableRefObject<VehicleState>; P: (
     useFrame(() => {
         if (!ref.current) return;
         const s = state.current;
-        ref.current.intensity = s.firing1 * 9000 * Math.max(0, s.pressure - 0.4);
+        ref.current.intensity = s.firing1 * 4500 * Math.max(0, s.pressure - 0.4);
         ref.current.position.copy(P()).add(v3(0, -6, 0));
         ref.current.visible = s.firing1 > 0.01 && s.pressure > 0.4;
     });
@@ -679,4 +950,3 @@ function DeployView({ frame, state, sun, quality }: { frame: MutableRefObject<Fr
         </>
     );
 }
-

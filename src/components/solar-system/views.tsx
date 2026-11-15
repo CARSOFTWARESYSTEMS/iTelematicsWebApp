@@ -1,4 +1,4 @@
-"use client";
+'use client';
 // Supporting views of the Solar System experience: the star field, trajectory lines, the vehicle
 // marker for wide shots, and the Sun-centred (heliocentric) view. Orbits in the heliocentric view are
 // to scale; the Sun and planets are enlarged so they can be seen, and the view says so.
@@ -74,9 +74,7 @@ export function Stars({ count, brightness }: { count: number; brightness: () => 
 export function Path({ points, color, opacity = 1, dashed = false, count }: { points: Vector3[]; color: string; opacity?: number; dashed?: boolean; count?: () => number }) {
     const line = useMemo(() => {
         const g = new BufferGeometry().setFromPoints(points);
-        const m = dashed
-            ? new LineDashedMaterial({ color: new Color(color), transparent: true, opacity, dashSize: 1, gapSize: 1, depthWrite: false })
-            : new LineBasicMaterial({ color: new Color(color), transparent: opacity < 1, opacity, depthWrite: false });
+        const m = dashed ? new LineDashedMaterial({ color: new Color(color), transparent: true, opacity, dashSize: 1, gapSize: 1, depthWrite: false }) : new LineBasicMaterial({ color: new Color(color), transparent: opacity < 1, opacity, depthWrite: false });
         const l = new Line(g, m);
         if (dashed) {
             l.computeLineDistances();
@@ -120,11 +118,14 @@ export function Marker({ position, label, color = '#22D3EE', size = 0.012 }: { p
     );
     useEffect(() => () => material.dispose(), [material]);
     const mesh = useRef<Mesh>(null);
+    const world = useMemo(() => new Vector3(), []);
     useFrame(() => {
         const p = position();
         if (ref.current) ref.current.position.copy(p);
         if (mesh.current) {
-            const d = camera.position.distanceTo(p);
+            // Distance to where the marker really is (its parent may be offset, e.g. a floating origin).
+            mesh.current.getWorldPosition(world);
+            const d = camera.position.distanceTo(world);
             mesh.current.scale.setScalar(d * size);
             mesh.current.quaternion.copy(camera.quaternion);
         }

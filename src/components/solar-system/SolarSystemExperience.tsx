@@ -1,15 +1,23 @@
-"use client";
+'use client';
 // Solar System — From Earth Launch to Deep Space Exploration: the sixth Space Digital Twin option.
-// A guided mission, not a free simulator: the visitor starts the mission (or picks a stage or an
-// action label) and the experience moves the camera, runs the modelled event, explains it and shows
-// the readings of that moment. Everything shown derives from the flight simulation and spacecraft
-// model in lib/solar-system. Phase A: from the launch pad to Earth departure and deployment.
+// A guided mission, not a free simulator: the visitor starts the mission (or picks a stage or a topic)
+// and the experience moves the camera, runs the modelled event, explains it and shows the readings of
+// that moment. Everything shown derives from the flight simulation and spacecraft model in
+// lib/solar-system.
+//
+// Layout (visual-quality recovery, 15 November 2026): the 3D scene is the hero and fills the frame.
+// Overlays are kept to a top status line, one contextual card (a title, what happens, why it matters,
+// two to four readings, Learn more and the chapter's three to six main topics) and, below the scene, a
+// slim chapter timeline with the transport controls. Deep detail stays behind Learn more.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
-import { useNoWebGL, usePageVisible, usePresence, useReducedMotion, useStageQuality } from '@/components/space-twin/device';
+import { useMedia, useNoWebGL, usePageVisible, usePresence, useReducedMotion, useStageQuality } from '@/components/space-twin/device';
 import { MissionClock } from '@/lib/solar-system/clock';
-import { compression, DATA_LABEL, DESCRIPTION, formatMet, mission, reading, SIGNATURE, SUBTITLE, SUPPORT, TITLE, type Segment, type TKey } from '@/lib/solar-system/mission';
+import { compression, DATA_LABEL, formatMet, SUBTITLE, SUPPORT, TITLE, type Segment, type TKey } from '@/lib/solar-system/mission';
+import { dateOf, journey, readingAny } from '@/lib/solar-system/phaseB';
+import { isoDate } from '@/lib/solar-system/ephemeris';
+import { PHASE_B_LABELS } from './PlanetViews';
 import styles from './SolarSystemExperience.module.css';
 
 const SolarCanvas = dynamic(() => import('./SolarCanvas'), { ssr: false });
@@ -22,36 +30,49 @@ const TONE: Record<string, string> = { nominal: 'state-nominal', solar: 'state-s
 const LABELS_3D = [
     { id: 'solar-vehicle', text: 'Upper stage, kick stage and spacecraft (marker enlarged)' },
     { id: 'deploy-craft', text: 'Spacecraft RSC-1' },
-    { id: 'helio-sun', text: 'Sun (×25)' },
-    { id: 'helio-earth', text: 'Earth at departure (×2,500)' },
-    { id: 'helio-jupiter', text: 'Jupiter at departure (×250)' },
-    { id: 'helio-arrival', text: 'Meets Jupiter’s orbit after 2.7 years' },
+    ...PHASE_B_LABELS,
+    { id: 'pl-hga', text: 'High-gain antenna, 3.7 m' },
+    { id: 'pl-rtg', text: 'RTGs (2), stowed' },
+    { id: 'pl-mag', text: 'Magnetometer boom, stowed' },
+    { id: 'pl-kick', text: 'Solid kick stage' },
+    { id: 'pl-adapter', text: 'Payload adapter' },
+    { id: 'pl-fairing', text: 'Fairing shell and acoustic lining' },
 ];
 
 function scaleText(seg: Segment) {
-    if (seg.scene === 'helio') return 'Scientific scale: orbits to scale · Sun ×25, Earth ×2,500, Jupiter ×250 to be visible';
+    if (seg.scene === 'helio') return 'Orbits to scale · Sun ×25, Earth ×2,500, Jupiter ×250 so they can be seen';
     if (seg.scene === 'intro') return 'Cinematic Scale — Not to Scale';
+    if (seg.scene === 'tour') return 'Cinematic Scale — Not to Scale · a guided tour, not a spacecraft trajectory';
     const c = compression(seg);
-    const time = c === 0 ? 'Held moment' : c <= 1.25 ? 'Real time' : `Time ×${c < 20 ? c.toFixed(1) : Math.round(c).toLocaleString('en-GB')}`;
+    const time = c === 0 ? 'Held moment' : c <= 1.25 ? 'Real time' : c < 20 ? `Time ×${c.toFixed(1)}` : c < 1e6 ? `Time ×${Math.round(c).toLocaleString('en-GB')}` : `Time ×${(c / 1e6).toFixed(1)} million`;
+    if (seg.scene === 'cruise') return `${time} · orbits to scale · planets and spacecraft are markers`;
+    if (seg.scene === 'jupiter') return `${time} · Jupiter, moon orbits and flyby path to scale · moon positions illustrative`;
+    if (seg.scene === 'saturn') return 'Saturn and rings to scale · the spacecraft’s pass is placed for illustration';
     if (seg.scene === 'orbit' || seg.scene === 'departure') return `${time} · Earth and orbits to scale`;
     return `${time} · vehicle and Earth to scale`;
 }
+
+/** Readings for the card: mission time is already in the status line, and at most four are shown. */
+const cardKeys = (keys: readonly TKey[]) => keys.filter((k) => k !== 'met').slice(0, 4);
 
 export default function SolarSystemExperience() {
     const reducedMotion = useReducedMotion();
     const quality = useStageQuality();
     const noWebGL = useNoWebGL();
     const pageVisible = usePageVisible();
+    const wide = useMedia('(min-width: 900px)');
     const frameRef = useRef<HTMLDivElement>(null);
     const { near, onScreen } = usePresence(frameRef);
-    const { chapters, intro } = mission();
+    const { chapters, intro } = journey();
 
     const [mode, setMode] = useState<Mode>({ kind: 'intro' });
     const [stagesOpen, setStagesOpen] = useState(false);
+    const [moreOpen, setMoreOpen] = useState(false);
     const [paused, setPaused] = useState<boolean | null>(null);
     const [ready, setReady] = useState(false);
     const [, setTick] = useState(0);
 
+    const chapterIndex = mode.kind === 'intro' ? 0 : mode.c;
     const chapter = mode.kind === 'intro' ? null : chapters[mode.c];
     const label = mode.kind === 'label' ? chapters[mode.c].labels[mode.l] : null;
     const program = mode.kind === 'intro' ? intro : label ? label.segments : chapter!.segments;
@@ -76,16 +97,19 @@ export default function SolarSystemExperience() {
             if (timer !== undefined) window.clearTimeout(timer);
         };
     }, [clock, mode, advance]);
-
     const go = (next: Mode) => {
         setMode(next);
+        setMoreOpen(false);
         if (paused) setPaused(null);
     };
     const start = () => {
         setStagesOpen(false);
         go({ kind: 'chapter', c: 0, guided: true });
     };
-    const openChapter = (c: number) => go({ kind: 'chapter', c, guided: false });
+    const openChapter = (c: number) => {
+        setStagesOpen(false);
+        go({ kind: 'chapter', c, guided: false });
+    };
     const openLabel = (c: number, l: number) => go({ kind: 'label', c, l });
     const step = (delta: 1 | -1) => {
         if (mode.kind === 'intro') return delta > 0 ? openChapter(0) : undefined;
@@ -105,194 +129,237 @@ export default function SolarSystemExperience() {
 
     const loc = clock.location;
     const met = loc.met;
-    const telemetryKeys: readonly TKey[] = label ? label.telemetry : chapter ? chapter.telemetry : [];
-    const readings = telemetryKeys.map((k) => reading(k, met));
-    const chosen = stagesOpen ? 'stages' : mode.kind === 'chapter' && mode.guided ? 'start' : mode.kind === 'intro' ? null : 'stages';
+    const keys = cardKeys(label ? label.telemetry : chapter ? chapter.telemetry : []);
+    const tourBody = loc.segment.body ?? (label ? label.segments.find((s) => s.body)?.body : undefined);
+    const readings = keys.map((k) => readingAny(k, met, tourBody));
+    // Mission time: T±hh:mm:ss near Earth; the calendar date and day count once in interplanetary space.
+    const metText = met > 2.5 * 86400 ? `${isoDate(dateOf(met))} · day ${Math.floor(met / 86400).toLocaleString('en-GB')}` : formatMet(met);
+    const inTour = loc.segment.scene === 'tour';
     const live = near && quality !== null && !noWebGL;
-    const caption = mode.kind === 'intro' ? 'Opening' : `${chapter!.number} / ${String(chapters.length).padStart(2, '0')}${label ? ` · ${chapter!.short}` : ''}`;
     const title = label ? label.title : chapter ? chapter.title : TITLE;
-    const nextLabel = mode.kind === 'label' ? chapters[mode.c].labels[(mode.l + 1) % chapters[mode.c].labels.length] : null;
-    const nextChapter = mode.kind !== 'intro' && mode.c + 1 < chapters.length ? chapters[mode.c + 1] : null;
+    const atReady = mode.kind === 'intro' && (loc.segment.shot === 'ready' || clock.done);
+    const mainTopics = chapter ? chapter.labels.map((l, i) => ({ l, i })).filter(({ l }) => !l.more) : [];
+    const moreTopics = chapter ? chapter.labels.map((l, i) => ({ l, i })).filter(({ l }) => l.more) : [];
+    const chosenMore = label?.more === true;
+    // Wide layouts keep the card on the left of the scene and frame the hardware right of centre.
+    const cardShown = mode.kind !== 'intro';
+    const shift = !wide ? 0 : cardShown ? 0.13 : 0.15;
+    // Phones: the opening title sits over the lower part of the scene, so frame the vehicle higher.
+    const shiftY = !wide && mode.kind === 'intro' ? 0.2 : 0;
 
     return (
-        <div className={styles.solar}>
-            <div className={styles.stage}>
-                <div
-                    ref={frameRef}
-                    className={styles.viewport}
-                    data-ready={ready || undefined}
-                    role="img"
-                    aria-label={`${TITLE}: ${SUBTITLE}. ${title}. ${label ? label.happening : chapter ? chapter.summary : SUPPORT} ${DATA_LABEL}.`}
-                >
-                    <Image className={styles.poster} src={POSTER} alt="" fill sizes="(min-width: 1320px) 900px, 100vw" />
+        <div className={styles.solar} data-mode={mode.kind}>
+            <div className={styles.stageWrap}>
+                <div ref={frameRef} className={styles.viewport} data-ready={ready || undefined} role="img" aria-label={`${TITLE}: ${SUBTITLE}. ${title}. ${label ? label.does : chapter ? chapter.summary : SUPPORT} ${DATA_LABEL}.`}>
+                    <Image className={styles.poster} src={POSTER} alt="" fill sizes="(min-width: 1320px) 1240px, 100vw" />
                     {live && (
                         <div className={styles.canvas} aria-hidden="true">
-                            <SolarCanvas clock={clock} playing={playing} reducedMotion={reducedMotion} quality={quality} focus={label?.focus} labels={LABELS_3D} onReady={() => setReady(true)} />
+                            <SolarCanvas clock={clock} playing={playing} reducedMotion={reducedMotion} quality={quality} focus={label?.focus} labels={LABELS_3D} shift={shift} shiftY={shiftY} onReady={() => setReady(true)} />
                         </div>
                     )}
-                    <div className={styles.hud} aria-hidden="true">
-                        <div className={styles.titleChip}>
-                            <span className={styles.titleNum}>{caption}</span>
-                            <span className={styles.titleText}>{title}</span>
-                            {!reducedMotion && (
-                                <span className={styles.bar}>
-                                    <span className={styles.fill} style={{ transform: `scaleX(${clock.progress})` }} />
-                                </span>
-                            )}
+                    <div className={styles.shade} aria-hidden="true" />
+
+                    {/* Top: where we are, and that the data are simulated. */}
+                    <div className={styles.topBar} aria-hidden="true">
+                        <div className={styles.where}>
+                            <span className={styles.whereNum}>{mode.kind === 'intro' ? '06 · Space Digital Twin' : `Stage ${chapter!.number} of ${String(chapters.length).padStart(2, '0')}`}</span>
+                            {mode.kind !== 'intro' && <span className={styles.whereTitle}>{chapter!.title}</span>}
                         </div>
-                        <span className={styles.dataLabel}>{DATA_LABEL}</span>
-                        {mode.kind !== 'intro' && <span className={styles.metChip}>{formatMet(met)}</span>}
-                        <span className={styles.scaleLabel}>{scaleText(loc.segment)} · Drag to turn; pinch or Ctrl/⌘ + scroll to zoom</span>
-                        {mode.kind === 'intro' && (
-                            <div className={styles.hero}>
-                                <p className={styles.heroTitle}>{TITLE}</p>
-                                <p className={styles.heroSubtitle}>{SUBTITLE}</p>
-                                <p className={styles.heroLine}>{SUPPORT}</p>
-                            </div>
-                        )}
+                        <div className={styles.status}>
+                            {mode.kind !== 'intro' && !inTour && <span className={styles.met}>{metText}</span>}
+                            <span className={styles.sim}>
+                                <span className={styles.simDot} /> Simulated · SOL-1
+                            </span>
+                        </div>
                     </div>
-                    {live === false && near && noWebGL && <p className={styles.fallback}>3D isn&rsquo;t available on this device, so a still image is shown; the mission panel works as normal.</p>}
+
+                    {mode.kind === 'intro' && (
+                        <div className={styles.hero}>
+                            <p className={styles.heroKicker}>From Earth Launch to Deep Space Exploration</p>
+                            <h3 className={styles.heroTitle}>{TITLE}</h3>
+                            <p className={styles.heroLine}>{SUPPORT}</p>
+                            <div className={styles.heroActions} data-ready={atReady || undefined}>
+                                <button type="button" className={`btn btn-primary ${styles.cta}`} onClick={start} data-track="station_model_interaction" data-track-name="Solar System: start mission">
+                                    Start Mission
+                                </button>
+                                <button
+                                    type="button"
+                                    className={`btn btn-secondary ${styles.cta}`}
+                                    aria-expanded={stagesOpen}
+                                    aria-controls="solar-stages"
+                                    onClick={() => setStagesOpen(!stagesOpen)}
+                                    data-track="station_model_interaction"
+                                    data-track-name="Solar System: mission stages"
+                                >
+                                    Explore Mission Stages
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {stagesOpen && (
+                        <nav id="solar-stages" className={styles.stages} aria-label="Mission stages">
+                            <ol>
+                                {chapters.map((c, i) => (
+                                    <li key={c.id}>
+                                        <button type="button" onClick={() => openChapter(i)} aria-current={mode.kind !== 'intro' && mode.c === i ? 'step' : undefined} data-track="station_model_interaction" data-track-name={`Solar System stage: ${c.title}`}>
+                                            <span className={styles.stageNum} aria-hidden="true">
+                                                {c.number}
+                                            </span>
+                                            {c.title}
+                                        </button>
+                                    </li>
+                                ))}
+                            </ol>
+                        </nav>
+                    )}
+
+                    <span className={styles.scale} aria-hidden="true">
+                        {scaleText(loc.segment)}
+                    </span>
+                    {live === false && near && noWebGL && <p className={styles.fallback}>3D isn&rsquo;t available on this device, so a still image is shown; the mission controls work as normal.</p>}
                 </div>
 
-                <div className={styles.controls} role="group" aria-label="Mission navigation">
+                {/* Contextual card: over the scene on wide screens, a sheet under it on phones. */}
+                {chapter && (
+                    <section className={styles.card} aria-live="polite" aria-labelledby="solar-card-title">
+                        <p className={styles.cardKicker}>{label ? chapter.title : `Stage ${chapter.number}`}</p>
+                        <h3 id="solar-card-title" className={styles.cardTitle}>
+                            {title}
+                        </h3>
+                        <dl className={styles.facts}>
+                            <div>
+                                <dt>What happens</dt>
+                                <dd>{label ? label.does : chapter.summary}</dd>
+                            </div>
+                            <div>
+                                <dt>Why it matters</dt>
+                                <dd>{label ? label.why : chapter.why}</dd>
+                            </div>
+                        </dl>
+                        {readings.length > 0 && (
+                            <dl className={styles.readings} aria-label="Engineering measurements, simulated">
+                                {readings.map((r) => (
+                                    <div key={r.label}>
+                                        <dt>{r.label}</dt>
+                                        <dd className={r.tone ? TONE[r.tone] : undefined}>{r.value}</dd>
+                                    </div>
+                                ))}
+                            </dl>
+                        )}
+                        {label && (
+                            <details className={`disclosure ${styles.learn}`}>
+                                <summary>Learn more</summary>
+                                <div className={styles.learnBody}>
+                                    <p>
+                                        <strong>What it is.</strong> {label.what}
+                                    </p>
+                                    <p>{label.learn}</p>
+                                    <p className={styles.inScene}>
+                                        <strong>In the scene.</strong> {label.happening}
+                                    </p>
+                                </div>
+                            </details>
+                        )}
+                        <div className={styles.topics} role="group" aria-label={`${chapter.title}: topics`}>
+                            {mainTopics.map(({ l, i }) => (
+                                <button
+                                    key={l.id}
+                                    type="button"
+                                    className={styles.topic}
+                                    aria-pressed={mode.kind === 'label' && mode.l === i}
+                                    onClick={() => openLabel(chapterIndex, i)}
+                                    data-track="station_model_interaction"
+                                    data-track-name={`Solar System label: ${l.title}`}
+                                >
+                                    {l.title}
+                                </button>
+                            ))}
+                            {moreTopics.length > 0 && (
+                                <button type="button" className={`${styles.topic} ${styles.moreBtn}`} aria-expanded={moreOpen || chosenMore} onClick={() => setMoreOpen(!moreOpen)}>
+                                    More topics ({moreTopics.length})
+                                </button>
+                            )}
+                        </div>
+                        {(moreOpen || chosenMore) && moreTopics.length > 0 && (
+                            <div className={styles.topics} role="group" aria-label={`${chapter.title}: more topics`}>
+                                {moreTopics.map(({ l, i }) => (
+                                    <button
+                                        key={l.id}
+                                        type="button"
+                                        className={styles.topic}
+                                        aria-pressed={mode.kind === 'label' && mode.l === i}
+                                        onClick={() => openLabel(chapterIndex, i)}
+                                        data-track="station_model_interaction"
+                                        data-track-name={`Solar System label: ${l.title}`}
+                                    >
+                                        {l.title}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                        {label && (
+                            <button type="button" className={styles.returnBtn} onClick={() => openChapter(chapterIndex)}>
+                                ← Return to mission
+                            </button>
+                        )}
+                    </section>
+                )}
+            </div>
+
+            {/* Bottom: the chapter timeline and the transport controls. */}
+            <div className={styles.dock} role="group" aria-label="Mission navigation">
+                <div className={styles.transport}>
                     <button type="button" className={styles.tool} onClick={() => step(-1)} aria-label="Previous" disabled={mode.kind === 'intro'} data-track="station_model_interaction" data-track-name="Solar System control: previous">
                         <span aria-hidden="true">‹</span>
                     </button>
-                    <button type="button" className={styles.tool} onClick={() => setPaused(autoplay)} aria-pressed={!autoplay} aria-label={autoplay ? 'Pause' : 'Play'} data-track="station_model_interaction" data-track-name={autoplay ? 'Solar System control: pause' : 'Solar System control: play'}>
+                    <button
+                        type="button"
+                        className={styles.tool}
+                        onClick={() => setPaused(autoplay)}
+                        aria-pressed={!autoplay}
+                        aria-label={autoplay ? 'Pause' : 'Play'}
+                        data-track="station_model_interaction"
+                        data-track-name={autoplay ? 'Solar System control: pause' : 'Solar System control: play'}
+                    >
                         <span aria-hidden="true">{autoplay ? '❚❚' : '▶'}</span>
                     </button>
-                    <button type="button" className={styles.tool} onClick={() => clock.replay()} aria-label="Replay" data-track="station_model_interaction" data-track-name="Solar System control: replay">
-                        <span aria-hidden="true">⏮</span>
-                    </button>
-                    <button type="button" className={styles.tool} onClick={() => step(1)} aria-label="Next" disabled={mode.kind === 'chapter' && mode.c === chapters.length - 1} data-track="station_model_interaction" data-track-name="Solar System control: next">
+                    <button
+                        type="button"
+                        className={styles.tool}
+                        onClick={() => step(1)}
+                        aria-label="Next"
+                        disabled={mode.kind === 'chapter' && mode.c === chapters.length - 1}
+                        data-track="station_model_interaction"
+                        data-track-name="Solar System control: next"
+                    >
                         <span aria-hidden="true">›</span>
                     </button>
-                    <button type="button" className={styles.toolWide} onClick={back} disabled={mode.kind === 'intro'} data-track="station_model_interaction" data-track-name="Solar System control: back">
-                        Back
+                    <button type="button" className={styles.tool} onClick={() => clock.replay()} aria-label="Replay" data-track="station_model_interaction" data-track-name="Solar System control: replay">
+                        <span aria-hidden="true">↺</span>
                     </button>
                 </div>
+                <ol className={styles.timeline} aria-label="Mission timeline">
+                    {chapters.map((c, i) => {
+                        const current = mode.kind !== 'intro' && mode.c === i;
+                        const done = mode.kind !== 'intro' && i < mode.c;
+                        return (
+                            <li key={c.id} data-current={current || undefined} data-done={done || undefined}>
+                                <button type="button" onClick={() => openChapter(i)} aria-label={`Stage ${c.number}: ${c.title}`} aria-current={current ? 'step' : undefined} title={c.title}>
+                                    <span className={styles.tlNum}>{c.number}</span>
+                                    <span className={styles.tlName}>{c.short}</span>
+                                    <span className={styles.tlBar}>
+                                        <span className={styles.tlFill} style={{ transform: `scaleX(${current ? (mode.kind === 'chapter' ? clock.progress : 1) : done ? 1 : 0})` }} />
+                                    </span>
+                                </button>
+                            </li>
+                        );
+                    })}
+                </ol>
+                <button type="button" className={styles.backBtn} onClick={back} disabled={mode.kind === 'intro'} data-track="station_model_interaction" data-track-name="Solar System control: back">
+                    Back
+                </button>
             </div>
-
-            <aside className={styles.side} aria-label="Mission">
-                <div className={styles.sideScroll}>
-                    <div className={styles.primary}>
-                        <button type="button" className={`btn ${chosen === 'start' ? 'btn-primary' : 'btn-secondary'} ${styles.primaryBtn}`} aria-current={chosen === 'start' || undefined} onClick={start} data-track="station_model_interaction" data-track-name="Solar System: start mission">
-                            Start Mission
-                        </button>
-                        <button type="button" className={`btn ${chosen === 'stages' ? 'btn-primary' : 'btn-secondary'} ${styles.primaryBtn}`} aria-current={chosen === 'stages' || undefined} aria-expanded={stagesOpen} onClick={() => setStagesOpen(!stagesOpen)} data-track="station_model_interaction" data-track-name="Solar System: mission stages">
-                            Explore Mission Stages
-                        </button>
-                    </div>
-
-                    {stagesOpen && (
-                        <ol className={`${styles.list} ${styles.chapters}`} aria-label="Mission stages">
-                            {chapters.map((c, i) => (
-                                <li key={c.id}>
-                                    <button type="button" className={styles.item} aria-pressed={mode.kind !== 'intro' && mode.c === i} onClick={() => openChapter(i)} data-track="station_model_interaction" data-track-name={`Solar System stage: ${c.title}`}>
-                                        <span className={styles.itemNum} aria-hidden="true">
-                                            {c.number}
-                                        </span>
-                                        {c.title}
-                                    </button>
-                                </li>
-                            ))}
-                        </ol>
-                    )}
-
-                    <section className={styles.info} aria-live="polite" aria-labelledby="solar-info-title">
-                        {mode.kind === 'intro' ? (
-                            <>
-                                <p className={styles.kicker}>06 · Space Digital Twin</p>
-                                <h3 id="solar-info-title" className={styles.infoTitle}>
-                                    {TITLE}: {SUBTITLE}
-                                </h3>
-                                <p className={styles.text}>{DESCRIPTION}</p>
-                                <p className={styles.question}>{SIGNATURE}</p>
-                                <p className={styles.note}>
-                                    A conceptual reference mission (launch vehicle RLV-1, spacecraft RSC-1) modelled from engine ignition to Earth departure. Values are simulated, not flight or live data. The cruise and the planets are being added next.
-                                </p>
-                            </>
-                        ) : (
-                            <>
-                                <p className={styles.kicker}>
-                                    Chapter {chapter!.number} · {chapter!.title}
-                                </p>
-                                <h3 id="solar-info-title" className={styles.infoTitle}>
-                                    {title}
-                                </h3>
-                                {!label && <p className={styles.text}>{chapter!.summary}</p>}
-                                <div className={styles.labels} role="group" aria-label={`${chapter!.title}: engineering actions`}>
-                                    {chapter!.labels.map((l, i) => (
-                                        <button key={l.id} type="button" className={styles.label} aria-pressed={mode.kind === 'label' && mode.l === i} onClick={() => openLabel(mode.c, i)} data-track="station_model_interaction" data-track-name={`Solar System label: ${l.title}`}>
-                                            {l.title}
-                                        </button>
-                                    ))}
-                                </div>
-                                {label && (
-                                    <dl className={styles.answers}>
-                                        <div>
-                                            <dt>What is it?</dt>
-                                            <dd>{label.what}</dd>
-                                        </div>
-                                        <div>
-                                            <dt>What does it do?</dt>
-                                            <dd>{label.does}</dd>
-                                        </div>
-                                        <div>
-                                            <dt>Why is it important?</dt>
-                                            <dd>{label.why}</dd>
-                                        </div>
-                                        <div>
-                                            <dt>What is happening?</dt>
-                                            <dd>{label.happening}</dd>
-                                        </div>
-                                    </dl>
-                                )}
-                                <div className={styles.telemetry}>
-                                    <p className={styles.telemetryHead}>
-                                        <span className={styles.dot} aria-hidden="true" /> Engineering readings · simulated
-                                    </p>
-                                    <dl>
-                                        {readings.map((r) => (
-                                            <div key={r.label}>
-                                                <dt>{r.label}</dt>
-                                                <dd className={r.tone ? TONE[r.tone] : undefined}>{r.value}</dd>
-                                            </div>
-                                        ))}
-                                    </dl>
-                                </div>
-                                {label && (
-                                    <details className={`disclosure ${styles.more}`}>
-                                        <summary>Learn more</summary>
-                                        <div>
-                                            <p className={styles.text}>{label.learn}</p>
-                                        </div>
-                                    </details>
-                                )}
-                                <p className={styles.next}>
-                                    {label && nextLabel ? (
-                                        <>
-                                            Next:{' '}
-                                            <button type="button" onClick={() => step(1)}>
-                                                {nextLabel.title}
-                                            </button>
-                                        </>
-                                    ) : nextChapter ? (
-                                        <>
-                                            Next stage:{' '}
-                                            <button type="button" onClick={() => openChapter(mode.c + 1)}>
-                                                {nextChapter.title}
-                                            </button>
-                                        </>
-                                    ) : (
-                                        'Next phase: interplanetary cruise and the planets (in development).'
-                                    )}
-                                </p>
-                            </>
-                        )}
-                    </section>
-                </div>
-            </aside>
         </div>
     );
 }

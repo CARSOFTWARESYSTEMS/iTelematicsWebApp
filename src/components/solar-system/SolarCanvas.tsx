@@ -1,11 +1,11 @@
-"use client";
+'use client';
 // WebGL canvas of the Solar System experience. Loaded lazily, only when the sixth Space Digital Twin
 // option is opened; renders continuously only while playing and visible, otherwise on demand.
 // A logarithmic depth buffer lets one camera go from engine close-ups (metres) to the Sun-centred
 // view (astronomical units); every custom shader in this experience writes logarithmic depth.
 import { useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { SRGBColorSpace } from 'three';
+import { ACESFilmicToneMapping, SRGBColorSpace } from 'three';
 import { AdaptiveDpr } from '@/components/space-twin/environment';
 import { LabelContext, LabelOverlay, LabelProjector, useLabelRegistry } from '@/components/space-twin/labels';
 import type { MissionClock } from '@/lib/solar-system/clock';
@@ -48,6 +48,8 @@ export default function SolarCanvas({
     quality,
     focus,
     labels,
+    shift = 0,
+    shiftY = 0,
     onReady,
 }: {
     clock: MissionClock;
@@ -56,6 +58,10 @@ export default function SolarCanvas({
     quality: 'high' | 'low';
     focus?: Focus;
     labels: { id: string; text: string }[];
+    /** Horizontal composition offset (fraction of the width) so the hardware clears the overlay card. */
+    shift?: number;
+    /** Vertical composition offset (fraction of the height): positive frames the subject higher. */
+    shiftY?: number;
     onReady: () => void;
 }) {
     const registry = useLabelRegistry();
@@ -65,20 +71,24 @@ export default function SolarCanvas({
             <div className={styles.canvasInner}>
                 <Canvas
                     frameloop={playing ? 'always' : 'demand'}
-                    shadows={high ? 'percentage' : false}
+                    shadows={high ? 'soft' : false}
                     dpr={high ? [1, 1.75] : 1}
                     gl={{ antialias: true, alpha: false, powerPreference: 'default', stencil: false, logarithmicDepthBuffer: true }}
                     camera={{ fov: 36, near: 0.1, far: 1e10, position: [0, 2e7, 2e7] }}
                     onCreated={({ gl }) => {
                         gl.setClearColor('#03050a', 1);
                         gl.outputColorSpace = SRGBColorSpace;
+                        gl.toneMapping = ACESFilmicToneMapping;
+                        gl.toneMappingExposure = 1.0;
+                        // Engineering cutaways are section cuts through the vehicle (clipping planes).
+                        gl.localClippingEnabled = true;
                         onReady();
                     }}
                     aria-hidden="true"
                 >
                     <GlobeTextures>
                         <SiteTextures>
-                            <SolarScene clock={clock} quality={quality} reducedMotion={reducedMotion} focusOverride={focus} />
+                            <SolarScene clock={clock} quality={quality} reducedMotion={reducedMotion} focusOverride={focus} shift={shift} shiftY={shiftY} />
                         </SiteTextures>
                     </GlobeTextures>
                     <ClockDriver clock={clock} playing={playing} />
