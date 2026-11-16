@@ -28,7 +28,8 @@ describe('SOL-1 Jupiter–Saturn trajectory (Phase B physics mode)', () => {
     it('satisfies every constraint and is compatible with the simulated SOL-1 launch', () => {
         const m = missionTrajectory();
         expect(m.c3).toBeLessThan(CONSTRAINTS.c3Max);
-        expect(m.c3).toBeLessThan(flight().c3 / 1e6); // the Phase A launch delivers more than needed
+        // The Phase A launch shuts the upper stage down early so that it delivers exactly this energy.
+        expect(Math.abs(flight().c3 / 1e6 - m.c3)).toBeLessThan(0.1);
         expect(Math.abs(m.dlaDeg)).toBeLessThan(CONSTRAINTS.dlaLimitDeg);
         expect(m.flyby.rp / R_JUPITER).toBeGreaterThanOrEqual(CONSTRAINTS.rpMinJupiterRadii);
         expect(m.flyby.dv).toBeLessThan(5); // a trim of a few m/s: effectively unpowered

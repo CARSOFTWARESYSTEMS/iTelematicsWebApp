@@ -26,7 +26,6 @@ import {
     Object3D,
     Plane,
     ShaderMaterial,
-    RepeatWrapping,
     SRGBColorSpace,
     Vector2,
     Vector3,
@@ -72,6 +71,11 @@ export interface VehicleState {
     /** Boom deployment 0…1 (spacecraft). */
     booms: { rtgBoom: number; magnetometerBoom: number; scienceBoom: number };
     time: number;
+    /** Fault scenarios: one first-stage engine out; one RTG failed (marked). */
+    engineOut?: boolean;
+    rtgFault?: boolean;
+    /** Attitude-thruster pulse brightness 0…1 (rate damping after separation). */
+    pulse?: number;
 }
 
 export const STACK = {
@@ -295,7 +299,25 @@ const PLUME_FRAG = /* glsl */ `${LOGDEPTH.fPars}
  * An exhaust plume: an outer flame (normal blending, so it reads against a bright sky) and, when
  * `additive` is set, a narrower glowing core. Length and radius follow the ambient pressure.
  */
-export function Plume({ length, radius, core, edge, power, diamonds = 0, additive = false, soot = 0 }: { length: () => number; radius: () => number; core: string; edge: string; power: () => number; diamonds?: number; additive?: boolean; soot?: number }) {
+export function Plume({
+    length,
+    radius,
+    core,
+    edge,
+    power,
+    diamonds = 0,
+    additive = false,
+    soot = 0,
+}: {
+    length: () => number;
+    radius: () => number;
+    core: string;
+    edge: string;
+    power: () => number;
+    diamonds?: number;
+    additive?: boolean;
+    soot?: number;
+}) {
     const ref = useRef<Mesh>(null);
     const material = useMemo(
         () =>
@@ -651,10 +673,23 @@ export default function LaunchVehicle({
                     quality={quality}
                     nozzle={0.68}
                     separation={0.86}
-                    power={() => state.current.firing1}
+                    power={() => (state.current.engineOut ? 0 : state.current.firing1)}
                     pressure={() => state.current.pressure}
                     length={() => 40 + 64 * (1 - state.current.pressure) ** 1.5}
                     radius={() => 3.0 + 15 * (1 - state.current.pressure) ** 2}
+                />
+            </group>
+            {/* Engine-out fault scenario: only the remaining engine's flame. */}
+            <group position={[-0.86, 0.2 - 2.25, 0]} visible={!perfOff('noPlume')}>
+                <VolumePlume
+                    kind="kerosene"
+                    quality={quality}
+                    nozzle={0.68}
+                    separation={0}
+                    power={() => (state.current.engineOut ? state.current.firing1 : 0)}
+                    pressure={() => state.current.pressure}
+                    length={() => 0.8 * (40 + 64 * (1 - state.current.pressure) ** 1.5)}
+                    radius={() => 0.72 * (3.0 + 15 * (1 - state.current.pressure) ** 2)}
                 />
             </group>
         </>
@@ -687,7 +722,6 @@ export default function LaunchVehicle({
                         </mesh>
                         <mesh geometry={bell2} material={nozzle2} />
                         <mesh geometry={bell2} material={soot} scale={[0.985, 1, 0.985]} />
-
                     </group>
                 ))}
                 <group position={[0, STACK.interstageTop - 3.0, 0]}>

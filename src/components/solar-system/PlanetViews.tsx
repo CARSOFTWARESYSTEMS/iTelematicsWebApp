@@ -17,7 +17,7 @@ import {
     Color,
     DoubleSide,
     Float32BufferAttribute,
-    IcosahedronGeometry,
+    Matrix4,
     MeshBasicMaterial,
     MeshStandardMaterial,
     Points,
@@ -146,16 +146,28 @@ function SunGlow({ size, at }: { size: () => number; at?: () => Vector3 }) {
  */
 const POLES: Partial<Record<BodyId, [number, number, number]>> = {
     jupiter: [-0.0146, 0.99925, 0.03576],
+    // Pluto (IAU 2015: RA 132.993°, Dec −6.163°, the right-hand-rule pole used by the New Horizons maps).
+    pluto: [-0.678, -0.3878, -0.6245],
     saturn: [0.0855, 0.8825, -0.4624],
 };
 export const poleOf = (id: BodyId) => (POLES[id] ? new Vector3(...POLES[id]!).normalize() : null);
 
 /** A planet from its map, pole orientation and flattening (also used by the cinematic cruise view). */
-export function DeepPlanet(props: { id: BodyId; radius: number; spin?: () => number; tint?: string }) {
+export function DeepPlanet(props: { id: BodyId; radius: number; spin?: () => number; tint?: string; sun?: () => Vector3 }) {
     return <Planet {...props} />;
 }
 
-function Planet({ id, radius, spin = () => 0, tint }: { id: BodyId; radius: number; spin?: () => number; tint?: string }) {
+/** Atmospheric haze: colour and strength by planet (0: airless). Mars's air is thin, so its limb is faint. */
+const HAZE: Partial<Record<BodyId, { color: string; strength: number }>> = {
+    venus: { color: '#f2e3b8', strength: 0.75 },
+    mars: { color: '#d8b9a0', strength: 0.16 },
+    jupiter: { color: '#e3cfae', strength: 0.5 },
+    saturn: { color: '#eedcb0', strength: 0.5 },
+    uranus: { color: '#a6dcf2', strength: 0.55 },
+    neptune: { color: '#8fb8ff', strength: 0.55 },
+};
+
+function Planet({ id, radius, spin = () => 0, tint, sun }: { id: BodyId; radius: number; spin?: () => number; tint?: string; sun?: () => Vector3 }) {
     const b = body(id);
     const file = b.imagery.file && b.imagery.file !== 'earth' ? b.imagery.file : undefined;
     const map = useMap(file);
@@ -192,26 +204,37 @@ function Planet({ id, radius, spin = () => 0, tint }: { id: BodyId; radius: numb
             <mesh ref={spinRef} scale={[radius, radius * flat, radius]} material={material}>
                 <sphereGeometry args={[1, 128, 96]} />
             </mesh>
-            <Atmosphere
-                radius={radius * 1.012}
-                color={id === 'jupiter' ? '#d8c3a5' : id === 'saturn' ? '#e8d5a8' : id === 'uranus' || id === 'neptune' ? '#8fd3ff' : id === 'venus' ? '#f2e3b8' : '#9cc8ff'}
-                strength={id === 'mercury' || id === 'moon' || id === 'pluto' ? 0 : 0.6}
-            />
+            {HAZE[id] && <Atmosphere radius={radius} flat={flat} color={HAZE[id]!.color} strength={HAZE[id]!.strength} sun={sun} />}
             {ringGeometry && ring && <mesh geometry={ringGeometry} material={ringMaterial} rotation={[-Math.PI / 2, 0, 0]} renderOrder={3} />}
         </group>
     );
 }
 
-/** A thin limb glow for planets with an atmosphere. */
-function Atmosphere({ radius, color, strength }: { radius: number; color: string; strength: number }) {
+/**
+ * A thin limb haze for planets with an atmosphere. The shell follows the planet's flattening and is only
+ * a few per cent thicker than the planet; the glow is computed from where each view ray passes the planet
+ * (its impact parameter), so it is brightest just outside the limb and fades to nothing at the shell's
+ * edge (no visible rim), and only on the sunlit side.
+ */
+const HAZE_HEIGHT = 0.03;
+function Atmosphere({ radius, flat, color, strength, sun }: { radius: number; flat: number; color: string; strength: number; sun?: () => Vector3 }) {
     const material = useMemo(
         () =>
             new ShaderMaterial({
-                uniforms: { uColor: { value: new Color(color) }, uStrength: { value: strength } },
-                vertexShader: /* glsl */ `${LOGDEPTH.vPars} varying vec3 vN; varying vec3 vPos;
-                    void main() { vN = normalize(mat3(modelMatrix) * normal); vec4 wp = modelMatrix * vec4(position, 1.0); vPos = wp.xyz; gl_Position = projectionMatrix * viewMatrix * wp; ${LOGDEPTH.v} }`,
-                fragmentShader: /* glsl */ `${LOGDEPTH.fPars} uniform vec3 uColor; uniform float uStrength; varying vec3 vN; varying vec3 vPos;
-                    void main() { ${LOGDEPTH.f} vec3 v = normalize(cameraPosition - vPos); float edge = pow(max(0.0, 1.0 - abs(dot(normalize(vN), v))), 4.0); gl_FragColor = vec4(uColor * edge * uStrength, 1.0); }`,
+                uniforms: { uColor: { value: new Color(color) }, uStrength: { value: strength }, uCam: { value: new Vector3() }, uSun: { value: new Vector3() }, uK: { value: 1 / (1 + HAZE_HEIGHT) } },
+                vertexShader: /* glsl */ `${LOGDEPTH.vPars} varying vec3 vLocal;
+                    void main() { vLocal = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); ${LOGDEPTH.v} }`,
+                fragmentShader: /* glsl */ `${LOGDEPTH.fPars} uniform vec3 uColor; uniform float uStrength; uniform vec3 uCam; uniform vec3 uSun; uniform float uK; varying vec3 vLocal;
+                    void main() {
+                        ${LOGDEPTH.f}
+                        vec3 d = normalize(vLocal - uCam);
+                        vec3 c = uCam + d * max(-dot(uCam, d), 0.0);
+                        float b = length(c);
+                        float x = clamp((b - uK) / (1.0 - uK), 0.0, 1.0);
+                        float glow = pow(1.0 - x, 2.6) * smoothstep(uK * 0.985, uK, b);
+                        float lit = length(uSun) > 0.5 ? smoothstep(-0.25, 0.45, dot(normalize(c), uSun)) : 1.0;
+                        gl_FragColor = vec4(uColor * glow * lit * uStrength, 1.0);
+                    }`,
                 side: BackSide,
                 blending: AdditiveBlending,
                 transparent: true,
@@ -220,9 +243,26 @@ function Atmosphere({ radius, color, strength }: { radius: number; color: string
         [color, strength],
     );
     useEffect(() => () => material.dispose(), [material]);
-    if (strength <= 0) return null;
+    const ref = useRef<Mesh>(null);
+    const sunRef = useRef(sun);
+    sunRef.current = sun;
+    useEffect(() => {
+        const mesh = ref.current;
+        if (!mesh) return;
+        const inv = new Matrix4();
+        // Camera and Sun in the shell's own (unit-sphere) frame, every time it is drawn.
+        mesh.onBeforeRender = (_r, _s, cam) => {
+            inv.copy(mesh.matrixWorld).invert();
+            const u = material.uniforms;
+            (u.uCam.value as Vector3).setFromMatrixPosition(cam.matrixWorld).applyMatrix4(inv);
+            const sd = sunRef.current?.();
+            if (sd) (u.uSun.value as Vector3).copy(sd).transformDirection(inv);
+            else (u.uSun.value as Vector3).set(0, 0, 0);
+        };
+    }, [material]);
+    const k = 1 + HAZE_HEIGHT;
     return (
-        <mesh scale={radius} material={material}>
+        <mesh ref={ref} scale={[radius * k, radius * k * flat, radius * k]} material={material}>
             <sphereGeometry args={[1, 64, 48]} />
         </mesh>
     );
@@ -257,8 +297,15 @@ function Orbits({ at, origin, planets = PLANETS, labelled = ['earth', 'jupiter',
 
 // ── Cruise (Sun-centred) ──────────────────────────────────────────────────
 
-export function CruiseView({ met }: { met: () => number }) {
+export function CruiseView({ met, shot = () => 'cruiseWide' }: { met: () => number; shot?: () => string }) {
     const m = missionTrajectory();
+    // Name only the planets that matter in each diagram, so the chips do not pile up around the Sun.
+    const namesFor = (sh: string): PlanetId[] => (sh === 'cruiseOuter' ? ['jupiter', 'saturn'] : sh === 'cruiseWide' || sh === 'cruiseFollow' ? ['earth', 'jupiter', 'saturn'] : ['earth', 'mars', 'jupiter']);
+    const [names, setNames] = useState<PlanetId[]>(() => namesFor(shot()));
+    useFrame(() => {
+        const n = namesFor(shot());
+        if (n.join() !== names.join()) setNames(n);
+    });
     const leg1 = useMemo(() => legPoints(1, 300).map((v) => toScene(v)), []);
     const leg2 = useMemo(() => legPoints(2, 300).map((v) => toScene(v)), []);
     const flown = (leg: 1 | 2) => () => {
@@ -272,10 +319,10 @@ export function CruiseView({ met }: { met: () => number }) {
             <Stars count={2600} brightness={() => 1} />
             <SunGlow size={() => 0.55 * AU} />
             <Marker position={() => zero} label="cr-sun" color="#ffd27a" size={0.004} />
-            <Orbits at={() => dateOf(met())} origin={() => zero} labelled={['earth', 'mars', 'jupiter', 'saturn']} />
-            <Path points={leg1} color="#22D3EE" opacity={0.28} dashed />
+            <Orbits at={() => dateOf(met())} origin={() => zero} labelled={names} />
+            <Path points={leg1} color="#22D3EE" opacity={0.5} dashed />
             <Path points={leg1} color="#22D3EE" opacity={0.95} count={flown(1)} />
-            <Path points={leg2} color="#22D3EE" opacity={0.28} dashed />
+            <Path points={leg2} color="#22D3EE" opacity={0.42} dashed />
             <Path points={leg2} color="#22D3EE" opacity={0.95} count={flown(2)} />
             <Marker position={() => toScene(spacecraftAt(dateOf(met())).r)} label="cr-sc" color="#22D3EE" size={0.012} />
         </>
@@ -284,12 +331,14 @@ export function CruiseView({ met }: { met: () => number }) {
 
 // ── Jupiter encounter (Jupiter-centred, to scale) ─────────────────────────
 
+// Surface maps: USGS Astrogeology global mosaics from Galileo and Voyager images (public domain),
+// downsampled; the greyscale mosaics are tinted to each moon's overall colour (docs/ASSET_SOURCES.md).
 const GALILEAN = [
-    { id: 'io', name: 'Io', a: 4.217e8, r: 1.8216e6, days: 1.769, color: '#d9c26a', phase: 0.3 },
-    { id: 'europa', name: 'Europa', a: 6.71e8, r: 1.5608e6, days: 3.551, color: '#cdbfa6', phase: 2.1 },
-    { id: 'ganymede', name: 'Ganymede', a: 1.0704e9, r: 2.6341e6, days: 7.155, color: '#8f8577', phase: 4.0 },
-    { id: 'callisto', name: 'Callisto', a: 1.8827e9, r: 2.4103e6, days: 16.689, color: '#5d564e', phase: 5.3 },
-] as const;
+    { id: 'io', name: 'Io', a: 4.217e8, r: 1.8216e6, days: 1.769, color: '#d9c26a', phase: 0.3, file: 'io-1k.jpg' },
+    { id: 'europa', name: 'Europa', a: 6.71e8, r: 1.5608e6, days: 3.551, color: '#cdbfa6', phase: 2.1, file: 'europa-1k.jpg' },
+    { id: 'ganymede', name: 'Ganymede', a: 1.0704e9, r: 2.6341e6, days: 7.155, color: '#8f8577', phase: 4.0, file: 'ganymede-1k.jpg' },
+    { id: 'callisto', name: 'Callisto', a: 1.8827e9, r: 2.4103e6, days: 16.689, color: '#5d564e', phase: 5.3, file: 'callisto-1k.jpg' },
+];
 
 export function JupiterView({ met, scientific = () => true }: { met: () => number; scientific?: () => boolean }) {
     const m = missionTrajectory();
@@ -302,7 +351,7 @@ export function JupiterView({ met, scientific = () => true }: { met: () => numbe
     }, [registry]);
     const state = useDeployedState();
     const craft = useRef<Group>(null);
-    useLabelAnchor('jup-craft', craft, [0, 3, 0]);
+    useLabelAnchor('jup-craft', craft, [0, 1.6, 0]);
     const sunDir = useMemo(() => toScene(planetAt('jupiter', m.jupiter)).normalize().negate(), [m.jupiter]);
     const path = useMemo(() => {
         const out: Vector3[] = [];
@@ -312,6 +361,10 @@ export function JupiterView({ met, scientific = () => true }: { met: () => numbe
         }
         return out;
     }, []);
+    // Incoming and outgoing asymptotes of the hyperbola, drawn to where they cross: the turn angle.
+    const asym = useMemo(() => assistAsymptotes(), []);
+    const turnAt = useRef<Group>(null);
+    useLabelAnchor(sci ? 'jup-turn' : null, turnAt, [0, 0, 0]);
     const moonOrbits = useMemo(() => GALILEAN.map((g) => Array.from({ length: 257 }, (_, i) => new Vector3(Math.cos((i / 256) * Math.PI * 2) * g.a, 0, Math.sin((i / 256) * Math.PI * 2) * g.a))), []);
     const moons = useRef<(Group | null)[]>([]);
     const ends = useRef<Group>(null);
@@ -347,10 +400,10 @@ export function JupiterView({ met, scientific = () => true }: { met: () => numbe
             {/* Jupiter-shine: light reflected from the planet onto the spacecraft's night side. */}
             <hemisphereLight args={['#1a2233', '#6b5a44', 0.18]} />
             <LiveReflections at={() => craft.current?.position ?? new Vector3()} hide={craft} interval={0.6} />
-            <Planet id="jupiter" radius={R_JUPITER} spin={() => ((dateOf(met()) - m.jupiter) * 24 * 2 * Math.PI) / 9.925} />
+            <Planet id="jupiter" radius={R_JUPITER} spin={() => ((dateOf(met()) - m.jupiter) * 24 * 2 * Math.PI) / 9.925} sun={() => sunDir} />
             {GALILEAN.map((g, i) => (
                 <group key={g.id} ref={(el) => void (moons.current[i] = el)}>
-                    <MoonBall radius={g.r} color={g.color} label={sci ? `jup-${g.id}` : null} />
+                    <MoonBall radius={g.r} color={g.color} file={g.file} label={sci ? `jup-${g.id}` : null} />
                 </group>
             ))}
             <group ref={overlays}>
@@ -358,6 +411,9 @@ export function JupiterView({ met, scientific = () => true }: { met: () => numbe
                     <Path key={i} points={pts} color="#8fa3bf" opacity={0.3} />
                 ))}
                 <Path points={path} color="#22D3EE" opacity={0.85} />
+                <Path points={asym.inLine} color="#FBBF24" opacity={0.55} dashed />
+                <Path points={asym.outLine} color="#FBBF24" opacity={0.55} dashed />
+                <group ref={turnAt} position={asym.C} />
                 <Marker position={() => toScene(flybyPosition((dateOf(met()) - m.jupiter) * 86400))} label={null} color="#22D3EE" size={0.006} />
             </group>
             <group ref={ends} position={path[0]} />
@@ -371,14 +427,43 @@ export function JupiterView({ met, scientific = () => true }: { met: () => numbe
     );
 }
 
-function MoonBall({ radius, color, label }: { radius: number; color: string; label: string | null }) {
+/** The flyby hyperbola's incoming and outgoing asymptotes, as segments ending where they cross (scene metres). */
+let asymCache: { inLine: Vector3[]; outLine: Vector3[]; C: Vector3 } | null = null;
+export function assistAsymptotes() {
+    if (asymCache) return asymCache;
+    const far = 30 * 86400;
+    const a0 = toScene(flybyPosition(-far));
+    const dIn = toScene(flybyPosition(-far + 3600))
+        .sub(a0)
+        .normalize();
+    const b0 = toScene(flybyPosition(far));
+    const dOut = b0
+        .clone()
+        .sub(toScene(flybyPosition(far - 3600)))
+        .normalize();
+    const w0 = a0.clone().sub(b0);
+    const a = dIn.dot(dIn);
+    const b = dIn.dot(dOut);
+    const c = dOut.dot(dOut);
+    const d = dIn.dot(w0);
+    const e = dOut.dot(w0);
+    const den = a * c - b * b;
+    const s = (b * e - c * d) / den;
+    const t = (a * e - b * d) / den;
+    const C = a0.clone().addScaledVector(dIn, s).add(b0.clone().addScaledVector(dOut, t)).multiplyScalar(0.5);
+    const L = 60 * R_JUPITER;
+    return (asymCache = { inLine: [C.clone().addScaledVector(dIn, -L), C], outLine: [C, C.clone().addScaledVector(dOut, L)], C });
+}
+
+function MoonBall({ radius, color, file, label }: { radius: number; color: string; file?: string; label: string | null }) {
     const ref = useRef<Group>(null);
+    const map = useMap(file);
     useLabelAnchor(label, ref, [0, 0, 0]);
     return (
         <group ref={ref}>
             <mesh scale={radius}>
                 <sphereGeometry args={[1, 48, 32]} />
-                <meshStandardMaterial color={color} roughness={0.95} />
+                <meshStandardMaterial key={map ? 'map' : 'plain'} color={map ? '#ffffff' : color} map={map} roughness={0.95} />
             </mesh>
         </group>
     );
@@ -420,7 +505,7 @@ export function SaturnView({ progress }: { progress: () => number }) {
             <directionalLight position={sunDir.clone().multiplyScalar(1e10).toArray()} intensity={2.4} color="#fff4e2" />
             <ambientLight intensity={0.03} />
             <hemisphereLight args={['#283246', '#000000', 0.25]} />
-            <Planet id="saturn" radius={R_SATURN} spin={() => progress() * 0.4} />
+            <Planet id="saturn" radius={R_SATURN} spin={() => progress() * 0.4} sun={() => sunDir} />
             <group ref={craft}>
                 <SpacecraftModel state={state} />
             </group>
@@ -474,87 +559,167 @@ function Belt({ inner, outer, count, thick, color, seed, origin }: { inner: numb
     return <points ref={ref} geometry={geometry} material={material} frustumCulled={false} />;
 }
 
-/** A small field of rocky or icy bodies around a point (belt close-ups; illustrative shapes). */
-function Rocks({ color, scale: s }: { color: string; scale: number }) {
-    const geometry = useMemo(() => {
-        const g = new IcosahedronGeometry(1, 3);
-        const p = g.getAttribute('position');
-        const v = new Vector3();
-        for (let i = 0; i < p.count; i++) {
-            v.fromBufferAttribute(p, i);
-            const k = 1 + 0.22 * Math.sin(v.x * 3.1 + v.y * 1.7) * Math.cos(v.z * 2.3) + 0.1 * Math.sin(v.y * 7.1);
-            p.setXYZ(i, v.x * k, v.y * k * 0.8, v.z * k);
-        }
-        g.computeVertexNormals();
-        return g;
-    }, []);
-    useEffect(() => () => geometry.dispose(), [geometry]);
-    const rocks = useMemo(() => {
-        let seed = 5;
-        const rnd = () => {
-            seed = (seed * 1664525 + 1013904223) >>> 0;
-            return seed / 4294967296;
-        };
-        return Array.from({ length: 14 }, () => ({ p: [(rnd() - 0.5) * 40 * s, (rnd() - 0.5) * 10 * s, (rnd() - 0.5) * 40 * s] as [number, number, number], r: s * (0.4 + rnd() * 2.2), rot: [rnd() * 3, rnd() * 3, 0] as [number, number, number] }));
-    }, [s]);
-    return (
-        <group>
-            {rocks.map((k, i) => (
-                <mesh key={i} geometry={geometry} position={k.p} rotation={k.rot} scale={k.r}>
-                    <meshStandardMaterial color={color} roughness={0.95} />
-                </mesh>
-            ))}
-        </group>
-    );
-}
-
 /** Close-up camera distance for a destination, metres. */
 export function tourDistance(id: BodyId) {
     const b = body(id);
-    if (b.orbit === 'belt') return 60e3 * 40;
+    if (b.orbit === 'belt') return beltView(id);
     if (id === 'sun') return 4.2 * b.radiusKm! * 1e3;
     if (b.rings) return 5.6 * b.radiusKm! * 1e3;
     return 3.1 * b.radiusKm! * 1e3;
 }
 
-export function TourView({ dest, origin, sunLit }: { dest: () => BodyId | undefined; origin: () => Vector3; sunLit: () => Vector3 }) {
+/**
+ * The belts are not places but regions: they are shown Sun-centred from above, far enough out for the
+ * whole belt and its neighbouring orbits to fit (a close-up "rock field" would suggest a density they do
+ * not have: neighbouring asteroids are typically about a million kilometres apart).
+ */
+export function beltView(id: BodyId) {
+    return id === 'asteroids' ? 8.5 * AU : id === 'kuiper' ? 120 * AU : 0;
+}
+
+/** Planets in order for the size line-up, with the Sun's limb at x = 0 (true radii, small gaps). */
+const LINEUP: BodyId[] = ['mercury', 'venus', 'earth', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune', 'pluto'];
+export function lineupLayout() {
+    const gap = 9e6;
+    let x = 0;
+    return LINEUP.map((id) => {
+        const b = body(id);
+        const r = b.radiusKm! * 1e3;
+        const ext = b.rings ? b.rings.outerKm * 1e3 : r;
+        x += gap + ext;
+        const at = x;
+        x += ext;
+        return { id, r, x: at };
+    });
+}
+
+export function TourView({
+    dest,
+    origin,
+    sunLit,
+    orbits,
+    lineup,
+}: {
+    dest: () => BodyId | undefined;
+    origin: () => Vector3;
+    sunLit: () => Vector3;
+    /** Orbit lines and markers: shown from afar only (close to a planet they would streak across the frame). */
+    orbits: () => boolean;
+    /** The size line-up (scientific view of the Discovery chapter). */
+    lineup: () => boolean;
+}) {
     const zeroed = () => origin();
     const sunAnchor = useRef<Group>(null);
-    useLabelAnchor('tour-sun', sunAnchor, [0, 0, 0]);
     const [shown, setShown] = useState<BodyId | undefined>(undefined);
+    const [line, setLine] = useState(false);
+    const [orbitsOn, setOrbitsOn] = useState(true);
+    useLabelAnchor(orbitsOn && shown !== 'sun' && !line ? 'tour-sun' : null, sunAnchor, [0, 0, 0]);
+    const orbitGroup = useRef<Group>(null);
     const glowAt = useMemo(() => new Vector3(), []);
     useFrame(() => {
         const d = dest();
         if (d !== shown) setShown(d);
+        const l = lineup();
+        if (l !== line) setLine(l);
         if (sunAnchor.current) sunAnchor.current.position.copy(origin()).negate();
+        const o = orbits();
+        if (orbitGroup.current) orbitGroup.current.visible = o;
+        if (o !== orbitsOn) setOrbitsOn(o);
     });
     const b = shown ? body(shown) : null;
-    const lightPos = sunLit();
+    const belt = b?.orbit === 'belt';
+    const lightDir = sunLit();
+    const sunDir = useMemo(() => new Vector3(), []);
+    sunDir.copy(lightDir);
+    // Planet names only where their orbits are drawn (labels do not follow hidden objects).
+    const labelled: PlanetId[] | undefined = !orbitsOn || line ? [] : !shown ? undefined : shown === 'asteroids' ? ['mars', 'jupiter'] : shown === 'kuiper' ? ['neptune', 'pluto'] : [];
     return (
         <>
             <Stars count={3000} brightness={() => 1} />
-            <SunGlow size={() => (shown === 'sun' ? 7e9 : 0.5 * AU)} at={() => glowAt.copy(origin()).negate()} />
-            <group ref={sunAnchor}>{shown === 'sun' && <SunSphere />}</group>
-            <directionalLight position={lightPos.clone().multiplyScalar(1e10).toArray()} intensity={2.6} color="#fff4e2" />
+            {!line && <SunGlow size={() => (shown === 'sun' ? 7e9 : belt ? (shown === 'kuiper' ? 2.5 * AU : 0.35 * AU) : 0.5 * AU)} at={() => glowAt.copy(origin()).negate()} />}
+            <group ref={sunAnchor}>{shown === 'sun' && !line && <SunSphere />}</group>
+            {!line && <directionalLight position={lightDir.clone().multiplyScalar(1e10).toArray()} intensity={2.6} color="#fff4e2" />}
             <ambientLight intensity={0.03} />
             <hemisphereLight args={['#283246', '#000000', 0.22]} />
-            <Orbits at={() => TOUR_EPOCH} origin={zeroed} planets={PLANETS} labelled={shown ? [] : undefined} />
+            <group ref={orbitGroup}>
+                <Orbits at={() => TOUR_EPOCH} origin={zeroed} planets={PLANETS} labelled={labelled} />
+            </group>
             <Belt inner={2.2} outer={3.2} count={2600} thick={0.08} color="#a99a86" seed={11} origin={zeroed} />
             <Belt inner={30} outer={50} count={3200} thick={0.12} color="#8fb0d0" seed={23} origin={zeroed} />
-            {b && b.orbit !== 'belt' && b.id !== 'sun' && b.id !== 'earth' && <Planet key={b.id} id={b.id} radius={b.radiusKm! * 1e3} spin={() => performance.now() * 0.00003} tint={b.id === 'pluto' ? '#cdb79c' : undefined} />}
-            {b && b.id === 'earth' && <EarthAt />}
-            {b && b.id === 'asteroids' && <Rocks color="#8a7f72" scale={30e3} />}
-            {b && b.id === 'kuiper' && <Rocks color="#b9c6d4" scale={30e3} />}
+            {b && !belt && !line && b.id !== 'sun' && b.id !== 'earth' && (
+                <Planet key={b.id} id={b.id} radius={b.radiusKm! * 1e3} spin={() => performance.now() * 0.00003} tint={b.id === 'pluto' && !b.imagery.file ? '#cdb79c' : undefined} sun={() => sunDir} />
+            )}
+            {b && b.id === 'earth' && !line && <EarthAt />}
+            {line && <LineUp />}
         </>
     );
 }
 
+/** All planets and Pluto side by side at their true sizes, next to the Sun's limb. */
+function LineUp() {
+    const layout = useMemo(() => lineupLayout(), []);
+    const lit = useMemo(() => new Vector3(-1, 0.2, 0.75).normalize(), []);
+    return (
+        <>
+            <directionalLight position={lit.clone().multiplyScalar(1e10).toArray()} intensity={2.8} color="#fff4e2" />
+            <group position={[-6.957e8, 0, 0]}>
+                <SunSphere />
+            </group>
+            {layout.map((p) => (
+                <LineUpBody key={p.id} id={p.id} r={p.r} x={p.x} lit={lit} />
+            ))}
+        </>
+    );
+}
+
+function LineUpBody({ id, r, x, lit }: { id: BodyId; r: number; x: number; lit: Vector3 }) {
+    const ref = useRef<Group>(null);
+    useLabelAnchor(`lu-${id}`, ref, [0, -r * 1.25 - 4e6, 0]);
+    return (
+        <group ref={ref} position={[x, 0, 0]}>
+            {id === 'earth' ? <EarthLineUp r={r} lit={lit} /> : <Planet id={id} radius={r} sun={() => lit} />}
+        </group>
+    );
+}
+
+function EarthLineUp({ r, lit }: { r: number; lit: Vector3 }) {
+    const sun = useRef(lit.clone());
+    const orientation = useMemo(() => new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), (23.44 * Math.PI) / 180), []);
+    return <Globe radius={r} orientation={orientation} sun={sun} />;
+}
+
+/** The Sun's photosphere: the mission-data map with limb darkening, kept below the tone curve's shoulder so its granulation stays visible. */
 function SunSphere() {
     const map = useMap('sun-2k.jpg');
+    const material = useMemo(
+        () =>
+            new ShaderMaterial({
+                uniforms: { uMap: { value: null }, uHas: { value: 0 } },
+                vertexShader: /* glsl */ `${LOGDEPTH.vPars} varying vec2 vUv; varying vec3 vN; varying vec3 vW;
+                    void main() { vUv = uv; vec4 wp = modelMatrix * vec4(position, 1.0); vW = wp.xyz; vN = normalize(mat3(modelMatrix) * normal); gl_Position = projectionMatrix * viewMatrix * wp; ${LOGDEPTH.v} }`,
+                fragmentShader: /* glsl */ `${LOGDEPTH.fPars} uniform sampler2D uMap; uniform float uHas; varying vec2 vUv; varying vec3 vN; varying vec3 vW;
+                    void main() {
+                        ${LOGDEPTH.f}
+                        float mu = clamp(dot(normalize(vN), normalize(cameraPosition - vW)), 0.0, 1.0);
+                        // Limb darkening (I(μ)/I(1) = 1 − u(1 − μ), u ≈ 0.6 in visible light), redder towards the limb.
+                        float ld = 1.0 - 0.6 * (1.0 - mu);
+                        vec3 tex = uHas > 0.5 ? texture2D(uMap, vUv).rgb : vec3(0.8, 0.6, 0.3);
+                        float lum = dot(tex, vec3(0.299, 0.587, 0.114));
+                        vec3 base = mix(vec3(1.0, 0.55, 0.22), vec3(1.0, 0.9, 0.74), smoothstep(0.25, 0.9, lum));
+                        vec3 col = base * (0.45 + 1.1 * lum) * ld * mix(vec3(1.0, 0.7, 0.45), vec3(1.0), sqrt(mu)) * 1.5;
+                        gl_FragColor = vec4(col, 1.0);
+                    }`,
+            }),
+        [],
+    );
+    useEffect(() => {
+        material.uniforms.uMap.value = map;
+        material.uniforms.uHas.value = map ? 1 : 0;
+    }, [map, material]);
+    useEffect(() => () => material.dispose(), [material]);
     return (
-        <mesh scale={6.957e8}>
+        <mesh scale={6.957e8} material={material}>
             <sphereGeometry args={[1, 96, 64]} />
-            <meshBasicMaterial color={map ? '#ffffff' : '#fff1cf'} map={map} toneMapped={false} />
         </mesh>
     );
 }
@@ -576,6 +741,8 @@ export const PHASE_B_LABELS = [
     ...GALILEAN.map((g) => ({ id: `jup-${g.id}`, text: g.name })),
     { id: 'sat-craft', text: 'RSC-1' },
     { id: 'tour-sun', text: 'Sun' },
+    { id: 'jup-turn', text: `Path turned ${((missionTrajectory().flyby.turn * 180) / Math.PI).toFixed(0)}°` },
+    ...LINEUP.map((id) => ({ id: `lu-${id}`, text: body(id).name })),
 ];
 
 export { BODIES };

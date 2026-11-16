@@ -274,8 +274,11 @@ The flyby periapsis is solved from δ = asin(1/e_in) + asin(1/e_out). The best w
 | One-way light time | 51.4 min at Jupiter, 85.6 min at Saturn |
 
 `trajectory.test.ts` re-runs the refined search and checks that it returns these dates, that the window is bounded where stated,
-and every constraint. **Compatibility with Phase A:** the launch delivers C3 = 113.6 because every stage burns to depletion; a real
-mission would shut the upper stage down early at 79.6. That cut-off is not modelled.
+and every constraint. **Compatibility with Phase A:** the vehicle's capability is C3 = 113.6 with every stage burned to depletion.
+Since 16 November 2026 the departure is cut off on the trajectory's energy, as a real mission would: the upper stage shuts down with
+1,772 kg of propellant unburned (`SEQUENCE.departureReserve`), and the solid kick stage, which cannot be shut down, finishes at
+C3 = 79.6 km²/s². `flight.test.ts` and `trajectory.test.ts` check that the launch and the trajectory agree to 0.1 km²/s². A
+consequence: the upper stage alone no longer reaches escape; the kick stage carries the stack past escape speed.
 
 **Scenes** (`PlanetViews.tsx`).
 - **Cruise:** Sun-centred, orbits to scale, planets placed by the ephemeris on the date shown. Bodies and the spacecraft are
@@ -294,8 +297,9 @@ and the Kuiper belt. Six are main topics and the rest sit under *More topics*.
 - **Labelling:** the view is labelled "Cinematic Scale — Not to Scale · a guided tour, not a spacecraft trajectory". Planet
   positions are those of 1 January 2035.
 - **Data:** `bodies.ts`, rounded values from the NSSDCA planetary fact sheets.
-- **Imagery:** each destination states its imagery: a map from mission data (Solar System Scope), Earth imagery, an illustrative
-  surface (Pluto) or an illustrative distribution (the belts).
+- **Imagery:** each destination states its imagery: a map from mission data (Solar System Scope), Earth imagery, a USGS mosaic
+  from mission data with colour approximated (Pluto, since 16 November 2026; before, an illustrative surface) or an illustrative
+  distribution (the belts).
 
 ## Cinematic recovery, round 2 (15 November 2026)
 
@@ -367,6 +371,78 @@ mute toggle that is remembered, and fades out when paused or out of view.
   separation, orbit insertion, the parking orbit, departure, deployment, cruise, the Jupiter approach, closest approach and wide
   view, Saturn, and Discovery destinations. The frame rate was 60 fps at about 210,000 triangles and 520 draw calls (headless,
   Apple GPU).
+
+## Learning layer and review fixes (16 November 2026)
+
+A review of the flow as a learner (12 stages, every scientific view, the Discovery tour, the end of the mission, phones) found that
+the experience looked like a film but taught like a slideshow. Changes:
+
+**Flow fixes**
+- The guided mission stays guided after a topic: *Return to mission view* resumes the same moment in the same mode.
+- The mission no longer moves on while the visitor reads: a stage ends with a recap, and the guided mission continues only after
+  12 s without interaction (or on *Next stage*).
+- *Back* returns to where the visitor came from (a history of jumps), not to the opening.
+- The mission ends with a summary (dates, distance flown, departure energy, the speed gained at Jupiter, signal delay, the quick-check
+  score) and ways on: Explore the Solar System, Replay, Choose a stage, and the fault scenarios.
+- Keyboard: ← / → previous and next, K (or Space outside a control) play and pause, Esc closes the card or the topic.
+- A topic plays at least as long as its card takes to read (stretched up to 3×; the time readout says *Slow motion* when real
+  events are slowed).
+
+**Learning layer** (`lib/solar-system/learning.ts`, `components/solar-system/learn.tsx`)
+- **Narration:** the caption narrates each modelled event as it happens (T−3 s ignition, Max Q at T+73 s, MECO, separation, the
+  escape, first contact, closest approach…). Every number comes from the models. The events are marked on a new **scrub bar**,
+  which also seeks within a stage; **playback speed** 0.5×, 1×, 2×.
+- **Headline readings:** each stage's caption shows its subject (dynamic pressure in the ascent, C3 at departure, distance and
+  light time in the cruise), not the first two keys of its list.
+- **Cinematic | Scientific:** every stage has a scientific view one toggle away: engineering cutaways (pad), the flight path drawn
+  behind the vehicle (ascent), the orbit diagram with perigee and apogee marked, the escape trajectory, the power system, the
+  trajectory diagrams, the gravity-assist geometry with its asymptotes and turn angle, and the planets' sizes to scale.
+- **Charts:** a chart of the stage's key reading over its mission time with "now" and the key event marked (q with Max Q, mass with
+  separation, heating with the fairing limit, C3 with escape and the energy needed, power, distance from the Sun, speed around the
+  Sun through the Jupiter flyby, speed against solar escape speed after Jupiter).
+- **Figures:** the gravity-assist velocity vectors to scale (the v∞ circle shows that only the direction turns); departure energy
+  against launch date for the window.
+- **Mini-map:** in the cinematic cruise and encounters, an inset with the orbits and RSC-1's position to scale.
+- **Glossary:** 28 technical terms (C3, v∞, Max Q, perigee, RTG, Oberth effect…) explain themselves on tap, once per card.
+- **Card:** *What it is* comes first; *Explorer* (two readings, Learn more closed) or *Engineer* (four readings, chart, Learn more
+  open), remembered on the device.
+- **Recap and quick check:** three points and one question at the end of every stage; answers and watched stages are remembered on
+  the device (`solar-progress`); the opening offers *Resume at Stage NN* and *Explore the Solar System*.
+- **Topic index:** the stage list searches all 81 topics. Duplicate titles were renamed (*Pitch-Over and Gravity Turn* / *Turning
+  Towards Horizontal*, *Fairing Before Separation*, *Coast to the Departure Point*); no content was removed.
+
+**Fault scenarios** ("What if?", `lib/solar-system/scenarios.ts`; computed, not scripted; `scenarios.test.ts` recomputes them)
+- **Launch-vehicle performance anomaly:** one of the two first-stage engines fails at T+60 s (`simulateFlight({ engineOutAt })`).
+  While the topic is open the vehicle and the readings follow the failure simulation (`setFlightScenario`): one flame goes out,
+  thrust halves (2,251 kN), the climb slows. Outcomes: a failure at T+30 / 60 / 110 s falls back at T+82 / 170 / 353 s, 6 / 60 /
+  548 km downrange; after about T+125 s the upper stage still reaches orbit; after about T+137 s the energy margin still reaches
+  Jupiter. Range safety is not modelled.
+- **Power degradation:** one RTG fails at separation (`rtgFaultScenario`). 245 W against 281 W of loads once the instruments are on;
+  the battery drains 36 W; Safe Mode at 30 % charge, 8.5 h after separation; shedding the instruments (223 W) lets it recharge.
+- **Communication interruption:** solar conjunctions computed from the ephemeris and the trajectory (Sun–Earth–probe angle under
+  3°). One runs from 26 June to 3 July 2037 and ends on the day of the Jupiter flyby, so the flyby must be flown on a stored
+  sequence. Six conjunctions occur between launch and Saturn.
+
+**Visual fixes**
+- Planet haze: the atmosphere shell followed a sphere while Jupiter and Saturn are flattened by 6.5 % and 9.8 %, and it glowed
+  on the night side, so the planets looked as if inside a glass bubble. The haze is now flattened with the planet, computed from
+  where each view ray passes the limb (no edge), lit only on the day side, and set per planet (Mars's thin air is faint).
+- Discovery tour: orbit lines are drawn only from afar (close to a planet they streaked across the frame), and planet names only
+  where their orbits are drawn. The belts are shown Sun-centred from above at their true extent (the earlier close-up rock field
+  suggested a density they do not have). The Sun has a limb-darkened photosphere with its granulation visible. The tour is guided
+  through seven stops (Sun, Earth, Mars, Jupiter, Saturn, Neptune, Pluto); every destination stays one choice away.
+- Jupiter: on portrait screens the encounter camera keeps RSC-1 in frame; the encounter lasts 52 s (was 28 s).
+- Galilean moons and Pluto: USGS global mosaics (public domain) replace plain colours and the illustrative Pluto.
+- Attitude thrusters pulse while the separation tumble is damped; diagram labels behind the Earth are hidden by it; the cruise
+  diagrams name only the planets that matter in each view.
+
+## Known limitations and open items (16 November 2026)
+
+- **Still open:** a designed Saturn flyby (the pass is a labelled cinematic placement); trajectory-correction manoeuvres; thermal,
+  data-rate and radiation models; artist-made close-up models of the launch table and tower; real-device testing (phones, tablets,
+  Safari).
+- **Fault scenarios:** each shows one computed case and a table of others; the scene of the engine failure follows the failure
+  simulation for the topic's 60 s window only.
 
 ## Known limitations and open items (15 November 2026, after round 2)
 

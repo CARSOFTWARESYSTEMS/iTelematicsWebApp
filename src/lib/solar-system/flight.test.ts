@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { atmosphere } from './atmosphere';
 import { MU_EARTH, R_EARTH } from './constants';
-import { eventTime, flight, sampleAt, simulateFlight, type EventId } from './flight';
+import { eventTime, flight, sampleAt, SEQUENCE, simulateFlight, type EventId } from './flight';
+import { CONSTRAINTS, missionTrajectory } from './trajectory';
 import { EARTH_JUPITER, departureDeltaV, elements, inclinationDeg } from './orbit';
 import { ADAPTER_MASS, FAIRING, FIRST_STAGE, KICK_STAGE, LIFTOFF_MASS, SPACECRAFT, UPPER_STAGE, VEHICLE, massFlow } from './vehicle';
 
@@ -23,7 +24,7 @@ describe('US Standard Atmosphere 1976', () => {
 
 describe('Reference mission SOL-1 flight', () => {
     it('runs every event in the physical order', () => {
-        const order: EventId[] = ['ignition', 'liftoff', 'towerClear', 'pitchOver', 'maxQ', 'throttleDown', 'meco', 'stageSep', 'usIgnition', 'fairingSep', 'seco1', 'usRestart', 'escape', 'seco2', 'kickSep', 'kickIgnition', 'kickBurnout', 'scSep'];
+        const order: EventId[] = ['ignition', 'liftoff', 'towerClear', 'pitchOver', 'maxQ', 'throttleDown', 'meco', 'stageSep', 'usIgnition', 'fairingSep', 'seco1', 'usRestart', 'seco2', 'kickSep', 'kickIgnition', 'escape', 'kickBurnout', 'scSep'];
         const times = order.map(ev);
         times.forEach((t) => expect(Number.isFinite(t)).toBe(true));
         for (let i = 1; i < times.length; i++) expect(times[i]).toBeGreaterThan(times[i - 1]);
@@ -42,10 +43,7 @@ describe('Reference mission SOL-1 flight', () => {
     it('keeps the mass books: liftoff mass, propellant flow and every jettison', () => {
         expect(LIFTOFF_MASS).toBe(FIRST_STAGE.dryMass + FIRST_STAGE.propellantMass + UPPER_STAGE.dryMass + UPPER_STAGE.propellantMass + FAIRING.mass + ADAPTER_MASS + KICK_STAGE.inertMass + KICK_STAGE.propellantMass + SPACECRAFT.mass);
         for (const s of f.samples) {
-            const attached =
-                s.phase === 'ignition' || s.phase === 'stage1' || (s.phase === 'staging' && s.t < ev('stageSep'))
-                    ? FIRST_STAGE.dryMass + s.prop1
-                    : 0;
+            const attached = s.phase === 'ignition' || s.phase === 'stage1' || (s.phase === 'staging' && s.t < ev('stageSep')) ? FIRST_STAGE.dryMass + s.prop1 : 0;
             const upper = s.t < ev('kickSep') ? UPPER_STAGE.dryMass + s.prop2 + ADAPTER_MASS : 0;
             const fairing = s.fairing ? FAIRING.mass : 0;
             const kick = s.t < ev('scSep') ? KICK_STAGE.inertMass + s.propKick : 0;
@@ -97,11 +95,17 @@ describe('Reference mission SOL-1 flight', () => {
         expect(spread).toBeLessThan(1e-6);
     });
 
-    it('escapes Earth with enough energy for a transfer to Jupiter', () => {
-        // The upper stage alone reaches escape; the kick stage adds the rest.
+    it('escapes Earth with exactly the energy the designed trajectory needs', () => {
+        // The upper stage shuts down early (still bound to Earth); the solid kick stage completes the escape.
         const seco2 = sampleAt(ev('seco2'), f);
-        expect(elements(seco2.x, seco2.y, seco2.vx, seco2.vy).energy).toBeGreaterThan(0);
+        expect(elements(seco2.x, seco2.y, seco2.vx, seco2.vy).energy).toBeLessThan(0);
         expect(f.c3).toBeGreaterThan(EARTH_JUPITER.c3);
+        // Targeted cutoff: the launch delivers the SOL-1 trajectory's departure energy (within 0.1 km²/s²) …
+        expect(Math.abs(f.c3 / 1e6 - missionTrajectory().c3)).toBeLessThan(0.1);
+        expect(f.c3 / 1e6).toBeGreaterThanOrEqual(missionTrajectory().c3);
+        // … out of a capability (every stage burned to depletion) that is the trajectory search's limit.
+        const capability = simulateFlight({ departureReserve: SEQUENCE.upperStageReserve }).c3 / 1e6;
+        expect(capability).toBeCloseTo(CONSTRAINTS.c3Max, 0);
         // Minimum-energy transfer: C3 ≈ 77 km²/s², 2.7 years; impulsive departure from 185 km ≈ 6.3 km/s.
         expect(EARTH_JUPITER.c3 / 1e6).toBeCloseTo(77.3, 0);
         expect(EARTH_JUPITER.tofYears).toBeCloseTo(2.73, 2);

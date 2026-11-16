@@ -7,34 +7,34 @@
 // Frames: the pad/ascent scene is fixed to the ground at the launch site (x east, y up, z south);
 // orbit, departure and deployment use the Earth-centred inertial frame of the simulation (the site at
 // +y at liftoff); the Sun-centred view uses the ecliptic (y up) with orbits to scale.
-import { useEffect, useMemo, useRef, useState, type MutableRefObject, type ReactNode } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState, type MutableRefObject, type ReactNode } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Color, FogExp2, Matrix4, Quaternion, Vector3, type Group, type HemisphereLight, type Object3D, type PerspectiveCamera, type PointLight } from 'three';
 import { atmosphere } from '@/lib/solar-system/atmosphere';
 import type { MissionClock } from '@/lib/solar-system/clock';
 import { AU, OMEGA_EARTH, ORBIT_AU, R_EARTH } from '@/lib/solar-system/constants';
-import { eventTime, flight, sampleAt, SEQUENCE } from '@/lib/solar-system/flight';
+import { activeFlight, eventTime, flight, sampleAt, SEQUENCE } from '@/lib/solar-system/flight';
 import { boomsAtMet, type Focus, type SceneId, type ShotId } from '@/lib/solar-system/mission';
 import { elements } from '@/lib/solar-system/orbit';
-import { attitudeAt } from '@/lib/solar-system/spacecraft';
+import { attitudeAt, DEPLOYMENT } from '@/lib/solar-system/spacecraft';
 import { VEHICLE } from '@/lib/solar-system/vehicle';
 import { Globe } from './environment';
 import { AtmosphereSky } from './atmosphere';
 import { HORIZON, SUN, SUN_IRRADIANCE } from './sun';
 import { Exposure, LiveReflections, PadEnvironment, perfOff, PhotoSky, PostFX } from './render';
 import { Reflections } from '@/components/space-twin/environment';
-import LaunchSite, { MOUNT_TOP, terrainHeight, useSiteMapsReady } from './LaunchSite';
+import LaunchSite, { MOUNT_TOP, useSiteMapsReady } from './LaunchSite';
 import LaunchVehicle, { KickStage, STACK, type VehicleState } from './LaunchVehicle';
 import SpacecraftModel from './Spacecraft';
 import { HelioView, Marker, Path, Stars } from './views';
-import { CruiseView, JupiterView, SaturnView, saturnCraft, toScene, TourView, tourDistance } from './PlanetViews';
+import { assistAsymptotes, CruiseView, JupiterView, lineupLayout, SaturnView, saturnCraft, toScene, TourView, tourDistance } from './PlanetViews';
 import { cruiseAttitude, deepGeometry, DeepSpaceView } from './deepspace';
 import { missionSound, type SoundFrame } from './sound';
 import { tourPosition } from '@/lib/solar-system/phaseB';
 import { dateOf } from '@/lib/solar-system/phaseB';
 import { flybyPosition, missionTrajectory, planetAt, R_JUPITER, R_SATURN, spacecraftAt } from '@/lib/solar-system/trajectory';
-import type { BodyId } from '@/lib/solar-system/bodies';
-import { useLabelAnchor } from '@/components/space-twin/labels';
+import { body, type BodyId } from '@/lib/solar-system/bodies';
+import { LabelContext, useLabelAnchor } from '@/components/space-twin/labels';
 
 const Y = new Vector3(0, 1, 0);
 const Z = new Vector3(0, 0, 1);
@@ -251,7 +251,7 @@ function shotCamera(f: Frame): Cam {
             const up = 45; // upper stage and payload, centre (vehicle axis, m)
             const first = 16 - gap; // first stage, centre
             const solo = smooth((gap - 70) / 140);
-            const centre = (up + first) / 2 + ((up - (up + first) / 2) * solo);
+            const centre = (up + first) / 2 + (up - (up + first) / 2) * solo;
             const half = ((up - first) / 2 + 17) * (1 - solo) + 14 * solo;
             const dir = S.clone().multiplyScalar(0.86).addScaledVector(O, -0.42).addScaledVector(A, 0.22).normalize();
             const target = at(centre, 0, 0);
@@ -274,11 +274,7 @@ function shotCamera(f: Frame): Cam {
             // Over the shoulder of the upper stage and payload (about 22 m long after the fairing has gone):
             // behind, beside and above it, so the Earth fills the lower frame and the horizon runs above.
             const target = at(45, 0, 0);
-            const dir = A.clone()
-                .multiplyScalar(-0.72)
-                .addScaledVector(S, -0.55)
-                .addScaledVector(O, -0.42)
-                .normalize();
+            const dir = A.clone().multiplyScalar(-0.72).addScaledVector(S, -0.55).addScaledVector(O, -0.42).normalize();
             // Horizon level: "up" is away from the Earth's centre (in the pad frame the centre is R below).
             const up = f.scene === 'ascent' ? v3(P.x, P.y + R_EARTH, P.z).normalize() : P.clone().normalize();
             return { pos: target.clone().addScaledVector(dir, fitDistance(14, 38, f.aspect)), target, fov: 38, up };
@@ -347,7 +343,7 @@ function shotCamera(f: Frame): Cam {
         case 'cruiseWide': {
             const m = missionTrajectory();
             const mid = toScene(planetAt('earth', m.launch)).lerp(toScene(planetAt('jupiter', m.jupiter)), 0.5);
-            const off = v3(0.6 * AU, 7.8 * AU, 6.2 * AU).applyAxisAngle(Y, -0.2 + 0.25 * p);
+            const off = v3(0.7 * AU, 9.2 * AU, 7.4 * AU).applyAxisAngle(Y, -0.2 + 0.25 * p);
             return { pos: mid.clone().add(off), target: mid, fov: 40 };
         }
         case 'cruiseFollow': {
@@ -394,7 +390,11 @@ function shotCamera(f: Frame): Cam {
                 const look = f.shot === 'deepDepart' ? toEarth : toJup;
                 let sd = toSun.clone().addScaledVector(look, -toSun.dot(look));
                 sd = sd.lengthSq() > 1e-6 ? sd.normalize() : side(look);
-                const pos = look.clone().multiplyScalar(-d * 1.15).addScaledVector(sd, 0.42 * d).addScaledVector(Y, 0.12 * d);
+                const pos = look
+                    .clone()
+                    .multiplyScalar(-d * 1.15)
+                    .addScaledVector(sd, 0.42 * d)
+                    .addScaledVector(Y, 0.12 * d);
                 return { pos, target: pos.clone().addScaledVector(look, 100), fov: 44 };
             }
             if (f.shot === 'deepPower') {
@@ -412,7 +412,13 @@ function shotCamera(f: Frame): Cam {
             }
             // Deep space: a slow three-quarter orbit around the sunlit spacecraft.
             const sd = side(toSun);
-            const dir = toSun.clone().multiplyScalar(0.5).addScaledVector(sd, 0.8).addScaledVector(Y, 0.28).normalize().applyAxisAngle(Y, 0.5 * p - 0.25);
+            const dir = toSun
+                .clone()
+                .multiplyScalar(0.5)
+                .addScaledVector(sd, 0.8)
+                .addScaledVector(Y, 0.28)
+                .normalize()
+                .applyAxisAngle(Y, 0.5 * p - 0.25);
             return { pos: dir.multiplyScalar(d), target: v3(0, 0.4, 0), fov: 34 };
         }
         // ── Phase B: Jupiter encounter (Jupiter-centred, to scale) ──
@@ -422,7 +428,12 @@ function shotCamera(f: Frame): Cam {
             const c = toScene(flybyPosition((dateOf(f.met) - m.jupiter) * 86400));
             const toJ = c.clone().negate().normalize();
             const sd = Y.clone().cross(toJ).normalize();
-            const pos = c.clone().addScaledVector(toJ, -14).addScaledVector(sd, 5).add(v3(0, 3, 0));
+            const narrow = Math.min(1, f.aspect / 1.5);
+            const pos = c
+                .clone()
+                .addScaledVector(toJ, -14 / Math.sqrt(narrow))
+                .addScaledVector(sd, 5 * narrow)
+                .add(v3(0, 3, 0));
             return { pos, target: c.clone().addScaledVector(toJ, 40), fov: 40 };
         }
         // ── Phase B: Jupiter encounter (Jupiter-centred, to scale) ──
@@ -440,13 +451,30 @@ function shotCamera(f: Frame): Cam {
             const aimAt = close && perp.lengthSq() > 1e-6 ? perp.normalize().multiplyScalar(0.55 * R_JUPITER) : v3(0, 0, 0);
             const aim = aimAt.clone().sub(c).normalize();
             const sd = Y.clone().cross(aim).normalize();
-            const back = close ? 13 : 20;
-            const pos = c.clone().addScaledVector(aim, -back).addScaledVector(sd, close ? 4.5 : 6).add(v3(0, close ? 2.6 : 3.5, 0)).addScaledVector(sun, 2.5);
+            // Narrow (portrait) frames: less sideways offset and a little more distance, so RSC-1 stays in frame.
+            const narrow = Math.min(1, f.aspect / 1.5);
+            const back = (close ? 13 : 20) / Math.sqrt(narrow);
+            const pos = c
+                .clone()
+                .addScaledVector(aim, -back)
+                .addScaledVector(sd, (close ? 4.5 : 6) * narrow)
+                .add(v3(0, close ? 2.6 : 3.5, 0))
+                .addScaledVector(sun, 2.5);
             return { pos, target: c.clone().addScaledVector(aim, 40), fov: close ? 46 : 38 };
         }
         case 'jupiterWide': {
+            // Jupiter, the flyby path and the point where its asymptotes cross (the turn angle) in one frame.
             const R = R_JUPITER;
-            return { pos: v3(18 * R, 62 * R, 46 * R).applyAxisAngle(Y, 0.6 + 0.3 * p), target: v3(0, 0, 0), fov: 42 };
+            const target = assistAsymptotes().C.clone().multiplyScalar(0.45);
+            return {
+                pos: target.clone().add(
+                    v3(18 * R, 62 * R, 46 * R)
+                        .multiplyScalar(1.45)
+                        .applyAxisAngle(Y, 0.6 + 0.3 * p),
+                ),
+                target,
+                fov: 42,
+            };
         }
         // ── Phase B: Saturn (Saturn-centred) ──
         case 'saturnClose': {
@@ -473,12 +501,40 @@ function shotCamera(f: Frame): Cam {
                 fov: 40,
             };
         }
+        case 'tourScale': {
+            // Along the line-up, from the Sun's limb to Pluto, at a distance where Jupiter fits the frame.
+            const lay = lineupLayout();
+            const D = 2.5e8 * Math.max(1, Math.pow(1.6 / f.aspect, 0.7));
+            const x = 0.55e8 + (lay[lay.length - 1].x - 0.55e8 - 0.6e8 * Math.min(1, f.aspect / 1.6)) * glide(p);
+            return { pos: v3(x, 0.3e8, D), target: v3(x, 0, 0), fov: 40 };
+        }
         case 'tourTravel':
         case 'tourBody': {
             const id = f.body ?? 'saturn';
+            const d = tourDistance(id);
+            if (body(id).orbit === 'belt') {
+                // Belts: Sun-centred, from above, the whole belt and its neighbouring orbits in view.
+                const above = v3(0.25, 0.95, 0.8)
+                    .normalize()
+                    .multiplyScalar(d)
+                    .applyAxisAngle(Y, f.shot === 'tourBody' ? 0.3 * p : 0);
+                if (f.shot === 'tourBody') return { pos: above, target: v3(0, 0, 0), fov: 40 };
+                const from = v3(6 * AU, 30 * AU, 40 * AU);
+                const k = glide(p);
+                const dist = Math.exp(Math.log(from.length()) * (1 - k) + Math.log(d) * k);
+                return {
+                    pos: from
+                        .clone()
+                        .normalize()
+                        .lerp(above.clone().normalize(), smooth(p * 1.2))
+                        .normalize()
+                        .multiplyScalar(dist),
+                    target: v3(0, 0, 0),
+                    fov: 40,
+                };
+            }
             const sunDir = f.origin.clone().negate().normalize(); // towards the Sun from the destination
             const side = Y.clone().cross(sunDir).normalize();
-            const d = tourDistance(id);
             // Three-quarter lit: between the Sun direction and the side, a little above the orbit plane.
             const near = sunDir
                 .clone()
@@ -672,6 +728,42 @@ function updateVehicle(state: VehicleState, met: number, focus: Focus | undefine
     state.upperAway = met >= e.kickSep ? 0.6 * (met - e.kickSep) + (met >= e.kickIgn ? 0.5 * aKick * (met - e.kickIgn) ** 2 : 0) : null;
     state.spin = met >= e.kickSep + 10 && met < e.scSep ? (met - e.kickSep - 10) * 0.6 : 0;
     state.booms = boomsAtMet(met);
+    // Fault scenarios: a lost first-stage engine (its flame goes out) and a failed generator (marked).
+    const out = activeFlight().events.find((x) => x.id === 'engineOut');
+    state.engineOut = !!out && met >= out.t && state.firing1 > 0;
+    state.rtgFault = focus === 'faultRtg';
+    // Attitude thrusters: short pulses while the separation tip-off is being damped (story-time flashes,
+    // so they read as pulses at any time compression).
+    const sinceSep = met - e.scSep;
+    const damping = sinceSep >= DEPLOYMENT.rateDamping && sinceSep < DEPLOYMENT.attitudeStable;
+    state.pulse = damping ? Math.pow(Math.max(0, Math.sin(time * 7.5)), 10) * (1 - (sinceSep - DEPLOYMENT.rateDamping) / (DEPLOYMENT.attitudeStable - DEPLOYMENT.rateDamping)) : 0;
+}
+
+/** The ascent path drawn behind the vehicle (Flight Path topic and the scientific view of the ascent). */
+function AscentTrail({ met, show }: { met: () => number; show: () => boolean }) {
+    const pts = useMemo(() => {
+        const f = flight();
+        const end = eventTime('seco1', f);
+        const out: { t: number; p: Vector3 }[] = [];
+        for (let t = 0; t <= end; t += 1) {
+            const s = sampleAt(t, f);
+            const th = s.downrange / R_EARTH;
+            const r = R_EARTH + Math.max(0, s.altitude);
+            out.push({ t, p: v3(r * Math.sin(th), r * Math.cos(th) - R_EARTH + MOUNT_TOP, 0) });
+        }
+        return out;
+    }, []);
+    const points = useMemo(() => pts.map((x) => x.p), [pts]);
+    const group = useRef<Group>(null);
+    useFrame(() => {
+        if (group.current) group.current.visible = show();
+    });
+    return (
+        <group ref={group}>
+            <Path points={points} color="#FBBF24" opacity={0.9} count={() => Math.max(2, Math.min(points.length, Math.floor(met()) + 2))} />
+            <Path points={points} color="#FBBF24" opacity={0.22} dashed />
+        </group>
+    );
 }
 
 export default function SolarScene({
@@ -746,6 +838,7 @@ export default function SolarScene({
         };
     }, []);
     const shadowMet = useRef(-1e9);
+    const settle = useRef(0);
     const operator = useRef<Operator>({ t: 0, aim: new Vector3(), scene: null, seeks: -1 });
     const sun = useRef(SUN.clone());
     const gl = useThree((s) => s.gl);
@@ -871,7 +964,7 @@ export default function SolarScene({
         f.aspect = camera.aspect;
         f.body = seg.body;
         // Floating origin for the Discovery tour: the destination sits at the scene origin.
-        if (seg.scene === 'tour' && seg.shot !== 'tourOverview' && seg.body) toScene(tourPosition(seg.body), f.origin);
+        if (seg.scene === 'tour' && (seg.shot === 'tourTravel' || seg.shot === 'tourBody') && seg.body && body(seg.body).orbit !== 'belt') toScene(tourPosition(seg.body), f.origin);
         else f.origin.set(0, 0, 0);
         updateVehicle(state.current, met, f.focus, seg.shot, clock.time, loc.progress);
         // Part names appear while the payload cutaway is open.
@@ -918,6 +1011,9 @@ export default function SolarScene({
             blend.current = { from: null, t: 1 };
             lastShot.current = seg.shot;
             force();
+            // When paused (on-demand rendering) keep drawing a few frames so the new scene's components,
+            // mounted by the re-render, appear (e.g. a canvas remounted while the mission is paused).
+            settle.current = 4;
         } else if (lastShot.current !== seg.shot) {
             blend.current = { from: lastShot.current, t: 0 };
             lastShot.current = seg.shot;
@@ -974,12 +1070,27 @@ export default function SolarScene({
         shiftYNow.current += (shiftY - shiftYNow.current) * Math.min(1, delta * 3);
         const sx = shiftNow.current;
         const sy = shiftYNow.current;
+        // Paused (on-demand rendering): keep drawing until the composition has settled, so the image and
+        // the labels projected from it end up in the same place.
+        if (Math.abs(shift - sx) + Math.abs(shiftY - sy) > 1e-3) invalidate();
         if (Math.abs(sx) + Math.abs(sy) > 1e-4) camera.setViewOffset(size.width, size.height, -sx * size.width, sy * size.height, size.width, size.height);
         else if (camera.view?.enabled) camera.clearViewOffset();
         const dist = cam.pos.distanceTo(cam.target);
         // Near plane: the spacecraft can be metres from the camera while a planet is a million km away.
         camera.near =
-            seg.scene === 'jupiter' || seg.scene === 'saturn' ? (seg.shot === 'jupiterWide' ? 1e5 : 0.5) : seg.scene === 'deep' ? 0.1 : seg.scene === 'cruise' ? 1e7 : seg.scene === 'tour' ? Math.max(1, cam.pos.length() * 1e-4) : seg.scene === 'helio' ? 1e6 : Math.max(0.05, dist * 0.002);
+            seg.scene === 'jupiter' || seg.scene === 'saturn'
+                ? seg.shot === 'jupiterWide'
+                    ? 1e5
+                    : 0.5
+                : seg.scene === 'deep'
+                  ? 0.1
+                  : seg.scene === 'cruise'
+                    ? 1e7
+                    : seg.scene === 'tour'
+                      ? Math.max(1, cam.pos.length() * 1e-4)
+                      : seg.scene === 'helio'
+                        ? 1e6
+                        : Math.max(0.05, dist * 0.002);
         camera.far = seg.scene === 'deep' ? 1e8 : seg.scene === 'helio' || seg.scene === 'cruise' || seg.scene === 'tour' ? 1e15 : seg.scene === 'jupiter' || seg.scene === 'saturn' ? 1e13 : 1e10;
         camera.updateProjectionMatrix();
         // Sound, from the same state as the picture (see sound.ts).
@@ -1001,6 +1112,10 @@ export default function SolarScene({
         soundFrame.jumped = jumped;
         soundFrame.booms = deploying;
         missionSound.update(soundFrame);
+        if (settle.current > 0) {
+            settle.current--;
+            invalidate();
+        }
         if (process.env.NODE_ENV !== 'production') (window as Window & { __solarCam?: unknown }).__solarCam = { shot: seg.shot, scene: seg.scene, met, pos: camera.position.toArray(), target: cam.target.toArray(), fov: camera.fov, P: f.P.toArray() };
     }, -2);
 
@@ -1054,6 +1169,7 @@ export default function SolarScene({
                         <LaunchVehicle state={state} payloadLabels={payloadLabels} quality={quality} />
                     </VehicleAt>
                     <EngineLight state={state} P={P} />
+                    <AscentTrail met={met} show={() => frame.current.focus === 'trajectory'} />
                 </group>
             )}
             {(scene === 'orbit' || scene === 'departure') && <InertialView frame={frame} state={state} sun={sun} quality={quality} />}
@@ -1064,11 +1180,22 @@ export default function SolarScene({
                     <HelioView sunLight />
                 </>
             )}
-            {scene === 'cruise' && <CruiseView met={met} />}
+            {scene === 'cruise' && <CruiseView met={met} shot={() => frame.current.shot} />}
             {scene === 'deep' && <DeepSpaceView met={met} state={state} quality={quality} shot={() => frame.current.shot} />}
             {scene === 'jupiter' && <JupiterView met={met} scientific={() => frame.current.shot === 'jupiterWide'} />}
             {scene === 'saturn' && <SaturnView progress={() => frame.current.progress} />}
-            {scene === 'tour' && <TourView dest={() => (frame.current.shot === 'tourOverview' ? undefined : frame.current.body)} origin={() => frame.current.origin} sunLit={() => frame.current.origin.clone().negate().normalize()} />}
+            {scene === 'tour' && (
+                <TourView
+                    dest={() => (frame.current.shot === 'tourOverview' || frame.current.shot === 'tourScale' ? undefined : frame.current.body)}
+                    origin={() => frame.current.origin}
+                    sunLit={() => frame.current.origin.clone().negate().normalize()}
+                    orbits={() => {
+                        const x = frame.current;
+                        return x.shot === 'tourOverview' || (x.shot === 'tourTravel' && x.progress < 0.4) || (!!x.body && body(x.body).orbit === 'belt' && x.shot !== 'tourScale');
+                    }}
+                    lineup={() => frame.current.shot === 'tourScale'}
+                />
+            )}
         </>
     );
 }
@@ -1200,9 +1327,28 @@ function InertialView({ frame, state, sun, quality }: { frame: MutableRefObject<
     const wide = () => frame.current.shot === 'orbitWide' || frame.current.shot === 'departureWide';
     const vehicle = useRef<Group>(null);
     const paths = useRef<Group>(null);
+    // Perigee and apogee of the parking orbit, marked in the orbit diagram.
+    const apsides = useMemo(() => {
+        let lo = parking[0];
+        let hi = parking[0];
+        for (const q of parking) {
+            if (q.length() < lo.length()) lo = q;
+            if (q.length() > hi.length()) hi = q;
+        }
+        return { peri: lo.clone(), apo: hi.clone() };
+    }, [parking]);
+    const [orbitDiagram, setOrbitDiagram] = useState(false);
+    // Labels on the far side of the Earth are hidden by it.
+    const registry = useContext(LabelContext);
+    useEffect(() => {
+        registry?.setOccluder({ centre: new Vector3(0, 0, 0), radius: R_EARTH });
+        return () => registry?.setOccluder(null);
+    }, [registry]);
     useFrame(() => {
         if (vehicle.current) vehicle.current.visible = !wide();
         if (paths.current) paths.current.visible = wide();
+        const od = frame.current.shot === 'orbitWide';
+        if (od !== orbitDiagram) setOrbitDiagram(od);
     });
     return (
         <>
@@ -1216,6 +1362,8 @@ function InertialView({ frame, state, sun, quality }: { frame: MutableRefObject<
                 <Path points={parking} color="#e2e8f0" opacity={0.75} />
                 <Path points={departure} color="#22D3EE" opacity={0.95} count={flown} />
                 <Path points={departure} color="#22D3EE" opacity={0.25} dashed />
+                <Marker position={() => apsides.peri} label={orbitDiagram ? 'orb-peri' : null} color="#FBBF24" size={0.012} />
+                <Marker position={() => apsides.apo} label={orbitDiagram ? 'orb-apo' : null} color="#FBBF24" size={0.012} />
             </group>
             <group ref={vehicle}>
                 <VehicleAt P={() => frame.current.P} A={() => frame.current.A}>

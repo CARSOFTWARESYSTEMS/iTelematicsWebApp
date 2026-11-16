@@ -12,6 +12,12 @@
  * parking orbit. After a coast the upper stage restarts for the departure burn, the solid kick stage
  * adds the rest, and the spacecraft separates on an escape hyperbola. Every event is triggered by a
  * physical condition (propellant depletion, heating rate, perigee), not by a fixed clock.
+ *
+ * Departure energy: the vehicle can deliver more energy than SOL-1 needs (C3 ≈ 113.6 km²/s² with every
+ * stage burned to depletion, against 79.6 for the designed trajectory). As on real missions, the
+ * restartable upper stage shuts down early, leaving propellant unburned, so that after the solid kick
+ * stage (which cannot be shut down) the energy is the one the trajectory needs (SEQUENCE.departureReserve,
+ * checked in flight.test.ts).
  */
 import { atmosphere } from './atmosphere';
 import { G0, MU_EARTH, OMEGA_EARTH, R_EARTH } from './constants';
@@ -38,7 +44,10 @@ export type EventId =
     | 'kickIgnition'
     | 'escape'
     | 'kickBurnout'
-    | 'scSep';
+    | 'scSep'
+    // Fault scenarios only (scenarios.ts): never in the nominal flight.
+    | 'engineOut'
+    | 'impact';
 
 export interface FlightEvent {
     id: EventId;
@@ -116,6 +125,11 @@ export const SEQUENCE = {
     guidanceTau: 30, // s, upper-stage altitude-hold time constant
     parkingCoast: 25 * 60, // s from orbit insertion to the departure burn
     upperStageReserve: 120, // kg kept for the post-separation manoeuvre
+    // kg of upper-stage propellant left unburned at the departure cutoff, so that the final C3 equals the
+    // designed trajectory's 79.6 km²/s² (solved by bisection; flight.test.ts checks it). Setting it to
+    // upperStageReserve gives the vehicle's capability (every stage burned to depletion).
+    departureReserve: 1772,
+    engineOutAt: Infinity, // s: one first-stage engine shuts down (fault scenario only)
     kickSepDelay: 40, // s after the second cutoff
     kickIgnitionDelay: 70, // s after the second cutoff
     scSepDelay: 240, // s after kick burnout (spin-down, separation)
@@ -209,6 +223,8 @@ const EVENT_LABELS: Record<EventId, string> = {
     escape: 'Escape: orbital energy above zero',
     kickBurnout: 'Kick stage burnout',
     scSep: 'Spacecraft separation',
+    engineOut: 'First-stage engine failure',
+    impact: 'Vehicle falls back to Earth',
 };
 
 export type Sequence = { -readonly [K in keyof typeof SEQUENCE]: number };
@@ -315,7 +331,10 @@ export function simulateFlight(overrides: Partial<Sequence> = {}): FlightResult 
 
         if (phase === 'ignition' || phase === 'stage1') {
             const ramp = phase === 'ignition' ? Math.min(1, (t + P.ignitionLead) / P.thrustRamp) : 1;
-            const available = FIRST_STAGE.thrustVac - (FIRST_STAGE.thrustVac - FIRST_STAGE.thrustSL) * (air.pressure / 101325);
+            // Engine failure (fault scenario): the remaining engines keep their own thrust and mass flow.
+            const working = phase === 'stage1' && t >= P.engineOutAt ? (FIRST_STAGE.engines - 1) / FIRST_STAGE.engines : 1;
+            if (working < 1) mark('engineOut', P.engineOutAt);
+            const available = working * (FIRST_STAGE.thrustVac - (FIRST_STAGE.thrustVac - FIRST_STAGE.thrustSL) * (air.pressure / 101325));
             let throttle = ramp;
             if (phase === 'stage1') {
                 const limit = (VEHICLE.maxAccelerationG * G0 * m) / available;
@@ -339,7 +358,7 @@ export function simulateFlight(overrides: Partial<Sequence> = {}): FlightResult 
                 }
                 if (k > 0) mark('pitchOver', P.verticalRise);
             }
-            const mdot = mdot1 * throttle;
+            const mdot = mdot1 * throttle * working;
             if (prop1 <= mdot * dt) dt = Math.max(1e-6, prop1 / mdot);
             c = { thrust: available * throttle, mdot, dir, throttle, area: AREA_FAIRING };
         } else if (phase === 'stage2') {
@@ -357,7 +376,7 @@ export function simulateFlight(overrides: Partial<Sequence> = {}): FlightResult 
             c = { thrust: UPPER_STAGE.thrustVac, mdot: mdot2, dir, throttle: 1, area: fairing ? AREA_FAIRING : AREA_UPPER };
         } else if (phase === 'departure') {
             const v = Math.hypot(vx, vy);
-            const usable = prop2 - P.upperStageReserve;
+            const usable = prop2 - Math.max(P.upperStageReserve, P.departureReserve);
             if (usable <= mdot2 * dt) dt = Math.max(1e-6, usable / mdot2);
             c = { thrust: UPPER_STAGE.thrustVac, mdot: mdot2, dir: [vx / v, vy / v], throttle: 1, area: AREA_UPPER };
         } else if (phase === 'kick') {
@@ -412,6 +431,12 @@ export function simulateFlight(overrides: Partial<Sequence> = {}): FlightResult 
         const eventsBefore = events.length;
         // Escape: specific orbital energy above zero (first reached during the departure burns).
         if ((phase === 'departure' || phase === 'kickCoast' || phase === 'kick') && elements(nx, ny, nvx, nvy).energy > 0) mark('escape', t);
+        // Fault scenarios: a vehicle that falls back ends the simulation.
+        if (alt < -50 && phase !== 'ignition') {
+            mark('impact', t);
+            record(c);
+            break;
+        }
         if (phase === 'ignition' && t >= 0) {
             t = 0;
             phase = 'stage1';
@@ -462,7 +487,7 @@ export function simulateFlight(overrides: Partial<Sequence> = {}): FlightResult 
                 mark('usRestart', t);
             }
         } else if (phase === 'departure') {
-            if (prop2 - P.upperStageReserve <= 1e-6) {
+            if (prop2 - Math.max(P.upperStageReserve, P.departureReserve) <= 1e-6) {
                 phase = 'kickCoast';
                 mark('seco2', t);
             }
@@ -498,7 +523,8 @@ export function simulateFlight(overrides: Partial<Sequence> = {}): FlightResult 
     }
     record(coast(AREA_UPPER));
 
-    const seco1 = samples.find((x) => x.t >= at('seco1')!)!;
+    // (A fault scenario can end before orbit: the parking orbit is then reported as not reached.)
+    const seco1 = samples.find((x) => x.t >= (at('seco1') ?? Infinity)) ?? samples[samples.length - 1];
     const el = elements(seco1.x, seco1.y, seco1.vx, seco1.vy);
     events.sort((a, b) => a.t - b.t);
     return {
@@ -526,8 +552,19 @@ export function flight(): FlightResult {
     return (cached ??= simulateFlight());
 }
 
+let scenario: FlightResult | null = null;
+/**
+ * A fault scenario's flight (scenarios.ts) shown in place of the nominal one while its topic is open:
+ * the vehicle in the scene and the readings follow it. Event times, chapters and the rest of the
+ * experience keep the nominal flight.
+ */
+export function setFlightScenario(result: FlightResult | null) {
+    scenario = result;
+}
+export const activeFlight = () => scenario ?? flight();
+
 /** The sample at (or just before) mission elapsed time t, interpolated linearly between records. */
-export function sampleAt(t: number, result = flight()): FlightSample {
+export function sampleAt(t: number, result = activeFlight()): FlightSample {
     const s = result.samples;
     if (t <= s[0].t) return s[0];
     if (t >= s[s.length - 1].t) return s[s.length - 1];

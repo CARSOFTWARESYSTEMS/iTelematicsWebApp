@@ -12,7 +12,7 @@
 // lib/solar-system/spacecraft.ts (boomsAt). Origin: centre of the bus base; +Y towards the dish.
 import { useEffect, useMemo, useRef, type MutableRefObject } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { CatmullRomCurve3, Color, DoubleSide, LatheGeometry, MeshStandardMaterial, Vector2, Vector3, type Group } from 'three';
+import { AdditiveBlending, CatmullRomCurve3, Color, DoubleSide, LatheGeometry, MeshBasicMaterial, MeshStandardMaterial, Vector2, Vector3, type Group, type Mesh } from 'three';
 import { EnergyFlow } from '@/components/space-twin/primitives';
 import type { Focus } from '@/lib/solar-system/mission';
 import type { VehicleState } from './LaunchVehicle';
@@ -215,6 +215,7 @@ export default function SpacecraftModel({ state, position = [0, 0, 0] }: { state
                         <mesh position={[0, -0.09, 0]} material={thruster}>
                             <coneGeometry args={[0.03, 0.07, 12, 1, true]} />
                         </mesh>
+                        <ThrusterPulse state={state} />
                         {[-1, 1].map((s) => (
                             <mesh key={s} position={[0.1, 0, s * 0.05]} rotation={[0, 0, -Math.PI / 2]} material={thruster}>
                                 <coneGeometry args={[0.025, 0.06, 12, 1, true]} />
@@ -284,6 +285,7 @@ export default function SpacecraftModel({ state, position = [0, 0, 0] }: { state
                     ))}
                     {[1.2, 2.4].map((y) => (
                         <group key={y} position={[0, y, 0]}>
+                            {y === 2.4 && <FaultMark state={state} />}
                             <mesh material={rtg} castShadow>
                                 <cylinderGeometry args={[0.2, 0.2, 1.0, 24]} />
                             </mesh>
@@ -349,5 +351,38 @@ export default function SpacecraftModel({ state, position = [0, 0, 0] }: { state
                 <torusGeometry args={[DISH_R + 0.02, 0.022, 8, 96]} />
             </mesh>
         </group>
+    );
+}
+
+/** A short hydrazine-thruster pulse (rate damping after separation): a faint, fast-fading jet. */
+function ThrusterPulse({ state }: { state: MutableRefObject<VehicleState> }) {
+    const ref = useRef<Mesh>(null);
+    const material = useMemo(() => new MeshBasicMaterial({ color: '#cfe3ff', transparent: true, opacity: 0, blending: AdditiveBlending, depthWrite: false }), []);
+    useEffect(() => () => material.dispose(), [material]);
+    useFrame(() => {
+        const p = state.current.pulse ?? 0;
+        material.opacity = 0.55 * p;
+        if (ref.current) ref.current.visible = p > 0.02;
+    });
+    return (
+        <mesh ref={ref} position={[0, -0.24, 0]} rotation={[Math.PI, 0, 0]} material={material}>
+            <coneGeometry args={[0.07, 0.26, 12, 1, true]} />
+        </mesh>
+    );
+}
+
+/** Marks the failed generator in the RTG fault scenario (a warning-red shell). */
+function FaultMark({ state }: { state: MutableRefObject<VehicleState> }) {
+    const ref = useRef<Mesh>(null);
+    const material = useMemo(() => new MeshBasicMaterial({ color: '#f87171', transparent: true, opacity: 0.35, blending: AdditiveBlending, depthWrite: false, side: DoubleSide }), []);
+    useEffect(() => () => material.dispose(), [material]);
+    useFrame(() => {
+        if (ref.current) ref.current.visible = !!state.current.rtgFault;
+        material.opacity = 0.12 + 0.08 * Math.sin(state.current.time * 4);
+    });
+    return (
+        <mesh ref={ref} material={material} visible={false}>
+            <cylinderGeometry args={[0.42, 0.42, 1.18, 24, 1, true]} />
+        </mesh>
     );
 }

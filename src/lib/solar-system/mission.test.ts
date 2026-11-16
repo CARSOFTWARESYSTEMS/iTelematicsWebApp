@@ -11,8 +11,9 @@ describe('Solar System mission script (Phase A)', () => {
         expect(chapters.map((c) => c.number)).toEqual(['01', '02', '03', '04', '05', '06', '07', '08']);
         expect(chapters.map((c) => c.id)).toEqual(['prep', 'liftoff', 'ascent', 'staging', 'fairing', 'orbit', 'departure', 'deploy']);
         for (const c of chapters) {
-            expect(c.labels.length).toBeGreaterThanOrEqual(4);
-            expect(c.labels.length).toBeLessThanOrEqual(8);
+            const topics = c.labels.filter((l) => !l.whatIf);
+            expect(topics.length).toBeGreaterThanOrEqual(4);
+            expect(topics.length).toBeLessThanOrEqual(8);
             expect(c.telemetry.length).toBeGreaterThanOrEqual(3);
             expect(c.telemetry.length).toBeLessThanOrEqual(6);
         }

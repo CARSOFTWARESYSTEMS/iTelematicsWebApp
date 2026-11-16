@@ -31,7 +31,15 @@ export interface Body {
     atmosphere: string;
     features: string;
     /** Map used and what it is. */
-    imagery: { file?: string; kind: 'Map from mission data (Solar System Scope, CC BY 4.0)' | 'Earth imagery (public domain, credited on Terms)' | 'Illustrative surface (not imagery)' | 'Illustrative distribution (not a catalogue)' };
+    imagery: {
+        file?: string;
+        kind:
+            | 'Map from mission data (Solar System Scope, CC BY 4.0)'
+            | 'Earth imagery (public domain, credited on Terms)'
+            | 'Mosaic from mission data (USGS, public domain; colour approximated)'
+            | 'Illustrative surface (not imagery)'
+            | 'Illustrative distribution (not a catalogue)';
+    };
     rings?: { innerKm: number; outerKm: number };
 }
 
@@ -190,7 +198,8 @@ export const BODIES: Body[] = [
         tiltDeg: 122.53,
         atmosphere: 'Thin nitrogen, methane and carbon monoxide, freezing out as it moves away',
         features: 'Dwarf planet in the Kuiper Belt; nitrogen-ice plain Sputnik Planitia; moon Charon',
-        imagery: { kind: 'Illustrative surface (not imagery)' },
+        // The New Horizons mosaic covers the hemisphere seen at closest approach in detail; the far side is coarse.
+        imagery: { file: 'pluto-2k.jpg', kind: 'Mosaic from mission data (USGS, public domain; colour approximated)' },
     },
     {
         id: 'kuiper',

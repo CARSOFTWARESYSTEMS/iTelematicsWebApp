@@ -73,8 +73,7 @@ function loadsAt(t: number) {
     if (t >= DEPLOYMENT.rateDamping && t < DEPLOYMENT.attitudeStable) list.push({ name: 'Thruster valves', watts: LOADS.thrusterValves });
     if (t >= DEPLOYMENT.firstContact - 60) list.push({ name: 'Transmitter', watts: LOADS.transmitter });
     if (t >= DEPLOYMENT.healthCheck) list.push({ name: 'Science instruments', watts: LOADS.instruments });
-    const boom =
-        moving(t, DEPLOYMENT.rtgBoom, BOOM_SECONDS.rtgBoom) || moving(t, DEPLOYMENT.magnetometerBoom, BOOM_SECONDS.magnetometerBoom) || moving(t, DEPLOYMENT.scienceBoom, BOOM_SECONDS.scienceBoom);
+    const boom = moving(t, DEPLOYMENT.rtgBoom, BOOM_SECONDS.rtgBoom) || moving(t, DEPLOYMENT.magnetometerBoom, BOOM_SECONDS.magnetometerBoom) || moving(t, DEPLOYMENT.scienceBoom, BOOM_SECONDS.scienceBoom);
     if (boom) list.push({ name: 'Boom deployment motor', watts: LOADS.boomMotor });
     return list;
 }
@@ -105,8 +104,8 @@ function buildTable(): PowerState[] {
 }
 
 export function powerAt(t: number): PowerState {
-    table ??= buildTable();
-    return table[Math.max(0, Math.min(table.length - 1, Math.floor(t)))];
+    const tab = powerOverride ?? (table ??= buildTable());
+    return tab[Math.max(0, Math.min(tab.length - 1, Math.floor(t)))];
 }
 
 export type LinkState = 'Off' | 'Acquiring' | 'Locked (low-gain antenna)';
@@ -140,7 +139,78 @@ export function boomsAt(t: number) {
 
 export function healthAt(t: number): Health {
     const p = powerAt(t);
+    if (t >= safeOverride) return 'Safe Mode';
     if (p.margin < 0 && p.soc < 0.3) return 'Safe Mode';
     if (p.margin < 0) return 'Warning';
     return 'Nominal';
 }
+
+// ── Fault scenario: one RTG fails at separation ───────────────────────────
+
+/**
+ * The same power model with one generator lost at separation, run for `hours` after separation with
+ * the spacecraft's fault protection: when the battery falls to 30 % it enters Safe Mode and switches
+ * the science instruments off (the largest load it can shed). 1 s steps; `override` makes powerAt and
+ * healthAt (and so the readings) follow this scenario while its topic is shown.
+ */
+export interface FaultPower {
+    table: PowerState[];
+    /** Seconds after separation: first deficit, Safe Mode entry. */
+    deficitAt: number;
+    safeModeAt: number;
+    /** Lowest state of charge during the boom deployments, 0…1. */
+    minSocDeploy: number;
+    /** Loads before and after shedding, W. */
+    loadsFull: number;
+    loadsShed: number;
+    rtg: number;
+}
+
+let faultCache: FaultPower | null = null;
+
+export function rtgFaultScenario(hours = 12): FaultPower {
+    if (faultCache) return faultCache;
+    const capacity = SPACECRAFT.batteryWh * 3600;
+    let energy = capacity * 0.96;
+    let safe = false;
+    let deficitAt = NaN;
+    let safeModeAt = NaN;
+    let minSocDeploy = 1;
+    const table: PowerState[] = [];
+    const end = hours * 3600;
+    for (let k = 0; k <= end; k++) {
+        const rtg = rtgPower(k / YEAR) / SPACECRAFT.rtgCount;
+        let breakdown = loadsAt(Math.min(k, DEPLOYMENT.end));
+        if (safe) breakdown = breakdown.filter((b) => b.name !== 'Science instruments');
+        const loads = breakdown.reduce((a, b) => a + b.watts, 0);
+        const surplus = rtg - loads;
+        const battery = surplus >= 0 ? Math.min(surplus, CHARGE_LIMIT, capacity - energy) : Math.max(surplus, -energy);
+        const shunt = Math.max(0, surplus - Math.max(0, battery));
+        const soc = energy / capacity;
+        table.push({ rtg, loads, battery, shunt, soc, busVolts: SPACECRAFT.busVolts, margin: surplus / loads, breakdown });
+        if (surplus < 0 && k >= DEPLOYMENT.healthCheck && Number.isNaN(deficitAt)) deficitAt = k;
+        if (k <= DEPLOYMENT.scienceBoom + BOOM_SECONDS.scienceBoom) minSocDeploy = Math.min(minSocDeploy, soc);
+        if (!safe && soc < 0.3) {
+            safe = true;
+            safeModeAt = k;
+        }
+        energy = Math.min(capacity, Math.max(0, energy + battery));
+    }
+    const full = loadsAt(DEPLOYMENT.end).reduce((a, b) => a + b.watts, 0);
+    const shed = loadsAt(DEPLOYMENT.end)
+        .filter((b) => b.name !== 'Science instruments')
+        .reduce((a, b) => a + b.watts, 0);
+    return (faultCache = { table, deficitAt, safeModeAt, minSocDeploy, loadsFull: full, loadsShed: shed, rtg: rtgPower(0) / SPACECRAFT.rtgCount });
+}
+
+let powerOverride: PowerState[] | null = null;
+let safeOverride = NaN;
+
+/** Makes the power readings follow the one-generator scenario (null: the nominal spacecraft). */
+export function setPowerScenario(on: boolean) {
+    const f = on ? rtgFaultScenario() : null;
+    powerOverride = f ? f.table : null;
+    safeOverride = f ? f.safeModeAt : NaN;
+}
+
+export const powerScenarioActive = () => powerOverride !== null;

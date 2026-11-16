@@ -11,7 +11,13 @@ describe('Solar System Phase B script', () => {
         expect(B.map((c) => c.number)).toEqual(['09', '10', '11', '12']);
         expect(journey().chapters.map((c) => c.number)).toEqual(['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']);
         // Phase A is unchanged: 8 chapters and its 49 topics.
-        expect(mission().chapters.flatMap((c) => c.labels)).toHaveLength(49);
+        // 49 topics, plus two fault scenarios ("What if?") in Phase A.
+        expect(mission().chapters.flatMap((c) => c.labels)).toHaveLength(51);
+        expect(
+            mission()
+                .chapters.flatMap((c) => c.labels)
+                .filter((l) => l.whatIf),
+        ).toHaveLength(2);
         const ids = journey().chapters.flatMap((c) => c.labels.map((l) => l.id));
         expect(new Set(ids).size).toBe(ids.length);
     });

@@ -275,3 +275,51 @@ export function flybySpeed(dt: number) {
 export const missionYears = (t: number) => (t - missionTrajectory().launch) / (YEAR / DAY);
 export const describe = (t: number) => isoDate(t);
 export { cross };
+
+// ── Solar conjunctions (communication interruptions) ──────────────────────
+
+/** Sun–Earth–spacecraft angle (degrees) at Julian date t: how close RSC-1 appears to the Sun from Earth. */
+export function sunEarthProbeAngle(t: number) {
+    const e = planetAt('earth', t);
+    const s = spacecraftAt(t).r;
+    const toSun = scale(e, -1);
+    const toSc = sub(s, e);
+    const c = dot(toSun, toSc) / (norm(toSun) * norm(toSc));
+    return (Math.acos(Math.max(-1, Math.min(1, c))) * 180) / Math.PI;
+}
+
+/** Radio links are unreliable when the spacecraft appears this close to the Sun (the corona scrambles them). */
+export const CONJUNCTION_LIMIT_DEG = 3;
+
+export interface Conjunction {
+    start: number;
+    end: number;
+    min: number;
+    minAt: number;
+}
+
+let conjCache: Conjunction[] | null = null;
+
+/** Solar conjunctions between launch and Saturn (Sun–Earth–probe angle below the limit), 6-hour steps. */
+export function conjunctions(): Conjunction[] {
+    if (conjCache) return conjCache;
+    const m = missionTrajectory();
+    const out: Conjunction[] = [];
+    let cur: Conjunction | null = null;
+    for (let t = m.launch + 10; t <= m.saturn; t += 0.25) {
+        const a = sunEarthProbeAngle(t);
+        if (a < CONJUNCTION_LIMIT_DEG) {
+            if (!cur) cur = { start: t, end: t, min: a, minAt: t };
+            cur.end = t;
+            if (a < cur.min) {
+                cur.min = a;
+                cur.minAt = t;
+            }
+        } else if (cur) {
+            out.push(cur);
+            cur = null;
+        }
+    }
+    if (cur) out.push(cur);
+    return (conjCache = out);
+}

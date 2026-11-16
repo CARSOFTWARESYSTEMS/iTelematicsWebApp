@@ -11,9 +11,11 @@
  */
 import { atmosphere, layerName } from './atmosphere';
 import { C_LIGHT, MU_EARTH, R_EARTH } from './constants';
-import { eventTime, flight, sampleAt, type FlightResult } from './flight';
+import { activeFlight, eventTime, flight, sampleAt, SEQUENCE, type FlightResult } from './flight';
+import { CONSTRAINTS } from './trajectory';
 import { EARTH_JUPITER, circularSpeed, elements, escapeSpeed } from './orbit';
-import { attitudeAt, boomsAt, healthAt, linkAt, powerAt } from './spacecraft';
+import { ENGINE_OUT } from './scenarios';
+import { attitudeAt, boomsAt, healthAt, linkAt, powerAt, rtgFaultScenario, rtgPower } from './spacecraft';
 import { FAIRING, FIRST_STAGE, KICK_STAGE, LIFTOFF_MASS, SPACECRAFT, UPPER_STAGE, VEHICLE } from './vehicle';
 import type { BodyId } from './bodies';
 
@@ -87,7 +89,8 @@ export type ShotId =
     | 'saturnClose'
     | 'tourOverview'
     | 'tourTravel'
-    | 'tourBody';
+    | 'tourBody'
+    | 'tourScale';
 
 /** A stretch of story mapped onto mission time: `seconds` of story show MET a → b. */
 export interface Segment {
@@ -101,7 +104,8 @@ export interface Segment {
     body?: BodyId;
 }
 
-export type Focus = 'vehicle' | 'stage1' | 'upper' | 'engines' | 'tanks' | 'fairing' | 'payload' | 'tower' | 'plume' | 'kick' | 'spacecraft' | 'rtg' | 'eps' | 'antenna' | 'computer' | 'thrusters' | 'booms' | 'trajectory';
+export type Focus =
+    'vehicle' | 'stage1' | 'upper' | 'engines' | 'tanks' | 'fairing' | 'payload' | 'tower' | 'plume' | 'kick' | 'spacecraft' | 'rtg' | 'eps' | 'antenna' | 'computer' | 'thrusters' | 'booms' | 'trajectory' | 'faultEngine' | 'faultRtg' | 'faultLink';
 
 export type TKey =
     | 'met'
@@ -162,13 +166,18 @@ export type TKey =
     | 'bDay'
     | 'bTilt'
     | 'bAtmos'
-    | 'bImagery';
+    | 'bImagery'
+    // Fault scenarios
+    | 'sepAngle'
+    | 'linkB';
 
 export interface Label {
     id: string;
     title: string;
     /** Listed under "More topics" rather than among the chapter's three to six main topics. */
     more?: boolean;
+    /** A fault scenario ("What if?"), computed with the same models (scenarios.ts). */
+    whatIf?: 'engine' | 'rtg' | 'link';
     focus?: Focus;
     /** Replays this window (or holds on it) when chosen. */
     segments: readonly Segment[];
@@ -240,6 +249,7 @@ function build(f: FlightResult) {
     const burnout = ev('kickBurnout');
     const scSep = ev('scSep');
     const maxQ = f.maxQ;
+    const rtgFault = rtgFaultScenario();
     const orbit = f.parking;
     const c3 = f.c3 / 1e6;
     const t = (n: number, d = 0) => n.toFixed(d);
@@ -429,7 +439,7 @@ function build(f: FlightResult) {
                 },
                 {
                     id: 'gravity-turn',
-                    title: 'Gravity Turn',
+                    title: 'Pitch-Over and Gravity Turn',
                     segments: [span(10, 90, 10, 'ascent', 'track')],
                     what: 'A gradual tilt from vertical towards horizontal, started by a small pitch-over.',
                     does: 'Lets gravity bend the path while the vehicle keeps its nose in the airflow.',
@@ -464,7 +474,7 @@ function build(f: FlightResult) {
                 },
                 {
                     id: 'gravity-turn-2',
-                    title: 'Gravity Turn',
+                    title: 'Turning Towards Horizontal',
                     segments: [span(20, 200, 12, 'ascent', 'track')],
                     what: 'The continuing bend of the trajectory from vertical towards horizontal.',
                     does: 'Converts climbing speed into the horizontal speed an orbit needs.',
@@ -518,6 +528,19 @@ function build(f: FlightResult) {
                     happening: 'The modelled path is drawn behind the vehicle.',
                     learn: `Gravity loss ${t(f.losses.gravity)} m/s, drag loss ${t(f.losses.drag)} m/s: the extra velocity the vehicle must produce beyond the ${t(orbit.speed)} m/s orbital speed.`,
                     telemetry: ['flightPath', 'altitude', 'downrange', 'speed'],
+                },
+                {
+                    id: 'w-engine',
+                    title: 'What If an Engine Fails?',
+                    whatIf: 'engine',
+                    focus: 'faultEngine',
+                    segments: [span(ENGINE_OUT.at - 12, ENGINE_OUT.at + 48, 16, 'ascent', 'chase', 'faultEngine')],
+                    what: `A fault scenario, computed with the same flight simulation: one of the ${FIRST_STAGE.engines} first-stage engines shuts down at T+${ENGINE_OUT.at} s, just before Max Q.`,
+                    does: 'Thrust halves. The guidance keeps flying its programme, but the vehicle can no longer climb faster than gravity pulls it back.',
+                    why: `With two engines there is no engine-out capability early in the flight: a failure before about T+${ENGINE_OUT.orbitAfter} s means no orbit. After that the upper stage can still reach orbit, and after about T+${ENGINE_OUT.jupiterAfter} s the energy margin is still enough for Jupiter.`,
+                    happening: `From T+${ENGINE_OUT.at} s the vehicle and the readings follow the failure simulation: one engine’s flame goes out and the climb slows. Range safety would end a flight like this; that is not shown.`,
+                    learn: `Computed outcomes: ${ENGINE_OUT.cases.map((c) => `failure at T+${c.at} s → falls back at T+${c.impact} s, ${c.downrangeKm} km downrange`).join('; ')}. Launch vehicles with more engines are designed to lose one and still reach orbit; margins like SOL-1’s spare departure energy are what absorb such losses later in the flight.`,
+                    telemetry: ['thrust', 'acceleration', 'altitude', 'speed'],
                 },
             ],
         },
@@ -605,7 +628,7 @@ function build(f: FlightResult) {
             labels: [
                 {
                     id: 'fairing-2',
-                    title: 'Payload Fairing',
+                    title: 'Fairing Before Separation',
                     focus: 'fairing',
                     segments: [span(usIgn - 1, fair - 0.5, 7, 'ascent', 'fairingSep', 'fairing')],
                     what: 'The two-piece shell around the spacecraft.',
@@ -755,7 +778,7 @@ function build(f: FlightResult) {
             labels: [
                 {
                     id: 'parking-2',
-                    title: 'Earth Parking Orbit',
+                    title: 'Coast to the Departure Point',
                     focus: 'trajectory',
                     segments: [span(seco1 + 300, restart, 8, 'departure', 'departureWide', 'trajectory')],
                     what: 'The coast before departure.',
@@ -773,7 +796,7 @@ function build(f: FlightResult) {
                     what: 'The upper stage’s second burn.',
                     does: 'Adds speed along the direction of motion, raising the orbit’s energy until it is no longer bound.',
                     why: 'Burning low and fast (the Oberth effect) gives the most energy per kilogram of propellant.',
-                    happening: `The upper stage fires for ${t(seco2 - restart)} s; the vehicle passes escape speed at T+${t(ev('escape'))} s.`,
+                    happening: `The upper stage fires for ${t(seco2 - restart)} s and shuts down on the energy the trajectory needs; the kick stage then carries the stack past escape speed at T+${t(ev('escape'))} s.`,
                     learn: `Speed rises from ${t(sampleAt(restart, f).speed)} to ${t(sampleAt(seco2, f).speed)} m/s; escape speed at that height is ${t(escapeSpeed(R_EARTH + sampleAt(seco2, f).altitude))} m/s.`,
                     telemetry: ['speed', 'escapeSpeed', 'c3', 'acceleration'],
                 },
@@ -821,7 +844,7 @@ function build(f: FlightResult) {
                     does: 'Earth’s orbital speed plus v∞ puts the spacecraft on an ellipse reaching out to Jupiter.',
                     why: 'A spacecraft cannot fly straight to a planet: it follows an orbit around the Sun and meets the planet where its orbit crosses Jupiter’s.',
                     happening: 'Scientific-scale view: the planets’ orbits to scale, planets where the ephemeris places them on the launch date, and the designed trajectory.',
-                    learn: `A minimum-energy (Hohmann) transfer between circular orbits would need C3 = ${t(EARTH_JUPITER.c3 / 1e6, 1)} km²/s² and ${t(EARTH_JUPITER.tofYears, 2)} years. The designed SOL-1 trajectory (chapter 09) needs about 79.6 km²/s² and reaches Jupiter in 3.0 years. The simulated launch reaches C3 = ${t(c3, 1)} km²/s² because Phase A burns every stage to depletion; on a real mission the upper stage would shut down early at the energy the trajectory needs.`,
+                    learn: `A minimum-energy (Hohmann) transfer between circular orbits would need C3 = ${t(EARTH_JUPITER.c3 / 1e6, 1)} km²/s² and ${t(EARTH_JUPITER.tofYears, 2)} years. The designed SOL-1 trajectory (chapter 09) needs about 79.6 km²/s² and reaches Jupiter in 3.0 years. The launch delivers C3 = ${t(c3, 1)} km²/s²: the vehicle could reach ${CONSTRAINTS.c3Max} with every stage burned to depletion, so the upper stage shuts down early (leaving ${t(SEQUENCE.departureReserve)} kg of propellant unburned) and the solid kick stage, which cannot be shut down, finishes on exactly the energy the trajectory needs.`,
                     telemetry: ['c3Need', 'c3'],
                 },
             ],
@@ -932,6 +955,19 @@ function build(f: FlightResult) {
                     learn: 'Health states used: Nominal, Warning, Degraded, Safe Mode, Unavailable. Every reading here comes from the simulated power and attitude models.',
                     telemetry: ['health', 'rtg', 'battery', 'loads'],
                 },
+                {
+                    id: 'w-rtg',
+                    title: 'What If an RTG Fails?',
+                    whatIf: 'rtg',
+                    focus: 'faultRtg',
+                    segments: [span(scSep + 180, scSep + 900, 15, 'deploy', 'eps', 'faultRtg')],
+                    what: `A fault scenario, computed with the same power model: one of the two generators fails at separation, leaving ${t(rtgFault.rtg)} W.`,
+                    does: `Booms and radio still work, drawing on the battery for the motor peaks. Once the instruments switch on, the loads (${t(rtgFault.loadsFull)} W) exceed what one generator gives.`,
+                    why: `The battery drains by ${t(rtgFault.loadsFull - rtgFault.rtg)} W. ${(rtgFault.safeModeAt / 3600).toFixed(1)} hours after separation it reaches 30 % and fault protection enters Safe Mode, switching the instruments off: loads fall to ${t(rtgFault.loadsShed)} W and the battery recharges.`,
+                    happening: 'The failed generator is marked; the power, battery and health readings follow the one-generator simulation.',
+                    learn: `Lowest battery charge during the boom deployments: ${t(rtgFault.minSocDeploy * 100)} %. Power budgets carry margin for exactly this: the mission survives on one generator, but science has to be scheduled around the power available. At Jupiter, three years on, one generator gives ${t(rtgPower(3) / 2)} W.`,
+                    telemetry: ['rtg', 'loads', 'battery', 'health'],
+                },
             ],
         },
     ];
@@ -943,7 +979,7 @@ function build(f: FlightResult) {
  * Topics listed under "More topics": each chapter shows three to six main topics; the rest stay one
  * click away (all 49 are kept).
  */
-const MORE_TOPICS = new Set(['tanks', 'fairing', 'readiness', 'acceleration', 'gravity-turn-2', 'seco', 'parking-2', 'computer', 'first-contact', 'health-check']);
+const MORE_TOPICS = new Set(['tanks', 'fairing', 'readiness', 'acceleration', 'gravity-turn-2', 'seco', 'parking-2', 'computer', 'first-contact', 'health-check', 'w-engine', 'w-rtg']);
 
 // ── Telemetry ─────────────────────────────────────────────────────────────
 
@@ -969,7 +1005,8 @@ export function formatMet(t: number) {
 /** One telemetry reading at mission elapsed time `met`. */
 export function reading(key: TKey, met: number): Reading {
     const f = flight();
-    const s = sampleAt(met, f);
+    // A fault scenario's flight while its topic is shown (scenarios.ts); otherwise the nominal flight.
+    const s = sampleAt(met, activeFlight());
     const scSep = eventTime('scSep', f);
     const afterSep = met - scSep;
     const stageProp = () => {

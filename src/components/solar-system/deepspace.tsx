@@ -107,6 +107,7 @@ export function DeepSpaceView({ met, state, quality, shot = () => '' }: { met: (
     const light = useRef<Group>(null);
     const geo = useRef(deepGeometry(met()));
     const earthSun = useRef(new Vector3(1, 0, 0));
+    const jupSun = useRef(new Vector3(1, 0, 0));
     const q = useMemo(() => new Quaternion(), []);
     const earthAt = useRef<Group>(null);
     const jupAt = useRef<Group>(null);
@@ -127,6 +128,7 @@ export function DeepSpaceView({ met, state, quality, shot = () => '' }: { met: (
         place(earthAt.current, g.earth, 1);
         place(jupAt.current, g.jupiter, 1);
         earthSun.current.copy(g.sun).sub(g.earth).normalize();
+        jupSun.current.copy(g.sun).sub(g.jupiter).normalize();
         // Runs before the children (priority −1), so the points of light and labels use this frame's geometry.
     }, -1);
     const sunDisc = () => ({ dir: geo.current.sun.clone().normalize(), radius: (SKY * R_SUN) / geo.current.sun.length() });
@@ -144,7 +146,7 @@ export function DeepSpaceView({ met, state, quality, shot = () => '' }: { met: (
             </group>
             <PointOfLight at={() => geo.current.earth.clone().normalize()} color="#9cc8ff" label={named === 'earth' ? 'deep-earth' : undefined} />
             <group ref={jupAt}>
-                <DeepPlanet id="jupiter" radius={R_JUPITER} />
+                <DeepPlanet id="jupiter" radius={R_JUPITER} sun={() => jupSun.current} />
             </group>
             <PointOfLight at={() => geo.current.jupiter.clone().normalize()} color="#f3e2c4" label={named === 'jupiter' ? 'deep-jupiter' : undefined} />
             <group ref={craft}>

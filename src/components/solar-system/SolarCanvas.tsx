@@ -15,10 +15,20 @@ import { SiteTextures } from './LaunchSite';
 import SolarScene from './SolarScene';
 import styles from './SolarSystemExperience.module.css';
 
-/** Advances the mission clock while playing; long frame gaps (tab switches) are clamped. */
-function ClockDriver({ clock, playing }: { clock: MissionClock; playing: boolean }) {
+/** Advances the mission clock while playing (at the visitor's playback speed); long frame gaps (tab switches) are clamped. */
+function ClockDriver({ clock, playing, rate }: { clock: MissionClock; playing: boolean; rate: number }) {
     const invalidate = useThree((s) => s.invalidate);
     useEffect(() => clock.setFrameRequester(invalidate), [clock, invalidate]);
+    // A canvas mounted while the mission is paused (on-demand rendering) keeps drawing for its first few
+    // seconds, so the frame appears once its textures have loaded (e.g. after scrolling back on a phone).
+    useEffect(() => {
+        const id = window.setInterval(invalidate, 250);
+        const stop = window.setTimeout(() => window.clearInterval(id), 5000);
+        return () => {
+            window.clearInterval(id);
+            window.clearTimeout(stop);
+        };
+    }, [invalidate]);
     // Development only: window.__solarSeek(storySeconds) jumps within the current programme (frame reviews).
     useEffect(() => {
         if (process.env.NODE_ENV === 'production') return;
@@ -33,7 +43,7 @@ function ClockDriver({ clock, playing }: { clock: MissionClock; playing: boolean
     // Development only: ?solar-speed=N plays the story N times faster, for reviewing the whole mission.
     const speed = process.env.NODE_ENV !== 'production' && typeof window !== 'undefined' ? Number(new URLSearchParams(window.location.search).get('solar-speed')) || 1 : 1;
     useFrame((_, delta) => {
-        if (playing) clock.advance(Math.min(delta, 0.1) * speed);
+        if (playing) clock.advance(Math.min(delta, 0.1) * speed * rate);
     });
     return null;
 }
@@ -55,6 +65,7 @@ function DebugInfo() {
 function SolarCanvas({
     clock,
     playing,
+    rate = 1,
     reducedMotion,
     quality,
     focus,
@@ -65,6 +76,8 @@ function SolarCanvas({
 }: {
     clock: MissionClock;
     playing: boolean;
+    /** Playback speed (0.5, 1 or 2). */
+    rate?: number;
     reducedMotion: boolean;
     quality: 'high' | 'low';
     focus?: Focus;
@@ -101,7 +114,7 @@ function SolarCanvas({
                             <SolarScene clock={clock} quality={quality} reducedMotion={reducedMotion} focusOverride={focus} shift={shift} shiftY={shiftY} onReady={onReady} />
                         </SiteTextures>
                     </GlobeTextures>
-                    <ClockDriver clock={clock} playing={playing} />
+                    <ClockDriver clock={clock} playing={playing} rate={rate} />
                     {high && <AdaptiveDpr />}
                     <LabelProjector />
                     <DebugInfo />

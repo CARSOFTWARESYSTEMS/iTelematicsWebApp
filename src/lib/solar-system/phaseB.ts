@@ -16,10 +16,15 @@ import { AU, C_LIGHT, MU_SUN } from './constants';
 import { DAY, isoDate, jd, norm, positionAU, scale, state, sub, type Vec } from './ephemeris';
 import { mission, reading, type Chapter, type Label, type Reading, type SceneId, type Segment, type ShotId, type TKey } from './mission';
 import { rtgPower } from './spacecraft';
-import { CONSTRAINTS, flybyPosition, LAUNCH_WINDOW, MISSION_DATES, missionTrajectory, MU_JUPITER, R_JUPITER, spacecraftAt } from './trajectory';
+import { CONJUNCTION_LIMIT_DEG, conjunctions, CONSTRAINTS, flybyPosition, LAUNCH_WINDOW, MISSION_DATES, missionTrajectory, MU_JUPITER, R_JUPITER, spacecraftAt, sunEarthProbeAngle } from './trajectory';
 
 /** Planet positions for the Discovery tour (cinematic mode): 1 January 2035, during the cruise. */
 export const TOUR_EPOCH = jd(2035, 1, 1);
+
+/** The guided Discovery tour's stops, from the Sun outwards, and the seconds spent travelling and at each. */
+export const DISCOVERY_STOPS: BodyId[] = ['sun', 'earth', 'mars', 'jupiter', 'saturn', 'neptune', 'pluto'];
+export const STOP_TRAVEL = 3.5;
+export const STOP_HOLD = 7.5;
 
 const hold = (met: number, seconds: number, scene: SceneId, shot: ShotId, body?: BodyId): Segment => ({ met: [met, met], seconds, scene, shot, body });
 const span = (a: number, b: number, seconds: number, scene: SceneId, shot: ShotId): Segment => ({ met: [a, b], seconds, scene, shot });
@@ -43,6 +48,8 @@ function build(): Chapter[] {
     const yrs = (s: number) => (s / (365.25 * D)).toFixed(1);
     const k = (v: number) => (v / 1000).toFixed(2);
     const rj = (m.flyby.rp / R_JUPITER).toFixed(1);
+    // The solar conjunction that ends at the Jupiter flyby (communication what-if).
+    const conj = conjunctions().find((c) => c.end >= m.jupiter - 2 && c.start <= m.jupiter) ?? conjunctions()[0];
 
     const cruise: Chapter = {
         id: 'cruise',
@@ -76,7 +83,7 @@ function build(): Chapter[] {
                 does: `For SOL-1 it runs from ${LAUNCH_WINDOW.opens} to ${LAUNCH_WINDOW.closes}; the chosen date needs the least departure energy.`,
                 why: 'Earth, Jupiter and Saturn line up like this only about every 20 years.',
                 happening: 'The departure from Earth’s orbit around the Sun, seen from above the ecliptic.',
-                learn: `Search: launch dates 2030–2045 on an 8-day grid, Jupiter and Saturn arrival dates on 12- and 16-day grids, then 1-, 2- and 4-day steps around the best window. Constraints: C3 ≤ ${CONSTRAINTS.c3Max} km²/s² (what the simulated launch delivers), Jupiter periapsis ≥ ${CONSTRAINTS.rpMinJupiterRadii} Jupiter radii, periapsis burn ≤ ${CONSTRAINTS.poweredDvMax} m/s, Saturn within ${CONSTRAINTS.maxYearsToSaturn} years. Chosen: C3 = ${m.c3.toFixed(1)} km²/s².`,
+                learn: `Search: launch dates 2030–2045 on an 8-day grid, Jupiter and Saturn arrival dates on 12- and 16-day grids, then 1-, 2- and 4-day steps around the best window. Constraints: C3 ≤ ${CONSTRAINTS.c3Max} km²/s² (the launch vehicle's capability with every stage burned to depletion), Jupiter periapsis ≥ ${CONSTRAINTS.rpMinJupiterRadii} Jupiter radii, periapsis burn ≤ ${CONSTRAINTS.poweredDvMax} m/s, Saturn within ${CONSTRAINTS.maxYearsToSaturn} years. Chosen: C3 = ${m.c3.toFixed(1)} km²/s².`,
                 telemetry: ['c3Need', 'dla', 'missionDate'],
             },
             {
@@ -135,7 +142,9 @@ function build(): Chapter[] {
         short: 'Jupiter',
         summary: `RSC-1 passes ${rj} Jupiter radii from Jupiter’s centre on ${MISSION_DATES.jupiter}; Jupiter’s gravity bends its path towards Saturn.`,
         why: `The flyby changes the spacecraft’s velocity around the Sun by ${k(m.flyby.helioDv)} km/s without using propellant.`,
-        segments: [span(J - 4 * D, J - 0.3 * D, 9, 'jupiter', 'jupiterApproach'), span(J - 5 * 3600, J + 5 * 3600, 11, 'jupiter', 'jupiterClose'), span(J + 0.6 * D, J + 8 * D, 8, 'jupiter', 'jupiterDepart')],
+        // The signature encounter gets the time it deserves: the approach as Jupiter fills the sky, closest
+        // approach with the cloud bands behind RSC-1, then the departure.
+        segments: [span(J - 4 * D, J - 0.3 * D, 15, 'jupiter', 'jupiterApproach'), span(J - 5 * 3600, J + 5 * 3600, 24, 'jupiter', 'jupiterClose'), span(J + 0.6 * D, J + 8 * D, 13, 'jupiter', 'jupiterDepart')],
         telemetry: ['jupDist', 'jupSpeed', 'helioSpeed', 'lightTimeB'],
         labels: [
             {
@@ -193,6 +202,22 @@ function build(): Chapter[] {
                 happening: 'The spacecraft crosses the inner magnetosphere near closest approach.',
                 learn: 'Not modelled: the radiation dose. The design rule here is a periapsis of at least 4 Jupiter radii, close to the most aggressive outer-planet flybys flown.',
                 telemetry: ['jupDist', 'rtgB'],
+            },
+            {
+                id: 'w-link',
+                title: 'What If Contact Is Lost?',
+                more: true,
+                whatIf: 'link',
+                focus: 'faultLink',
+                segments: [span(metOf(conj.start) + 0.5 * D, metOf(conj.end) - 0.25 * D, 14, 'deep', 'deepComms')],
+                what: `Not a hypothetical: on this trajectory, from ${isoDate(conj.start)} to ${isoDate(conj.end)}, RSC-1 appears within ${CONJUNCTION_LIMIT_DEG}° of the Sun as seen from Earth (a solar conjunction). It ends on the day of the flyby.`,
+                does: 'Radio signals pass through the Sun’s corona, which scrambles them. Missions suspend commanding until the spacecraft moves clear.',
+                why: 'The most important week of the cruise happens without a reliable link: the flyby sequence must be uploaded and checked beforehand, and the spacecraft must fly it on its own, protecting itself if anything goes wrong.',
+                happening: 'Looking past the dish towards the Earth: the Sun sits almost directly behind it.',
+                learn: `Conjunctions on this trajectory (computed from the ephemeris, ${CONJUNCTION_LIMIT_DEG}° limit): ${conjunctions()
+                    .map((c) => `${isoDate(c.start)} to ${isoDate(c.end)} (closest ${c.min.toFixed(2)}°)`)
+                    .join('; ')}. One happens about every 13 months, as the Earth passes behind the Sun from the spacecraft’s side.`,
+                telemetry: ['sepAngle', 'linkB', 'earthDist', 'lightTimeB'],
             },
         ],
     };
@@ -278,7 +303,9 @@ function build(): Chapter[] {
         more: !MAIN.includes(b.id),
         segments: [hold(0, 4, 'tour', 'tourTravel', b.id), hold(0, 9, 'tour', 'tourBody', b.id)],
         what: `${b.name}: ${b.features}.`,
-        does: b.radiusKm ? `Mean radius ${b.radiusKm.toLocaleString('en-GB')} km; ${b.orbit === 'moon' ? '384,400 km from Earth' : b.orbit === 'sun' ? 'at the centre of the Solar System' : `${b.distance} from the Sun`}.` : `${b.distance} from the Sun.`,
+        does: b.radiusKm
+            ? `Mean radius ${b.radiusKm.toLocaleString('en-GB')} km; ${b.orbit === 'moon' ? '384,400 km from Earth' : b.orbit === 'sun' ? 'at the centre of the Solar System' : `${b.distance} from the Sun`}.`
+            : `${b.distance} from the Sun.`,
         why: b.atmosphere !== '—' ? `Atmosphere: ${b.atmosphere}.` : b.features + '.',
         happening: `Cinematic tour: the camera travels to ${b.name} from the overview. Imagery: ${b.imagery.kind}.`,
         learn: `Data: planetary fact sheets (rounded). ${b.year ? `Year: ${b.year}. ` : ''}${b.day ? `Day: ${b.day}. ` : ''}${b.tiltDeg !== undefined ? `Axial tilt: ${b.tiltDeg}°. ` : ''}Positions are those of ${isoDate(TOUR_EPOCH)}; sizes and distances are not shown to scale together. This is a guided tour, not a spacecraft trajectory.`,
@@ -289,9 +316,9 @@ function build(): Chapter[] {
         number: '12',
         title: 'Solar System Discovery',
         short: 'Discovery',
-        summary: 'A guided tour of the Sun, the planets, the Moon, the asteroid and Kuiper belts and Pluto. Choose a destination.',
+        summary: 'A guided tour from the Sun to Pluto; every destination, the Moon and both belts are one choice away.',
         why: 'Each world shows a different outcome of the same physics: distance from the Sun, mass and composition.',
-        segments: [hold(0, 8, 'tour', 'tourOverview'), hold(0, 4, 'tour', 'tourTravel', 'saturn'), hold(0, 9, 'tour', 'tourBody', 'saturn')],
+        segments: [hold(0, 6, 'tour', 'tourOverview'), ...DISCOVERY_STOPS.flatMap((b) => [hold(0, STOP_TRAVEL, 'tour', 'tourTravel', b), hold(0, STOP_HOLD, 'tour', 'tourBody', b)])],
         telemetry: ['bDistance', 'bImagery'],
         labels: BODIES.map(tourLabel),
     };
@@ -376,8 +403,16 @@ export function readingAny(key: TKey, met: number, bodyId?: BodyId): Reading {
             return { label: 'Axial tilt', value: `${body(bodyId ?? 'saturn').tiltDeg ?? 0}°` };
         case 'bAtmos':
             return { label: 'Atmosphere', value: body(bodyId ?? 'earth').atmosphere };
+        case 'sepAngle': {
+            const a = sunEarthProbeAngle(t);
+            return { label: 'Angle from the Sun, seen from Earth', value: `${a.toFixed(a < 10 ? 2 : 0)}°`, tone: a < CONJUNCTION_LIMIT_DEG ? 'fault' : undefined };
+        }
+        case 'linkB': {
+            const a = sunEarthProbeAngle(t);
+            return { label: 'Radio link', value: a < CONJUNCTION_LIMIT_DEG ? 'Interrupted: solar conjunction' : 'Available', tone: a < CONJUNCTION_LIMIT_DEG ? 'fault' : 'nominal' };
+        }
         case 'bImagery':
-            return { label: 'Imagery', value: bodyId ? body(bodyId).imagery.kind.replace(' (Solar System Scope, CC BY 4.0)', '') : 'Labelled per destination' };
+            return { label: 'Imagery', value: bodyId ? body(bodyId).imagery.kind.replace(' (Solar System Scope, CC BY 4.0)', '').replace(' (USGS, public domain; colour approximated)', ', colour approximated') : 'Labelled per destination' };
         default:
             return reading(key, met);
     }

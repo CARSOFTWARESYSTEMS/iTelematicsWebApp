@@ -59,16 +59,21 @@ describe('Solar System experience', () => {
             const topics = main.filter((b) => !/^More topics/.test(b.textContent ?? ''));
             expect(topics.length).toBeGreaterThanOrEqual(3);
             expect(topics.length).toBeLessThanOrEqual(6);
-            const n = screen.getByLabelText('Engineering measurements, simulated').querySelectorAll('dt').length;
-            expect(n).toBeGreaterThanOrEqual(2);
+            // Readings (none over the Discovery overview, where there is no destination yet).
+            const box = screen.queryByLabelText('Engineering measurements, simulated');
+            const n = box ? box.querySelectorAll('dt').length : 0;
+            if (c.id !== 'discovery') expect(n).toBeGreaterThanOrEqual(2);
             expect(n).toBeLessThanOrEqual(4);
-            // Every topic of the stage is reachable: the main ones plus More topics.
+            // Every topic of the stage is reachable: the main ones, More topics and the fault scenarios.
+            const whatIf = screen.queryByRole('group', { name: `${c.title}: what if` });
+            const nWhatIf = whatIf ? within(whatIf).getAllByRole('button').length : 0;
+            expect(nWhatIf).toBe(c.labels.filter((l) => l.whatIf).length);
             const more = main.find((b) => /^More topics/.test(b.textContent ?? ''));
             if (more) {
                 fireEvent.click(more);
                 const extra = within(screen.getByRole('group', { name: `${c.title}: more topics` })).getAllByRole('button');
-                expect(topics.length + extra.length).toBe(c.labels.length);
-            } else expect(topics.length).toBe(c.labels.length);
+                expect(topics.length + extra.length + nWhatIf).toBe(c.labels.length);
+            } else expect(topics.length + nWhatIf).toBe(c.labels.length);
             expect(i).toBeGreaterThanOrEqual(0);
         }
     }, 30000);
@@ -79,9 +84,13 @@ describe('Solar System experience', () => {
         fireEvent.click(screen.getByRole('button', { name: /^Investigate/ }));
         fireEvent.click(within(screen.getByRole('group', { name: 'Atmospheric Ascent: topics' })).getByRole('button', { name: 'Maximum Dynamic Pressure' }));
         expect(screen.getByRole('heading', { name: 'Maximum Dynamic Pressure' })).toBeInTheDocument();
-        for (const q of ['What happens', 'Why it matters']) expect(screen.getByText(q)).toBeInTheDocument();
+        for (const q of ['What it is', 'What happens', 'Why it matters']) expect(screen.getByText(q)).toBeInTheDocument();
         expect(screen.getByText('Learn more')).toBeInTheDocument();
-        expect(screen.getByText('Dynamic pressure')).toBeInTheDocument();
+        expect(screen.getAllByText('Dynamic pressure').length).toBeGreaterThan(0);
+        // Technical terms explain themselves on tap.
+        const term = screen.getAllByRole('button', { name: /^Max Q$|^dynamic pressure$/i })[0];
+        fireEvent.click(term);
+        expect(screen.getByRole('tooltip')).toBeInTheDocument();
         expect(within(screen.getByRole('group', { name: 'Atmospheric Ascent: topics' })).getByRole('button', { name: 'Maximum Dynamic Pressure' })).toHaveAttribute('aria-pressed', 'true');
         fireEvent.click(screen.getByRole('button', { name: '← Return to mission view' }));
         expect(screen.getByRole('heading', { name: 'Atmospheric Ascent' })).toBeInTheDocument();
@@ -106,5 +115,34 @@ describe('Solar System experience', () => {
         expect(screen.getByRole('heading', { name: 'Explore Spacecraft Payload' })).toBeInTheDocument();
         fireEvent.click(screen.getByRole('button', { name: 'Stage 12: Solar System Discovery' }));
         expect(screen.getByText(/Cinematic Scale — Not to Scale/)).toBeInTheDocument();
+    });
+
+    it('keeps the guided mission guided after a topic, and Back returns to where the visitor came from', () => {
+        render(<SolarSystemExperience />);
+        fireEvent.click(screen.getByRole('button', { name: 'Start Mission' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Explore Spacecraft Payload' }));
+        fireEvent.click(screen.getByRole('button', { name: '← Return to mission view' }));
+        expect(screen.getByRole('heading', { name: chapters[0].title })).toBeInTheDocument();
+        // A jump from the timeline is remembered: Back returns to the stage it came from.
+        fireEvent.click(screen.getByRole('button', { name: 'Stage 09: Interplanetary Cruise' }));
+        expect(screen.getByRole('heading', { name: 'Interplanetary Cruise' })).toBeInTheDocument();
+        fireEvent.click(screen.getByRole('button', { name: 'Back' }));
+        expect(screen.getByRole('heading', { name: chapters[0].title })).toBeInTheDocument();
+    });
+
+    it('offers a scientific view, keyboard control, the Discovery tour and a searchable topic index', () => {
+        render(<SolarSystemExperience />);
+        fireEvent.click(screen.getByRole('button', { name: 'Stage 10: Jupiter Encounter and Gravity Assist' }));
+        const sci = screen.getByRole('button', { name: 'Scientific' });
+        fireEvent.click(sci);
+        expect(sci).toHaveAttribute('aria-pressed', 'true');
+        fireEvent.keyDown(sci, { key: 'ArrowRight' });
+        expect(screen.getByRole('heading', { name: 'Saturn and Deep Space' })).toBeInTheDocument();
+        fireEvent.click(screen.getByRole('button', { name: 'Back' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Back' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Explore Mission Stages' }));
+        fireEvent.change(screen.getByRole('searchbox', { name: 'Search topics' }), { target: { value: 'radiation' } });
+        fireEvent.click(screen.getByRole('button', { name: /Jupiter’s Radiation/ }));
+        expect(screen.getByRole('heading', { name: 'Jupiter’s Radiation' })).toBeInTheDocument();
     });
 });
