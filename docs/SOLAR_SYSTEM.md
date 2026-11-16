@@ -436,6 +436,76 @@ the experience looked like a film but taught like a slideshow. Changes:
 - Attitude thrusters pulse while the separation tumble is damped; diagram labels behind the Earth are hidden by it; the cruise
   diagrams name only the planets that matter in each view.
 
+## Voice narration (16 November 2026)
+
+A voice explains the mission while it plays, and each topic when it is chosen. The animation demonstrates,
+the voice explains, the readings give the evidence.
+
+**Voice.** Kokoro-82M (`hexgrad/Kokoro-82M`, Apache-2.0: free for commercial use, no attribution needed for
+the audio), voice `hf_alpha` (Indian-English, female), speed 0.9. The user rejected a paid service; this voice
+was chosen after comparing five free local models (Kokoro, Pocket TTS, KittenTTS, MeloTTS, OpenVoice V2) by
+machine listening and by the user's own listening. The author says the model's training audio includes
+synthetic speech from commercial services; the licence permits commercial use.
+
+**Generated once, served as static files.** No speech service runs during a visit.
+- `src/lib/solar-system/narration.ts`: the script, 128 lines (3,528 words), with every number taken from the models.
+  - 46 mission lines across the 12 chapters, anchored to the modelled events and leaving the big moments silent.
+  - One explanation for each of the 81 topics, including the three fault scenarios.
+  - A closing line for the mission summary.
+- `tools/narration/`: the generation pipeline (README).
+  - `export-script.ts` writes the script.
+  - `speech.py` turns caption text into spoken text: numbers, dates, units, mission codes, plus respellings each
+    verified by transcribing them back.
+  - `generate.py` makes one MP3 per line (mono, 24 kHz, 48 kbit/s, −16 LUFS, peaks under −1.5 dBFS). It records
+    phrase timings for the subtitles and caches by content.
+  - `qa.py` transcribes every line back and reports word errors.
+- Output: `public/audio/solar-system/narration/*.mp3` (9.3 MB) and `src/lib/solar-system/narration-manifest.json`
+  (durations and subtitle phrases).
+
+**Synchronisation** (`components/solar-system/narrator.ts`). The mission clock drives the voice; the voice has
+no timer of its own. On every clock tick the player works out which line should be speaking and where in it,
+then starts, pauses, seeks or stops a single audio element to match. As a result:
+- **Lines never overlap,** and the voice stays in step through pause and resume, replay, seeking, previous and
+  next, topics, returning to the mission, and playback speed (the voice keeps its pitch at 0.5× and 2×).
+- **A line still speaking when a stage ends is allowed to finish.** The recap waits for it.
+- **Leaving the option, or the page going out of view, stops the voice.**
+- **Loading:** the next line is preloaded. Audio failures are silent, and the subtitles and 3D carry on.
+- **Effects:** the sound effects duck to 40 % under the voice.
+
+**Controls (minimal).**
+- **Voice on/off:** V; remembered on the device.
+- **Subtitles on/off:** C; remembered on the device.
+- **Replay explanation:** in the caption and the topic card.
+- **Pause and resume:** the existing play button.
+- **Unlocking:** browsers allow sound only after a click, so the first click (Start Mission, a stage or a topic)
+  unlocks narration. Nothing plays before then.
+
+**Subtitles.** These are the script phrase by phrase, timed from generation. In the cinematic view the caption
+carries the narrator's words while a line is spoken; in topics and the summary, a subtitle line sits at the
+foot of the scene, clear of the hardware. With the voice off, subtitles still run on the clock.
+
+**Checks.**
+- **Unit tests:** `narration.test.ts` and `narrator.test.ts`.
+  - Every chapter and topic has narration with existing audio.
+  - The subtitles equal the script.
+  - Every chapter line fits before the next and within its scene.
+  - Topic explanations fit their scene.
+  - Scheduling and subtitle logic.
+- **Listening check:** `qa.py` on all 128 lines, mean word error 2.9 %. What remains is spelling ("per cent"
+  against "%") and the recogniser writing the spoken letter R as "our".
+- **Real-browser check:** 19 of 19 playback behaviours pass in Chrome with the normal autoplay policy.
+  - Start Mission starts the voice; the audio follows the clock within about 0.3 s.
+  - Pause holds; resume, seek and Replay explanation land on the right line.
+  - Topics take over and hand back without overlap.
+  - Voice off is silent while the subtitles run; subtitles off falls back to the event caption.
+  - 2× speed is followed; the recap waits; switching option stops the voice.
+  - No console errors.
+
+**Limits.**
+- The voice is synthetic: clear, consistent and well paced, but not a human narrator.
+- The chapters in the scientific view and the opening are not narrated.
+- Real-phone and Safari playback still need checking on devices.
+
 ## Known limitations and open items (16 November 2026)
 
 - **Still open:** a designed Saturn flyby (the pass is a labelled cinematic placement); trajectory-correction manoeuvres; thermal,

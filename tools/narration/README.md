@@ -15,5 +15,14 @@ and served as static audio files. Nothing calls a speech service while a visitor
 
 Setup: `python3.12 -m venv .venv && .venv/bin/pip install -r requirements.txt` and `brew install espeak-ng`.
 
-Status: the pronunciation dictionary is in place; the script export, audio generation and the in-browser
-narration player follow (docs/SOLAR_SYSTEM.md).
+## Regenerating
+
+1. `npx tsx tools/narration/export-script.ts` writes `script.json` from `src/lib/solar-system/narration.ts`.
+2. `python tools/narration/generate.py` regenerates only the lines whose text or rules changed: MP3s in
+   `public/audio/solar-system/narration/`, timings in `src/lib/solar-system/narration-manifest.json`.
+3. `python tools/narration/qa.py` transcribes every line back and lists the worst word errors (needs
+   `faster-whisper jiwer librosa`).
+4. `npx vitest run src/lib/solar-system/narration.test.ts` checks coverage and that every line fits its scene.
+
+The player (`src/components/solar-system/narrator.ts`) and its behaviour are documented in docs/SOLAR_SYSTEM.md,
+section "Voice narration".

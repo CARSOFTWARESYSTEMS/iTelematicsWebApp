@@ -27,6 +27,7 @@ import { isoDate } from '@/lib/solar-system/ephemeris';
 import { AssistDiagram, Finale, Gloss, LessonChart, MiniMap, planTerms, Recap, WhatIfPanel, WindowChart } from './learn';
 import { PHASE_B_LABELS } from './PlanetViews';
 import styles from './SolarSystemExperience.module.css';
+import { activeCue, cuesFor, narrator, phraseAt, topicNarrationSeconds } from './narrator';
 import { missionSound } from './sound';
 
 const SolarCanvas = dynamic(() => import('./SolarCanvas'), { ssr: false });
@@ -64,11 +65,11 @@ const FINALE: Segment[] = [{ met: [0, 0], seconds: 45, scene: 'tour', shot: 'tou
 const RECAP_SECONDS = 12;
 const SPEEDS = [1, 0.5, 2] as const;
 
-/** A topic plays at least as long as its card takes to read (slower, never faster; at most 3×). */
+/** A topic plays at least as long as its card takes to read and its narration takes to say (slower, never faster; at most 4×). */
 function topicProgram(l: Label): Segment[] {
     const words = `${l.what} ${l.does} ${l.why}`.split(/\s+/).length;
     const total = storySeconds(l.segments);
-    const k = Math.min(3, Math.max(1, (words / 3.3 + 3) / total));
+    const k = Math.min(4, Math.max(1, Math.max(words / 3.3 + 3, topicNarrationSeconds(l.id) + 1.5) / total));
     return k === 1 ? [...l.segments] : l.segments.map((s) => ({ ...s, seconds: s.seconds * k }));
 }
 
@@ -172,6 +173,9 @@ export default function SolarSystemExperience() {
         return mode.view === 'scientific' && l?.science ? l.science.segments : chapters[mode.c].segments;
     }, [mode, intro, chapters, L]);
     const programKey = mode.kind === 'intro' ? 'intro' : mode.kind === 'finale' ? 'finale' : mode.kind === 'label' ? `l-${mode.c}-${mode.l}` : `c-${mode.c}-${mode.view}`;
+    // The narration of this programme (the scientific views and the opening are not narrated).
+    const programId = mode.kind === 'finale' ? 'finale' : label ? `topic:${label.id}` : mode.kind === 'chapter' && mode.view === 'cinematic' ? `chapter:${chapters[mode.c].id}` : null;
+    const cues = useMemo(() => cuesFor(programId), [programId]);
     // One clock per programme (the key names it; the segments follow from the mode).
     const clock = useMemo(() => new MissionClock(program), [programKey]);
     useEffect(() => {
@@ -229,8 +233,52 @@ export default function SolarSystemExperience() {
 
     useEffect(() => clock.onTick(() => setTick((n) => n + 1)), [clock]);
 
+    // Voice narration (narrator.ts): driven by the mission clock, on unless the visitor turned it off;
+    // subtitles likewise. Both choices are remembered on the device.
+    const [voiceOn, setVoiceOn] = useState(true);
+    const [captionsOn, setCaptionsOn] = useState(true);
+    const [, setVoiceTick] = useState(0);
+    useEffect(() => {
+        try {
+            if (window.localStorage.getItem('solar-voice') === 'off') {
+                narrator.setEnabled(false);
+                setVoiceOn(false);
+            }
+            if (window.localStorage.getItem('solar-captions') === 'off') setCaptionsOn(false);
+        } catch {
+            /* defaults: voice and subtitles on */
+        }
+        return narrator.onChange(() => setVoiceTick((n) => n + 1));
+    }, []);
+    useEffect(() => () => narrator.dispose(), []);
+    useEffect(() => {
+        const sync = () => narrator.update({ cues, time: clock.time, playing, rate, done: clock.done, seeks: clock.seeks });
+        sync();
+        return clock.onTick(sync);
+    }, [clock, cues, playing, rate]);
+    const remember = (key: string, on: boolean) => {
+        try {
+            window.localStorage.setItem(key, on ? 'on' : 'off');
+        } catch {
+            /* storage unavailable: the choice lasts for this visit */
+        }
+    };
+    const toggleVoice = () => {
+        const next = !voiceOn;
+        narrator.unlock();
+        narrator.setEnabled(next);
+        setVoiceOn(next);
+        remember('solar-voice', next);
+    };
+    const toggleCaptions = () => {
+        setCaptionsOn(!captionsOn);
+        remember('solar-captions', !captionsOn);
+    };
+
     /** Moves to another view; `push` records where the visitor came from, for Back. */
     const go = (next: Mode, push = true) => {
+        // Every navigation is a click: it also lets the browser play the narration.
+        narrator.unlock();
         if (push) history.current.push(mode);
         if (history.current.length > 30) history.current.shift();
         setMode(next);
@@ -311,7 +359,22 @@ export default function SolarSystemExperience() {
     const met = loc.met;
     const ended = mode.kind === 'chapter' && clock.done;
     const cardShown = mode.kind === 'label' || (mode.kind === 'chapter' && investigate);
-    const recapShown = ended && !cardShown && !!lesson;
+    // The narrator finishes its line before the recap appears.
+    const speaking = narrator.speaking;
+    const recapShown = ended && !cardShown && !!lesson && !speaking;
+    // Subtitles: the phrase being spoken (from the audio while it plays, else from the clock, so they also
+    // run with the voice off).
+    const nowCue = activeCue(cues, clock.time);
+    const pos = narrator.position;
+    const posCue = pos ? cues.find((c) => c.id === pos.id) : undefined;
+    const subtitle = !captionsOn ? null : posCue ? phraseAt(posCue, pos!.t) : nowCue ? phraseAt(nowCue.cue, nowCue.offset) : null;
+    const replayCue = nowCue?.cue ?? [...cues].reverse().find((c) => c.at <= clock.time) ?? cues[0];
+    const replayExplanation = () => {
+        if (!replayCue) return;
+        narrator.unlock();
+        clock.seek(Math.max(0, replayCue.at - 0.2));
+        setPaused(false);
+    };
 
     // A finished stage counts as watched.
     const chapterId = chapter?.id;
@@ -364,7 +427,9 @@ export default function SolarSystemExperience() {
     const beats = useMemo(() => (lesson && !scientific && mode.kind === 'chapter' ? lesson.beats : []), [lesson, scientific, mode.kind]);
     const beat = beats.filter((b) => b.t <= clock.time + 0.05).pop();
     const beatText = scientific ? lesson!.science!.text : (beat?.text ?? chapter?.summary ?? '');
-    const captionAllow = useMemo(() => planTerms([beatText]), [beatText]);
+    // In the cinematic view the caption carries the narrator's words while a line is spoken.
+    const captionText = (mode.kind === 'chapter' && subtitle) || beatText;
+    const captionAllow = useMemo(() => planTerms([captionText]), [captionText]);
     const cardTexts = label ? [label.what, label.does, label.why, label.learn, label.happening] : chapter ? [chapter.summary, chapter.why] : [];
     const cardAllow = planTerms(cardTexts);
     // Wide layouts frame the hardware right of centre, clear of the card or the opening title.
@@ -372,7 +437,8 @@ export default function SolarSystemExperience() {
     // Phones: the opening title sits over the lower part of the scene, so frame the vehicle higher.
     const shiftY = !wide && mode.kind === 'intro' ? 0.2 : 0;
     const focus = label?.focus ?? (scientific ? loc.segment.focus : undefined);
-    const showMap = live && (mode.kind === 'chapter' || mode.kind === 'label') && !scientific && ['deep', 'jupiter', 'saturn'].includes(loc.segment.scene);
+    // The mini-map belongs to the cinematic shots (the diagrams already show the whole path).
+    const showMap = live && (mode.kind === 'chapter' || mode.kind === 'label') && !scientific && ['deep', 'jupiter', 'saturn'].includes(loc.segment.scene) && loc.segment.shot !== 'jupiterWide';
     const chart = lesson?.chart && (!label || depth === 'engineer') && met >= lesson.chart.range[0] - 1 && met <= lesson.chart.range[1] + 1 ? lesson.chart : undefined;
     const allChecks = chapters.filter((c) => L[c.id]);
     const score = allChecks.filter((c) => progress.checks[c.id] === L[c.id].check.answer).length;
@@ -392,6 +458,10 @@ export default function SolarSystemExperience() {
         } else if (e.key === 'k' || e.key === 'K' || (e.key === ' ' && !t.closest('button, summary, a'))) {
             e.preventDefault();
             togglePlay();
+        } else if (e.key === 'v' || e.key === 'V') {
+            toggleVoice();
+        } else if (e.key === 'c' || e.key === 'C') {
+            toggleCaptions();
         } else if (e.key === 'Escape') {
             if (stagesOpen) setStagesOpen(false);
             else if (mode.kind === 'label') returnToMission(mode.c);
@@ -541,6 +611,11 @@ export default function SolarSystemExperience() {
                     )}
 
                     {showMap && <MiniMap met={met} />}
+                    {subtitle && mode.kind !== 'chapter' && (
+                        <p className={styles.subtitle} data-testid="solar-subtitle">
+                            <span>{subtitle}</span>
+                        </p>
+                    )}
                     <span className={styles.scale} aria-hidden="true">
                         {scaleText(loc.segment, rate)}
                     </span>
@@ -554,7 +629,7 @@ export default function SolarSystemExperience() {
                             {chapter.title}
                         </h3>
                         <p className={styles.captionText} aria-live="polite">
-                            <Gloss text={beatText} allow={captionAllow[0]} />
+                            <Gloss text={captionText} allow={captionAllow[0]} />
                         </p>
                         {heroReadings.length > 0 && (
                             <p className={styles.captionData} aria-label="Engineering measurements, simulated">
@@ -575,6 +650,11 @@ export default function SolarSystemExperience() {
                             <button type="button" className={styles.investigateBtn} aria-expanded={false} onClick={() => setInvestigate(true)} data-track="station_model_interaction" data-track-name={`Solar System investigate: ${chapter.title}`}>
                                 Investigate ({chapter.labels.length})
                             </button>
+                            {cues.length > 0 && (
+                                <button type="button" className={styles.linkAction} onClick={replayExplanation} data-track="station_model_interaction" data-track-name="Solar System voice: replay explanation">
+                                    ↺ Replay explanation
+                                </button>
+                            )}
                         </div>
                     </section>
                 )}
@@ -736,9 +816,16 @@ export default function SolarSystemExperience() {
                             </div>
                         )}
                         {label && (
-                            <button type="button" className={styles.returnBtn} onClick={() => returnToMission(chapterIndex)}>
-                                ← Return to mission view
-                            </button>
+                            <div className={styles.cardFoot}>
+                                <button type="button" className={styles.returnBtn} onClick={() => returnToMission(chapterIndex)}>
+                                    ← Return to mission view
+                                </button>
+                                {cues.length > 0 && (
+                                    <button type="button" className={styles.linkAction} onClick={replayExplanation} data-track="station_model_interaction" data-track-name="Solar System voice: replay explanation">
+                                        ↺ Replay explanation
+                                    </button>
+                                )}
+                            </div>
                         )}
                     </section>
                 )}
@@ -816,6 +903,40 @@ export default function SolarSystemExperience() {
                                 <path d="M13.5 7.5l5 5m0-5l-5 5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                             )}
                         </svg>
+                    </button>
+                    <button
+                        type="button"
+                        className={styles.tool}
+                        onClick={toggleVoice}
+                        aria-pressed={voiceOn}
+                        aria-label={voiceOn ? 'Voice narration on' : 'Voice narration off'}
+                        aria-keyshortcuts="V"
+                        title={voiceOn ? 'Voice narration on' : 'Voice narration off'}
+                        data-track="station_model_interaction"
+                        data-track-name={voiceOn ? 'Solar System control: voice off' : 'Solar System control: voice on'}
+                    >
+                        <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">
+                            <circle cx="7.5" cy="6.5" r="3" fill="currentColor" />
+                            <path d="M2.5 17c0-3 2.2-5 5-5s5 2 5 5" fill="currentColor" />
+                            {voiceOn ? (
+                                <path d="M14 5.5a4 4 0 0 1 0 5M16.4 3.5a7 7 0 0 1 0 9" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                            ) : (
+                                <path d="M14 5.5l4 4m0-4l-4 4" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                            )}
+                        </svg>
+                    </button>
+                    <button
+                        type="button"
+                        className={`${styles.tool} ${styles.ccTool}`}
+                        onClick={toggleCaptions}
+                        aria-pressed={captionsOn}
+                        aria-label={captionsOn ? 'Subtitles on' : 'Subtitles off'}
+                        aria-keyshortcuts="C"
+                        title={captionsOn ? 'Subtitles on' : 'Subtitles off'}
+                        data-track="station_model_interaction"
+                        data-track-name={captionsOn ? 'Solar System control: subtitles off' : 'Solar System control: subtitles on'}
+                    >
+                        CC
                     </button>
                 </div>
                 <ol className={styles.timeline} aria-label="Mission timeline">

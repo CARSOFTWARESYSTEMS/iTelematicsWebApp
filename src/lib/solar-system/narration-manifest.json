@@ -1,0 +1,2829 @@
+{
+ "cues": {
+  "c-ascent-1": {
+   "src": "/audio/solar-system/narration/c-ascent-1.mp3",
+   "duration": 4.97,
+   "phrases": [
+    [
+     0.0,
+     4.97,
+     "Speed builds faster than the air thins, so the pressure on the rocket rises."
+    ]
+   ],
+   "hash": "ad79ea4589e26b70"
+  },
+  "c-ascent-2": {
+   "src": "/audio/solar-system/narration/c-ascent-2.mp3",
+   "duration": 6.03,
+   "phrases": [
+    [
+     0.0,
+     3.36,
+     "Max Q, 31.3 kilopascals:"
+    ],
+    [
+     3.68,
+     6.03,
+     "the hardest moment for the structure."
+    ]
+   ],
+   "hash": "ca25b604abbb2c7e"
+  },
+  "c-ascent-3": {
+   "src": "/audio/solar-system/narration/c-ascent-3.mp3",
+   "duration": 5.43,
+   "phrases": [
+    [
+     0.0,
+     3.5,
+     "Beyond it, the air thins faster than the speed grows,"
+    ],
+    [
+     3.72,
+     5.43,
+     "and the load falls away."
+    ]
+   ],
+   "hash": "db0fb5518b296130"
+  },
+  "c-ascent-4": {
+   "src": "/audio/solar-system/narration/c-ascent-4.mp3",
+   "duration": 6.19,
+   "phrases": [
+    [
+     0.0,
+     2.41,
+     "Gravity costs far more than drag:"
+    ],
+    [
+     2.73,
+     6.19,
+     "726 metres per second."
+    ]
+   ],
+   "hash": "efb164b0e27399dd"
+  },
+  "c-cruise-1": {
+   "src": "/audio/solar-system/narration/c-cruise-1.mp3",
+   "duration": 5.57,
+   "phrases": [
+    [
+     0.0,
+     1.79,
+     "Engines off, for good."
+    ],
+    [
+     2.29,
+     5.57,
+     "From here, the Sun's gravity alone shapes the path."
+    ]
+   ],
+   "hash": "ee9706db5aa09439"
+  },
+  "c-cruise-2": {
+   "src": "/audio/solar-system/narration/c-cruise-2.mp3",
+   "duration": 3.48,
+   "phrases": [
+    [
+     0.0,
+     3.48,
+     "A year out, radio takes 37 minutes each way."
+    ]
+   ],
+   "hash": "51bfbc9ca932d201"
+  },
+  "c-cruise-3": {
+   "src": "/audio/solar-system/narration/c-cruise-3.mp3",
+   "duration": 5.81,
+   "phrases": [
+    [
+     0.0,
+     3.09,
+     "Sunlight here is just 4 per cent of Earth's."
+    ],
+    [
+     3.59,
+     5.81,
+     "The generators do not notice."
+    ]
+   ],
+   "hash": "19f7c7945c8dbf76"
+  },
+  "c-departure-1": {
+   "src": "/audio/solar-system/narration/c-departure-1.mp3",
+   "duration": 3.99,
+   "phrases": [
+    [
+     0.0,
+     3.99,
+     "Half an orbit later, the stack reaches its departure point."
+    ]
+   ],
+   "hash": "c01fdbd94330f400"
+  },
+  "c-departure-2": {
+   "src": "/audio/solar-system/narration/c-departure-2.mp3",
+   "duration": 7.05,
+   "phrases": [
+    [
+     0.0,
+     3.02,
+     "The upper stage restarts, low and fast,"
+    ],
+    [
+     3.24,
+     7.05,
+     "where each kilogram of propellant buys the most energy."
+    ]
+   ],
+   "hash": "2a3f6bfcb2d718b4"
+  },
+  "c-departure-3": {
+   "src": "/audio/solar-system/narration/c-departure-3.mp3",
+   "duration": 2.02,
+   "phrases": [
+    [
+     0.0,
+     2.02,
+     "It stops short, on purpose."
+    ]
+   ],
+   "hash": "9afb9a82e08ecaaf"
+  },
+  "c-departure-4": {
+   "src": "/audio/solar-system/narration/c-departure-4.mp3",
+   "duration": 6.9,
+   "phrases": [
+    [
+     0.0,
+     2.46,
+     "The solid kick stage cannot stop."
+    ],
+    [
+     2.96,
+     6.9,
+     "It burns to the end, and RSC-1 escapes the Earth."
+    ]
+   ],
+   "hash": "0b7f20ec347a30b4"
+  },
+  "c-departure-5": {
+   "src": "/audio/solar-system/narration/c-departure-5.mp3",
+   "duration": 5.8,
+   "phrases": [
+    [
+     0.0,
+     5.8,
+     "C3, 79.6: exactly the energy the path to Jupiter needs."
+    ]
+   ],
+   "hash": "a5d9ff5cad9151b3"
+  },
+  "c-deploy-1": {
+   "src": "/audio/solar-system/narration/c-deploy-1.mp3",
+   "duration": 5.12,
+   "phrases": [
+    [
+     0.0,
+     2.57,
+     "Springs push RSC-1 free."
+    ],
+    [
+     3.07,
+     5.12,
+     "From here, it flies alone."
+    ]
+   ],
+   "hash": "1a684b0cc4046b84"
+  },
+  "c-deploy-2": {
+   "src": "/audio/solar-system/narration/c-deploy-2.mp3",
+   "duration": 1.97,
+   "phrases": [
+    [
+     0.0,
+     1.97,
+     "Thrusters damp the tumble."
+    ]
+   ],
+   "hash": "ece007287de08eb2"
+  },
+  "c-deploy-3": {
+   "src": "/audio/solar-system/narration/c-deploy-3.mp3",
+   "duration": 4.54,
+   "phrases": [
+    [
+     0.0,
+     4.54,
+     "Booms swing out, carrying the generators' heat away from the instruments."
+    ]
+   ],
+   "hash": "9375cc256546a751"
+  },
+  "c-deploy-4": {
+   "src": "/audio/solar-system/narration/c-deploy-4.mp3",
+   "duration": 4.76,
+   "phrases": [
+    [
+     0.0,
+     4.76,
+     "Ten minutes after separation, a ground station hears it for the first time."
+    ]
+   ],
+   "hash": "b1a153e32f96b707"
+  },
+  "c-discovery-1": {
+   "src": "/audio/solar-system/narration/c-discovery-1.mp3",
+   "duration": 4.81,
+   "phrases": [
+    [
+     0.0,
+     2.13,
+     "The Solar System from above:"
+    ],
+    [
+     2.45,
+     4.81,
+     "eight planets, two belts, and Pluto."
+    ]
+   ],
+   "hash": "19ec2e44f64e82c8"
+  },
+  "c-discovery-2": {
+   "src": "/audio/solar-system/narration/c-discovery-2.mp3",
+   "duration": 5.85,
+   "phrases": [
+    [
+     0.0,
+     5.85,
+     "The Sun holds 99.86 per cent of all the mass in the Solar System."
+    ]
+   ],
+   "hash": "aa9d78e4e3905d87"
+  },
+  "c-discovery-3": {
+   "src": "/audio/solar-system/narration/c-discovery-3.mp3",
+   "duration": 4.01,
+   "phrases": [
+    [
+     0.0,
+     4.01,
+     "Earth: liquid oceans, and the only world we know with life."
+    ]
+   ],
+   "hash": "9c4738da641ca97b"
+  },
+  "c-discovery-4": {
+   "src": "/audio/solar-system/narration/c-discovery-4.mp3",
+   "duration": 5.82,
+   "phrases": [
+    [
+     0.0,
+     5.82,
+     "Mars: a thin carbon dioxide sky over the tallest volcano in the Solar System."
+    ]
+   ],
+   "hash": "188458818c773394"
+  },
+  "c-discovery-5": {
+   "src": "/audio/solar-system/narration/c-discovery-5.mp3",
+   "duration": 4.55,
+   "phrases": [
+    [
+     0.0,
+     4.55,
+     "Jupiter: more than twice the mass of all the other planets together."
+    ]
+   ],
+   "hash": "18a2ffc2c9ea5b84"
+  },
+  "c-discovery-6": {
+   "src": "/audio/solar-system/narration/c-discovery-6.mp3",
+   "duration": 4.57,
+   "phrases": [
+    [
+     0.0,
+     4.57,
+     "Saturn's rings are vast, but mostly less than 100 metres thick."
+    ]
+   ],
+   "hash": "d8aa8105ed6ada8e"
+  },
+  "c-discovery-7": {
+   "src": "/audio/solar-system/narration/c-discovery-7.mp3",
+   "duration": 6.41,
+   "phrases": [
+    [
+     0.0,
+     3.08,
+     "Neptune, 30 times farther out than Earth."
+    ],
+    [
+     3.58,
+     6.41,
+     "Its moon Triton orbits backwards."
+    ]
+   ],
+   "hash": "81b07a59cde3a474"
+  },
+  "c-discovery-8": {
+   "src": "/audio/solar-system/narration/c-discovery-8.mp3",
+   "duration": 5.93,
+   "phrases": [
+    [
+     0.0,
+     1.86,
+     "Pluto, in the Kuiper Belt:"
+    ],
+    [
+     2.18,
+     5.93,
+     "nitrogen ice, and a frozen plain shaped like a heart."
+    ]
+   ],
+   "hash": "60f2d713cf9aa7f8"
+  },
+  "c-fairing-1": {
+   "src": "/audio/solar-system/narration/c-fairing-1.mp3",
+   "duration": 4.86,
+   "phrases": [
+    [
+     0.0,
+     4.86,
+     "Above 100 kilometres, the air can no longer harm the spacecraft."
+    ]
+   ],
+   "hash": "23a31fc0d4f9f56c"
+  },
+  "c-fairing-2": {
+   "src": "/audio/solar-system/narration/c-fairing-2.mp3",
+   "duration": 6.19,
+   "phrases": [
+    [
+     0.0,
+     2.07,
+     "So the fairing halves fall away,"
+    ],
+    [
+     2.29,
+     6.19,
+     "and RSC-1 sees open space for the first time."
+    ]
+   ],
+   "hash": "6c9020905f6915b0"
+  },
+  "c-jupiter-1": {
+   "src": "/audio/solar-system/narration/c-jupiter-1.mp3",
+   "duration": 7.13,
+   "phrases": [
+    [
+     0.0,
+     3.33,
+     "Four days out, Jupiter's gravity has taken over,"
+    ],
+    [
+     3.55,
+     7.13,
+     "and RSC-1 is speeding up as it falls in."
+    ]
+   ],
+   "hash": "09f3ec4b8946d117"
+  },
+  "c-jupiter-2": {
+   "src": "/audio/solar-system/narration/c-jupiter-2.mp3",
+   "duration": 6.98,
+   "phrases": [
+    [
+     0.0,
+     3.12,
+     "From Earth, it is now hidden in the Sun's glare."
+    ],
+    [
+     3.62,
+     6.98,
+     "The flyby runs on commands stored on board."
+    ]
+   ],
+   "hash": "e1670f0622e80f70"
+  },
+  "c-jupiter-3": {
+   "src": "/audio/solar-system/narration/c-jupiter-3.mp3",
+   "duration": 3.76,
+   "phrases": [
+    [
+     0.0,
+     3.76,
+     "Above the cloud tops now, falling faster every minute."
+    ]
+   ],
+   "hash": "8e64ab0fbda36e3f"
+  },
+  "c-jupiter-4": {
+   "src": "/audio/solar-system/narration/c-jupiter-4.mp3",
+   "duration": 3.67,
+   "phrases": [
+    [
+     0.0,
+     3.67,
+     "Closest approach: 4.1 Jupiter radii."
+    ]
+   ],
+   "hash": "acddd10669806b78"
+  },
+  "c-jupiter-5": {
+   "src": "/audio/solar-system/narration/c-jupiter-5.mp3",
+   "duration": 4.89,
+   "phrases": [
+    [
+     0.0,
+     4.89,
+     "Jupiter's gravity turns the path by 135 degrees."
+    ]
+   ],
+   "hash": "81079f3d6bc0c338"
+  },
+  "c-jupiter-6": {
+   "src": "/audio/solar-system/narration/c-jupiter-6.mp3",
+   "duration": 8.73,
+   "phrases": [
+    [
+     0.0,
+     3.16,
+     "It leaves at the same speed relative to Jupiter,"
+    ],
+    [
+     3.38,
+     8.73,
+     "but 11 kilometres per second faster around the Sun, with no propellant used."
+    ]
+   ],
+   "hash": "042af7fba535dc86"
+  },
+  "c-liftoff-1": {
+   "src": "/audio/solar-system/narration/c-liftoff-1.mp3",
+   "duration": 2.42,
+   "phrases": [
+    [
+     0.0,
+     2.42,
+     "The final count is automatic."
+    ]
+   ],
+   "hash": "7e2256848e4b18fe"
+  },
+  "c-liftoff-2": {
+   "src": "/audio/solar-system/narration/c-liftoff-2.mp3",
+   "duration": 5.18,
+   "phrases": [
+    [
+     0.0,
+     5.18,
+     "Thrust is 1.27 times the weight, so it climbs slowly at first."
+    ]
+   ],
+   "hash": "d3884cc5f10dc2a2"
+  },
+  "c-liftoff-3": {
+   "src": "/audio/solar-system/narration/c-liftoff-3.mp3",
+   "duration": 5.49,
+   "phrases": [
+    [
+     0.0,
+     1.64,
+     "Now a small tilt."
+    ],
+    [
+     2.14,
+     5.49,
+     "From here, gravity bends the path towards orbit."
+    ]
+   ],
+   "hash": "3bf28abae1434bd3"
+  },
+  "c-orbit-1": {
+   "src": "/audio/solar-system/narration/c-orbit-1.mp3",
+   "duration": 6.93,
+   "phrases": [
+    [
+     0.0,
+     3.3,
+     "The upper stage now pushes almost sideways."
+    ],
+    [
+     3.8,
+     6.93,
+     "An orbit is mostly horizontal speed."
+    ]
+   ],
+   "hash": "b3a3261e11058ea5"
+  },
+  "c-orbit-2": {
+   "src": "/audio/solar-system/narration/c-orbit-2.mp3",
+   "duration": 4.57,
+   "phrases": [
+    [
+     0.0,
+     4.57,
+     "Watch the perigee: the lowest point of the path climbs out of the atmosphere."
+    ]
+   ],
+   "hash": "3c0e28b91968b644"
+  },
+  "c-orbit-3": {
+   "src": "/audio/solar-system/narration/c-orbit-3.mp3",
+   "duration": 7.29,
+   "phrases": [
+    [
+     0.0,
+     3.88,
+     "Cutoff. 7.79 kilometres per second:"
+    ],
+    [
+     4.2,
+     7.29,
+     "it is now in orbit, falling around the Earth."
+    ]
+   ],
+   "hash": "93c103659901c05a"
+  },
+  "c-prep-1": {
+   "src": "/audio/solar-system/narration/c-prep-1.mp3",
+   "duration": 9.3,
+   "phrases": [
+    [
+     0.0,
+     5.46,
+     "This is RLV-1: two liquid-fuelled stages and a solid kick stage,"
+    ],
+    [
+     5.68,
+     9.3,
+     "334 tonnes, fuelled and ready."
+    ]
+   ],
+   "hash": "62dd3bfbca06f649"
+  },
+  "c-prep-2": {
+   "src": "/audio/solar-system/narration/c-prep-2.mp3",
+   "duration": 10.55,
+   "phrases": [
+    [
+     0.0,
+     2.71,
+     "92 per cent of it is propellant."
+    ],
+    [
+     3.21,
+     6.24,
+     "At the very top sits the reason for all of it:"
+    ],
+    [
+     6.56,
+     10.55,
+     "RSC-1, just 720 kilograms."
+    ]
+   ],
+   "hash": "7364fc0ba72e715b"
+  },
+  "c-saturn-1": {
+   "src": "/audio/solar-system/narration/c-saturn-1.mp3",
+   "duration": 6.04,
+   "phrases": [
+    [
+     0.0,
+     3.02,
+     "Jupiter's push sends RSC-1 on:"
+    ],
+    [
+     3.34,
+     6.04,
+     "3.4 more years to Saturn."
+    ]
+   ],
+   "hash": "88bdc433e2608880"
+  },
+  "c-saturn-2": {
+   "src": "/audio/solar-system/narration/c-saturn-2.mp3",
+   "duration": 5.63,
+   "phrases": [
+    [
+     0.0,
+     3.36,
+     "It is already faster than the Sun's escape speed."
+    ],
+    [
+     3.86,
+     5.63,
+     "It will never fall back."
+    ]
+   ],
+   "hash": "0a136a25c93bfffe"
+  },
+  "c-saturn-3": {
+   "src": "/audio/solar-system/narration/c-saturn-3.mp3",
+   "duration": 3.59,
+   "phrases": [
+    [
+     0.0,
+     3.59,
+     "Saturn. Radio now takes 86 minutes each way."
+    ]
+   ],
+   "hash": "b18be5c15173efee"
+  },
+  "c-staging-1": {
+   "src": "/audio/solar-system/narration/c-staging-1.mp3",
+   "duration": 2.58,
+   "phrases": [
+    [
+     0.0,
+     2.58,
+     "The first stage is almost empty."
+    ]
+   ],
+   "hash": "4c95f1bc997474ec"
+  },
+  "c-staging-2": {
+   "src": "/audio/solar-system/narration/c-staging-2.mp3",
+   "duration": 5.2,
+   "phrases": [
+    [
+     0.0,
+     1.94,
+     "Released, not blown apart:"
+    ],
+    [
+     2.26,
+     5.2,
+     "21 tonnes of empty stage fall away."
+    ]
+   ],
+   "hash": "0ce9ec986d9b80f9"
+  },
+  "c-staging-3": {
+   "src": "/audio/solar-system/narration/c-staging-3.mp3",
+   "duration": 2.77,
+   "phrases": [
+    [
+     0.0,
+     2.77,
+     "Hydrogen burns almost invisibly."
+    ]
+   ],
+   "hash": "74ad5b7857817b90"
+  },
+  "finale": {
+   "src": "/audio/solar-system/narration/finale.mp3",
+   "duration": 15.14,
+   "phrases": [
+    [
+     0.0,
+     4.1,
+     "From a launch pad on Earth to Saturn in 6.4 years,"
+    ],
+    [
+     4.32,
+     7.01,
+     "with one engine-free push from Jupiter."
+    ],
+    [
+     7.51,
+     11.66,
+     "Every number you saw came from the same models as the pictures."
+    ],
+    [
+     12.16,
+     15.14,
+     "Explore any stage again, or ask: what if?"
+    ]
+   ],
+   "hash": "465c9cbe86a598c2"
+  },
+  "t-acceleration": {
+   "src": "/audio/solar-system/narration/t-acceleration.mp3",
+   "duration": 13.98,
+   "phrases": [
+    [
+     0.0,
+     4.52,
+     "As propellant burns, the rocket gets lighter while the thrust stays strong,"
+    ],
+    [
+     4.74,
+     7.31,
+     "so it accelerates harder and harder."
+    ],
+    [
+     7.81,
+     10.35,
+     "To protect the structure and the payload,"
+    ],
+    [
+     10.57,
+     13.99,
+     "the engines throttle back to hold four and a half g."
+    ]
+   ],
+   "hash": "3b965842e2e194cd"
+  },
+  "t-attitude": {
+   "src": "/audio/solar-system/narration/t-attitude.mp3",
+   "duration": 14.15,
+   "phrases": [
+    [
+     0.0,
+     3.52,
+     "Separation leaves the spacecraft slowly tumbling."
+    ],
+    [
+     4.02,
+     7.91,
+     "Small hydrazine thrusters fire short pulses to stop it;"
+    ],
+    [
+     8.23,
+     12.0,
+     "then Sun and star sensors lock its orientation,"
+    ],
+    [
+     12.22,
+     14.15,
+     "so the dish can point at Earth."
+    ]
+   ],
+   "hash": "b70bde8410cd99d6"
+  },
+  "t-b-delay": {
+   "src": "/audio/solar-system/narration/t-b-delay.mp3",
+   "duration": 16.97,
+   "phrases": [
+    [
+     0.0,
+     3.78,
+     "Radio travels at the speed of light, but space is big."
+    ],
+    [
+     4.28,
+     8.36,
+     "As RSC-1 moves away, each message takes longer:"
+    ],
+    [
+     8.68,
+     11.78,
+     "tens of minutes by the time it reaches Jupiter."
+    ],
+    [
+     12.28,
+     14.61,
+     "Commands are planned in advance;"
+    ],
+    [
+     14.93,
+     16.97,
+     "there is no live control."
+    ]
+   ],
+   "hash": "841fb7aead0dd24d"
+  },
+  "t-b-navigation": {
+   "src": "/audio/solar-system/narration/t-b-navigation.mp3",
+   "duration": 20.52,
+   "phrases": [
+    [
+     0.0,
+     3.19,
+     "How do engineers know where the spacecraft is?"
+    ],
+    [
+     3.69,
+     9.03,
+     "Ground antennas measure the distance and the Doppler shift of its radio signal,"
+    ],
+    [
+     9.25,
+     11.77,
+     "and fit its orbit to those measurements."
+    ],
+    [
+     12.27,
+     16.86,
+     "Small errors grow over the years, so small corrections remove them."
+    ],
+    [
+     17.36,
+     20.52,
+     "This model flies exactly on the planned path."
+    ]
+   ],
+   "hash": "b810e08aaeea41d9"
+  },
+  "t-b-planets": {
+   "src": "/audio/solar-system/narration/t-b-planets.mp3",
+   "duration": 10.06,
+   "phrases": [
+    [
+     0.0,
+     3.41,
+     "The planets keep moving while the spacecraft travels."
+    ],
+    [
+     3.91,
+     8.11,
+     "The trajectory is aimed at where Jupiter will be in three years,"
+    ],
+    [
+     8.33,
+     10.06,
+     "not where it is today."
+    ]
+   ],
+   "hash": "a7f6c51a731519d7"
+  },
+  "t-b-power": {
+   "src": "/audio/solar-system/narration/t-b-power.mp3",
+   "duration": 13.36,
+   "phrases": [
+    [
+     0.0,
+     3.59,
+     "Sunlight weakens with the square of the distance from the Sun,"
+    ],
+    [
+     3.81,
+     6.92,
+     "but the generators do not depend on sunlight."
+    ],
+    [
+     7.42,
+     13.36,
+     "Their power falls only slowly, as the plutonium decays and the thermocouples age."
+    ]
+   ],
+   "hash": "2eec290ff1ae2b5b"
+  },
+  "t-b-trajectory": {
+   "src": "/audio/solar-system/narration/t-b-trajectory.mp3",
+   "duration": 16.16,
+   "phrases": [
+    [
+     0.0,
+     3.05,
+     "This is the whole path to Jupiter, to scale:"
+    ],
+    [
+     3.37,
+     7.29,
+     "an arc around the Sun from the Earth's orbit out to Jupiter's,"
+    ],
+    [
+     7.51,
+     11.08,
+     "flown in 3.0 years without any engine."
+    ],
+    [
+     11.58,
+     16.16,
+     "Once the departure burn is over, the Sun's gravity alone shapes it."
+    ]
+   ],
+   "hash": "97bd0f2589d7c0f9"
+  },
+  "t-b-window": {
+   "src": "/audio/solar-system/narration/t-b-window.mp3",
+   "duration": 16.74,
+   "phrases": [
+    [
+     0.0,
+     4.2,
+     "A launch window is the range of dates when the trajectory works."
+    ],
+    [
+     4.7,
+     9.2,
+     "Leave a few weeks early or late, and the energy needed climbs steeply."
+    ],
+    [
+     9.7,
+     11.45,
+     "For this mission, Earth,"
+    ],
+    [
+     11.67,
+     16.74,
+     "Jupiter and Saturn line up like this only about once every twenty years."
+    ]
+   ],
+   "hash": "78acf2eb4f8ffb65"
+  },
+  "t-comms": {
+   "src": "/audio/solar-system/narration/t-comms.mp3",
+   "duration": 20.72,
+   "phrases": [
+    [
+     0.0,
+     2.98,
+     "RSC-1 talks to Earth by radio."
+    ],
+    [
+     3.48,
+     6.87,
+     "Near Earth, a small low-gain antenna is enough;"
+    ],
+    [
+     7.19,
+     13.21,
+     "far away, the 3.7-metre dish, pointed precisely at Earth, keeps the link alive."
+    ],
+    [
+     13.71,
+     16.43,
+     "The signal travels at the speed of light,"
+    ],
+    [
+     16.65,
+     20.72,
+     "yet at Jupiter it still takes 35 to 52 minutes."
+    ]
+   ],
+   "hash": "ab653719dbc74274"
+  },
+  "t-computer": {
+   "src": "/audio/solar-system/narration/t-computer.mp3",
+   "duration": 16.07,
+   "phrases": [
+    [
+     0.0,
+     3.46,
+     "The flight computers run the deployment on their own:"
+    ],
+    [
+     3.77,
+     6.93,
+     "damping the tumble, finding the Sun and stars,"
+    ],
+    [
+     7.15,
+     10.38,
+     "deploying three booms, and switching on the radio."
+    ],
+    [
+     10.88,
+     16.07,
+     "Far from Earth, commands arrive late, so the spacecraft must look after itself."
+    ]
+   ],
+   "hash": "e12ce4f3ebd57f65"
+  },
+  "t-countdown": {
+   "src": "/audio/solar-system/narration/t-countdown.mp3",
+   "duration": 13.08,
+   "phrases": [
+    [
+     0.0,
+     3.18,
+     "In the last ten seconds, computers run the count."
+    ],
+    [
+     3.68,
+     8.99,
+     "Hundreds of steps must happen at exact moments, faster than people could react."
+    ],
+    [
+     9.49,
+     13.08,
+     "Ignition is commanded three seconds before release."
+    ]
+   ],
+   "hash": "823cc2056ff10b72"
+  },
+  "t-delta-v": {
+   "src": "/audio/solar-system/narration/t-delta-v.mp3",
+   "duration": 17.69,
+   "phrases": [
+    [
+     0.0,
+     4.05,
+     "Delta-v is the change in velocity a manoeuvre needs:"
+    ],
+    [
+     4.37,
+     6.41,
+     "the currency of spaceflight."
+    ],
+    [
+     6.91,
+     14.75,
+     "Leaving a 185-kilometre orbit for Jupiter costs about 6.3 kilometres per second,"
+    ],
+    [
+     14.97,
+     17.69,
+     "paid for with propellant, burn by burn."
+    ]
+   ],
+   "hash": "9bbccb6ff1ebc0f0"
+  },
+  "t-departure-burn": {
+   "src": "/audio/solar-system/narration/t-departure-burn.mp3",
+   "duration": 13.22,
+   "phrases": [
+    [
+     0.0,
+     4.02,
+     "The departure burn adds speed along the direction of motion,"
+    ],
+    [
+     4.24,
+     10.3,
+     "low and fast in the Earth’s gravity, where each kilogram of propellant gives the most energy."
+    ],
+    [
+     10.8,
+     13.22,
+     "This is called the Oberth effect."
+    ]
+   ],
+   "hash": "d2fd810646403a94"
+  },
+  "t-drag": {
+   "src": "/audio/solar-system/narration/t-drag.mp3",
+   "duration": 19.18,
+   "phrases": [
+    [
+     0.0,
+     2.21,
+     "Drag is the air pushing back."
+    ],
+    [
+     2.71,
+     6.97,
+     "It grows with the square of the speed and with the density of the air."
+    ],
+    [
+     7.47,
+     10.76,
+     "Climbing out of the dense air quickly keeps it small:"
+    ],
+    [
+     11.08,
+     15.02,
+     "on this flight drag costs just 49 metres per second,"
+    ],
+    [
+     15.24,
+     19.18,
+     "against 726 lost to gravity."
+    ]
+   ],
+   "hash": "301464b73869a326"
+  },
+  "t-engine-performance": {
+   "src": "/audio/solar-system/narration/t-engine-performance.mp3",
+   "duration": 14.24,
+   "phrases": [
+    [
+     0.0,
+     2.98,
+     "Rocket engines work better in thinner air."
+    ],
+    [
+     3.48,
+     9.18,
+     "With less outside pressure on the nozzle, every kilogram of propellant gives more push,"
+    ],
+    [
+     9.4,
+     14.24,
+     "so thrust rises through the climb while the propellant flow stays the same."
+    ]
+   ],
+   "hash": "57547b6ff63744a7"
+  },
+  "t-engines": {
+   "src": "/audio/solar-system/narration/t-engines.mp3",
+   "duration": 18.36,
+   "phrases": [
+    [
+     0.0,
+     5.04,
+     "A rocket engine pumps fuel and oxidiser into a combustion chamber,"
+    ],
+    [
+     5.26,
+     9.59,
+     "and the bell-shaped nozzle expands the hot gas into a fast jet."
+    ],
+    [
+     10.09,
+     13.81,
+     "Pushing that mass backwards pushes the rocket forwards."
+    ],
+    [
+     14.31,
+     18.36,
+     "The faster the exhaust, the less propellant each push costs."
+    ]
+   ],
+   "hash": "b5736775c1533ad9"
+  },
+  "t-eps": {
+   "src": "/audio/solar-system/narration/t-eps.mp3",
+   "duration": 17.14,
+   "phrases": [
+    [
+     0.0,
+     3.29,
+     "Power flows from the generators, through a regulator,"
+    ],
+    [
+     3.51,
+     6.69,
+     "to a 30-volt bus that feeds every system."
+    ],
+    [
+     7.19,
+     10.92,
+     "The battery covers short peaks, like a boom motor running."
+    ],
+    [
+     11.42,
+     17.14,
+     "At every moment, the power generated equals the power used, stored and dissipated."
+    ]
+   ],
+   "hash": "c57d5167e1589e30"
+  },
+  "t-escape": {
+   "src": "/audio/solar-system/narration/t-escape.mp3",
+   "duration": 21.48,
+   "phrases": [
+    [
+     0.0,
+     1.72,
+     "Past escape speed,"
+    ],
+    [
+     1.94,
+     6.15,
+     "the path is no longer a closed orbit but an open curve."
+    ],
+    [
+     6.65,
+     11.72,
+     "The spacecraft keeps a leftover speed after climbing out of the Earth's gravity:"
+    ],
+    [
+     12.04,
+     14.85,
+     "8.9 kilometres per second."
+    ],
+    [
+     15.35,
+     19.15,
+     "Added to the Earth's own 29.8 around the Sun,"
+    ],
+    [
+     19.37,
+     21.48,
+     "that sets the road to Jupiter."
+    ]
+   ],
+   "hash": "972453ab8d07cd97"
+  },
+  "t-explore-rocket": {
+   "src": "/audio/solar-system/narration/t-explore-rocket.mp3",
+   "duration": 18.81,
+   "phrases": [
+    [
+     0.0,
+     5.03,
+     "RLV-1 is a two-stage rocket with a solid kick stage on top:"
+    ],
+    [
+     5.35,
+     8.92,
+     "334 tonnes on the launch pad."
+    ],
+    [
+     9.42,
+     15.64,
+     "Why stages? No single rocket can carry enough propellant and still be light enough to reach orbit,"
+    ],
+    [
+     15.86,
+     18.81,
+     "so empty sections are dropped on the way."
+    ]
+   ],
+   "hash": "e19d9cf77014bf77"
+  },
+  "t-exposure": {
+   "src": "/audio/solar-system/narration/t-exposure.mp3",
+   "duration": 13.5,
+   "phrases": [
+    [
+     0.0,
+     3.77,
+     "For the first time, RSC-1 is in open space:"
+    ],
+    [
+     4.09,
+     8.04,
+     "direct sunlight on one side, the cold of space on the other."
+    ],
+    [
+     8.54,
+     13.5,
+     "From here on, its own thermal design keeps it within its temperature limits."
+    ]
+   ],
+   "hash": "fdad1ae2fd65f273"
+  },
+  "t-fairing": {
+   "src": "/audio/solar-system/narration/t-fairing.mp3",
+   "duration": 14.43,
+   "phrases": [
+    [
+     0.0,
+     2.67,
+     "The fairing is a shell in two halves."
+    ],
+    [
+     3.17,
+     7.96,
+     "It shields the spacecraft from air pressure, heating and noise during the climb."
+    ],
+    [
+     8.46,
+     10.82,
+     "On the launch pad it stays closed;"
+    ],
+    [
+     11.14,
+     14.43,
+     "the cutaway shows the spacecraft waiting inside."
+    ]
+   ],
+   "hash": "33141dbd7a2d0bb8"
+  },
+  "t-fairing-2": {
+   "src": "/audio/solar-system/narration/t-fairing-2.mp3",
+   "duration": 14.88,
+   "phrases": [
+    [
+     0.0,
+     4.06,
+     "The two-piece fairing has shielded the spacecraft since liftoff."
+    ],
+    [
+     4.56,
+     9.16,
+     "Without it, the airflow would tear off antennas, booms and instruments."
+    ],
+    [
+     9.66,
+     14.88,
+     "But every kilogram carried longer than needed is a kilogram less for the journey."
+    ]
+   ],
+   "hash": "d5acf5aff08fd708"
+  },
+  "t-fairing-sep": {
+   "src": "/audio/solar-system/narration/t-fairing-sep.mp3",
+   "duration": 18.38,
+   "phrases": [
+    [
+     0.0,
+     3.43,
+     "The fairing is dropped on a condition, not a clock:"
+    ],
+    [
+     3.75,
+     10.71,
+     "when the heating from the thin air falls below 1,135 watts per square metre."
+    ],
+    [
+     11.21,
+     15.44,
+     "Here that happens 121 kilometres up."
+    ],
+    [
+     15.94,
+     18.38,
+     "Springs push the two halves apart."
+    ]
+   ],
+   "hash": "954ebf5076d1cf9f"
+  },
+  "t-first-contact": {
+   "src": "/audio/solar-system/narration/t-first-contact.mp3",
+   "duration": 10.87,
+   "phrases": [
+    [
+     0.0,
+     5.63,
+     "Ten minutes after separation, a ground station hears the spacecraft for the first time."
+    ],
+    [
+     6.13,
+     10.87,
+     "Until that moment, nobody on Earth knows whether separation went well."
+    ]
+   ],
+   "hash": "0731d56f1ca75428"
+  },
+  "t-first-stage": {
+   "src": "/audio/solar-system/narration/t-first-stage.mp3",
+   "duration": 16.18,
+   "phrases": [
+    [
+     0.0,
+     3.33,
+     "The first stage is the lower 33 metres:"
+    ],
+    [
+     3.65,
+     7.43,
+     "kerosene and liquid oxygen feeding two engines."
+    ],
+    [
+     7.93,
+     13.16,
+     "It does the heaviest work, lifting the whole vehicle through the dense lower atmosphere,"
+    ],
+    [
+     13.38,
+     16.18,
+     "then falls away when its tanks are empty."
+    ]
+   ],
+   "hash": "2e4847a1dcc941d9"
+  },
+  "t-flight-path": {
+   "src": "/audio/solar-system/narration/t-flight-path.mp3",
+   "duration": 14.4,
+   "phrases": [
+    [
+     0.0,
+     3.22,
+     "This is the path the guidance computer flies."
+    ],
+    [
+     3.72,
+     7.21,
+     "Too steep, and propellant is wasted fighting gravity;"
+    ],
+    [
+     7.53,
+     10.95,
+     "too shallow, and the rocket stays too long in thick air."
+    ],
+    [
+     11.45,
+     14.4,
+     "The modelled path is drawn behind the vehicle."
+    ]
+   ],
+   "hash": "c491de796fa9548b"
+  },
+  "t-gravity-turn": {
+   "src": "/audio/solar-system/narration/t-gravity-turn.mp3",
+   "duration": 16.25,
+   "phrases": [
+    [
+     0.0,
+     2.85,
+     "A rocket does not steer its way to orbit."
+    ],
+    [
+     3.35,
+     7.57,
+     "After rising straight up, it tilts just 3.4 degrees,"
+    ],
+    [
+     7.79,
+     10.27,
+     "then lets gravity bend its path."
+    ],
+    [
+     10.77,
+     16.25,
+     "Flying along its own direction of travel keeps sideways loads on the structure low."
+    ]
+   ],
+   "hash": "f72aef0d171d8d15"
+  },
+  "t-gravity-turn-2": {
+   "src": "/audio/solar-system/narration/t-gravity-turn-2.mp3",
+   "duration": 14.09,
+   "phrases": [
+    [
+     0.0,
+     2.78,
+     "The path keeps bending towards horizontal."
+    ],
+    [
+     3.28,
+     9.82,
+     "An orbit is mostly sideways speed, about 7.8 kilometres per second at this height,"
+    ],
+    [
+     10.04,
+     14.09,
+     "so the climb gradually becomes a race along the horizon."
+    ]
+   ],
+   "hash": "d036af0a68ff4c2a"
+  },
+  "t-health-check": {
+   "src": "/audio/solar-system/narration/t-health-check.mp3",
+   "duration": 10.63,
+   "phrases": [
+    [
+     0.0,
+     5.39,
+     "The first health check compares every temperature, voltage and rate with its limits."
+    ],
+    [
+     5.89,
+     10.63,
+     "Problems found now can be worked around before the long cruise begins."
+    ]
+   ],
+   "hash": "852dae06a4ee3ebf"
+  },
+  "t-ignition": {
+   "src": "/audio/solar-system/narration/t-ignition.mp3",
+   "duration": 16.76,
+   "phrases": [
+    [
+     0.0,
+     3.33,
+     "The engines start while clamps hold the rocket down."
+    ],
+    [
+     3.83,
+     9.07,
+     "In under three seconds they reach full thrust, and the computers check every one."
+    ],
+    [
+     9.57,
+     13.71,
+     "If any engine falls short, they shut it down before liftoff,"
+    ],
+    [
+     13.93,
+     16.76,
+     "with the rocket still safe on the launch pad."
+    ]
+   ],
+   "hash": "c1a4e04f9a14110f"
+  },
+  "t-inclination": {
+   "src": "/audio/solar-system/narration/t-inclination.mp3",
+   "duration": 13.72,
+   "phrases": [
+    [
+     0.0,
+     3.5,
+     "The orbit is tilted 10 degrees to the equator,"
+    ],
+    [
+     3.72,
+     6.11,
+     "the latitude of the launch site."
+    ],
+    [
+     6.61,
+     10.65,
+     "Changing the tilt of an orbit later is very expensive,"
+    ],
+    [
+     10.87,
+     13.72,
+     "so the launch site and direction decide it."
+    ]
+   ],
+   "hash": "2cb76a184ffe9a29"
+  },
+  "t-j-approach": {
+   "src": "/audio/solar-system/narration/t-j-approach.mp3",
+   "duration": 14.63,
+   "phrases": [
+    [
+     0.0,
+     4.66,
+     "In the final days, the gravity of Jupiter takes over from the Sun’s."
+    ],
+    [
+     5.16,
+     10.43,
+     "RSC-1 speeds up as it falls in, on an aim point set weeks earlier."
+    ],
+    [
+     10.93,
+     14.63,
+     "Jupiter grows from a disc to a world that fills the view."
+    ]
+   ],
+   "hash": "779066d029df3f74"
+  },
+  "t-j-assist": {
+   "src": "/audio/solar-system/narration/t-j-assist.mp3",
+   "duration": 30.55,
+   "phrases": [
+    [
+     0.0,
+     2.76,
+     "Here is the trick of a gravity assist."
+    ],
+    [
+     3.26,
+     7.86,
+     "Relative to Jupiter, the spacecraft leaves at the same speed it arrived:"
+    ],
+    [
+     8.18,
+     12.67,
+     "only its direction turns, by 135 degrees."
+    ],
+    [
+     13.17,
+     18.43,
+     "But Jupiter itself moves around the Sun at 13 kilometres per second."
+    ],
+    [
+     18.93,
+     28.14,
+     "Add that motion, and the speed of RSC-1 around the Sun jumps from 7.6 to 18.6 kilometres per second,"
+    ],
+    [
+     28.36,
+     30.55,
+     "without a drop of propellant."
+    ]
+   ],
+   "hash": "dcdb91e9d593a90b"
+  },
+  "t-j-closest": {
+   "src": "/audio/solar-system/narration/t-j-closest.mp3",
+   "duration": 15.18,
+   "phrases": [
+    [
+     0.0,
+     4.59,
+     "Closest approach: 4.1 Jupiter radii from the centre,"
+    ],
+    [
+     4.81,
+     9.53,
+     "about 220,000 kilometres above the cloud tops."
+    ],
+    [
+     10.03,
+     15.18,
+     "Closer passes bend the path more, but Jupiter's radiation belts set the limit."
+    ]
+   ],
+   "hash": "371bcf69b5f4fe5d"
+  },
+  "t-j-moons": {
+   "src": "/audio/solar-system/narration/t-j-moons.mp3",
+   "duration": 15.96,
+   "phrases": [
+    [
+     0.0,
+     4.48,
+     "These are the four great moons of Jupiter, discovered by Galileo:"
+    ],
+    [
+     4.8,
+     8.93,
+     "volcanic Io; icy Europa, which may hide an ocean;"
+    ],
+    [
+     9.25,
+     12.05,
+     "Ganymede, larger than the planet Mercury;"
+    ],
+    [
+     12.37,
+     15.96,
+     "and cratered Callisto. Their orbits are drawn to scale."
+    ]
+   ],
+   "hash": "af58bd66f8c01b98"
+  },
+  "t-j-radiation": {
+   "src": "/audio/solar-system/narration/t-j-radiation.mp3",
+   "duration": 13.57,
+   "phrases": [
+    [
+     0.0,
+     6.92,
+     "The powerful magnetic field of Jupiter traps energetic particles in intense radiation belts."
+    ],
+    [
+     7.42,
+     13.57,
+     "Radiation damages electronics, so it sets how close a spacecraft can safely pass."
+    ]
+   ],
+   "hash": "30189d382db85e8f"
+  },
+  "t-kick": {
+   "src": "/audio/solar-system/narration/t-kick.mp3",
+   "duration": 15.5,
+   "phrases": [
+    [
+     0.0,
+     4.16,
+     "The kick stage is a solid rocket motor under the spacecraft."
+    ],
+    [
+     4.66,
+     8.36,
+     "It spins up for stability, and once lit it cannot stop:"
+    ],
+    [
+     8.68,
+     12.48,
+     "it burns all its propellant in about 82 seconds,"
+    ],
+    [
+     12.7,
+     15.5,
+     "adding the last few kilometres per second."
+    ]
+   ],
+   "hash": "ce5e5ec315a2e783"
+  },
+  "t-layers": {
+   "src": "/audio/solar-system/narration/t-layers.mp3",
+   "duration": 16.78,
+   "phrases": [
+    [
+     0.0,
+     4.78,
+     "The atmosphere has layers, defined by how temperature changes with height."
+    ],
+    [
+     5.28,
+     9.46,
+     "Air density halves roughly every five and a half kilometres,"
+    ],
+    [
+     9.68,
+     13.43,
+     "so by 100 kilometres almost nothing is left."
+    ],
+    [
+     13.93,
+     16.78,
+     "Watch the sky darken from blue to black."
+    ]
+   ],
+   "hash": "6c93d2f47d26ba96"
+  },
+  "t-liftoff": {
+   "src": "/audio/solar-system/narration/t-liftoff.mp3",
+   "duration": 20.14,
+   "phrases": [
+    [
+     0.0,
+     3.36,
+     "The clamps release only when thrust beats weight."
+    ],
+    [
+     3.86,
+     7.54,
+     "Here thrust is 1.27 times the weight,"
+    ],
+    [
+     7.76,
+     14.81,
+     "so the excess gives a gentle first acceleration of 2.6 metres per second, every second."
+    ],
+    [
+     15.31,
+     20.14,
+     "The rocket clears its 75-metre tower in about 7 seconds."
+    ]
+   ],
+   "hash": "bfdb6375fe3db473"
+  },
+  "t-mass-reduction": {
+   "src": "/audio/solar-system/narration/t-mass-reduction.mp3",
+   "duration": 15.72,
+   "phrases": [
+    [
+     0.0,
+     1.56,
+     "Watch the mass fall:"
+    ],
+    [
+     1.88,
+     7.14,
+     "334 tonnes at liftoff, 49 at first-stage cutoff,"
+    ],
+    [
+     7.36,
+     11.19,
+     "28 after separation, and 14 in orbit."
+    ],
+    [
+     11.69,
+     15.72,
+     "Less mass means the same thrust gives more acceleration."
+    ]
+   ],
+   "hash": "2cdc71babffe43bf"
+  },
+  "t-max-q": {
+   "src": "/audio/solar-system/narration/t-max-q.mp3",
+   "duration": 21.31,
+   "phrases": [
+    [
+     0.0,
+     3.56,
+     "Dynamic pressure is the push of the oncoming air:"
+    ],
+    [
+     3.88,
+     7.4,
+     "it rises with speed and falls as the air thins."
+    ],
+    [
+     7.9,
+     11.2,
+     "The two effects meet at a peak called Max Q,"
+    ],
+    [
+     11.42,
+     15.87,
+     "here 31.3 kilopascals, 11 kilometres up."
+    ],
+    [
+     16.37,
+     21.31,
+     "The rocket and its fairing are designed to survive this moment with margin."
+    ]
+   ],
+   "hash": "1778d6360ebf5524"
+  },
+  "t-meco": {
+   "src": "/audio/solar-system/narration/t-meco.mp3",
+   "duration": 14.0,
+   "phrases": [
+    [
+     0.0,
+     5.62,
+     "Main engine cutoff. The first stage burns until its usable propellant is gone,"
+    ],
+    [
+     5.84,
+     10.09,
+     "221 seconds after liftoff, then stops."
+    ],
+    [
+     10.59,
+     14.0,
+     "Carrying it any further would only add dead weight."
+    ]
+   ],
+   "hash": "194f8c5573127e77"
+  },
+  "t-orbital-altitude": {
+   "src": "/audio/solar-system/narration/t-orbital-altitude.mp3",
+   "duration": 18.63,
+   "phrases": [
+    [
+     0.0,
+     4.02,
+     "The lowest point of an orbit around the Earth is the perigee,"
+    ],
+    [
+     4.24,
+     6.33,
+     "and the highest is the apogee:"
+    ],
+    [
+     6.65,
+     11.59,
+     "here 184 and 188 kilometres."
+    ],
+    [
+     12.09,
+     16.24,
+     "At this height, thin air would bring the vehicle down within days,"
+    ],
+    [
+     16.46,
+     18.63,
+     "which is fine for a short wait."
+    ]
+   ],
+   "hash": "4b1770d905a74bb8"
+  },
+  "t-orbital-velocity": {
+   "src": "/audio/solar-system/narration/t-orbital-velocity.mp3",
+   "duration": 19.8,
+   "phrases": [
+    [
+     0.0,
+     6.28,
+     "Orbital velocity is the speed at which the ground curves away as fast as you fall towards it."
+    ],
+    [
+     6.78,
+     13.5,
+     "At 185 kilometres, that is 7.79 kilometres per second."
+    ],
+    [
+     14.0,
+     19.8,
+     "The Earth's own rotation gave 458 metres per second of it for free."
+    ]
+   ],
+   "hash": "da5f966e970f5ddf"
+  },
+  "t-parking-2": {
+   "src": "/audio/solar-system/narration/t-parking-2.mp3",
+   "duration": 14.83,
+   "phrases": [
+    [
+     0.0,
+     2.23,
+     "The coast to the departure point."
+    ],
+    [
+     2.73,
+     7.17,
+     "Launch windows to Jupiter open about every thirteen months,"
+    ],
+    [
+     7.39,
+     10.04,
+     "when Earth and Jupiter are well placed;"
+    ],
+    [
+     10.36,
+     14.83,
+     "the parking orbit fixes the exact departure point within the day."
+    ]
+   ],
+   "hash": "0e5d2d3fcf82a3bc"
+  },
+  "t-parking-orbit": {
+   "src": "/audio/solar-system/narration/t-parking-orbit.mp3",
+   "duration": 11.59,
+   "phrases": [
+    [
+     0.0,
+     2.6,
+     "A parking orbit is a waiting place:"
+    ],
+    [
+     2.92,
+     7.91,
+     "a low, nearly circular orbit where the vehicle coasts for 25 minutes,"
+    ],
+    [
+     8.13,
+     11.59,
+     "until it reaches the right point for the departure burn."
+    ]
+   ],
+   "hash": "3aa9b22f97d94f11"
+  },
+  "t-payload": {
+   "src": "/audio/solar-system/narration/t-payload.mp3",
+   "duration": 24.68,
+   "phrases": [
+    [
+     0.0,
+     4.23,
+     "Inside the fairing, on its kick stage, waits RSC-1:"
+    ],
+    [
+     4.55,
+     9.64,
+     "a 720-kilogram spacecraft built for the outer planets."
+    ],
+    [
+     10.14,
+     13.96,
+     "It carries a 3.7-metre dish to talk to Earth,"
+    ],
+    [
+     14.18,
+     20.54,
+     "two radioisotope generators for power, and a magnetometer boom that unfolds in space."
+    ],
+    [
+     21.04,
+     24.68,
+     "Everything else on this rocket exists to deliver it."
+    ]
+   ],
+   "hash": "9104bbf7359d183b"
+  },
+  "t-protection": {
+   "src": "/audio/solar-system/narration/t-protection.mp3",
+   "duration": 12.8,
+   "phrases": [
+    [
+     0.0,
+     4.24,
+     "Inside the fairing, the spacecraft is protected from three things:"
+    ],
+    [
+     4.56,
+     8.71,
+     "the pressure of the air, the heat of friction, and intense noise."
+    ],
+    [
+     9.21,
+     12.8,
+     "All three peak low in the atmosphere, around Max Q."
+    ]
+   ],
+   "hash": "8dd07c1a123a833d"
+  },
+  "t-readiness": {
+   "src": "/audio/solar-system/narration/t-readiness.mp3",
+   "duration": 14.69,
+   "phrases": [
+    [
+     0.0,
+     3.22,
+     "In the final minutes, every system reports go:"
+    ],
+    [
+     3.54,
+     6.76,
+     "propellant, pressures, guidance, range and weather."
+    ],
+    [
+     7.26,
+     9.31,
+     "One no-go holds the count,"
+    ],
+    [
+     9.53,
+     14.69,
+     "because once the engines ignite and the clamps let go, there is no turning back."
+    ]
+   ],
+   "hash": "09345ccd1219a78a"
+  },
+  "t-rtg-boom": {
+   "src": "/audio/solar-system/narration/t-rtg-boom.mp3",
+   "duration": 18.45,
+   "phrases": [
+    [
+     0.0,
+     6.4,
+     "The RTG boom swings out, carrying the two generators away from the body of the spacecraft,"
+    ],
+    [
+     6.62,
+     10.5,
+     "so their heat and radiation stay clear of the instruments."
+    ],
+    [
+     11.0,
+     12.81,
+     "Why not solar panels?"
+    ],
+    [
+     13.31,
+     18.45,
+     "At Jupiter, sunlight is only 3.7 per cent as strong as at Earth."
+    ]
+   ],
+   "hash": "76744274a93e4887"
+  },
+  "t-s-escape": {
+   "src": "/audio/solar-system/narration/t-s-escape.mp3",
+   "duration": 19.55,
+   "phrases": [
+    [
+     0.0,
+     3.02,
+     "Is RSC-1 still bound to the Sun?"
+    ],
+    [
+     3.52,
+     8.33,
+     "At Saturn it moves at 13.69 kilometres per second,"
+    ],
+    [
+     8.55,
+     13.11,
+     "just above the Sun's escape speed there, 13.57."
+    ],
+    [
+     13.61,
+     16.35,
+     "The Jupiter flyby supplied the difference:"
+    ],
+    [
+     16.67,
+     19.55,
+     "the spacecraft will leave the Solar System."
+    ]
+   ],
+   "hash": "89e28b535c05564f"
+  },
+  "t-s-flyby": {
+   "src": "/audio/solar-system/narration/t-s-flyby.mp3",
+   "duration": 18.68,
+   "phrases": [
+    [
+     0.0,
+     5.89,
+     "After Jupiter, the spacecraft reaches Saturn on 28 November 2040."
+    ],
+    [
+     6.39,
+     10.79,
+     "A second flyby could bend the path again, towards the outer planets."
+    ],
+    [
+     11.29,
+     14.48,
+     "The pass shown here is placed for illustration:"
+    ],
+    [
+     14.8,
+     18.68,
+     "this phase designs the arrival, not the flyby itself."
+    ]
+   ],
+   "hash": "d6e37a947934c5f5"
+  },
+  "t-s-ops": {
+   "src": "/audio/solar-system/narration/t-s-ops.mp3",
+   "duration": 14.91,
+   "phrases": [
+    [
+     0.0,
+     5.75,
+     "Hours of light-time away, a spacecraft is run by sequences uploaded in advance."
+    ],
+    [
+     6.25,
+     10.88,
+     "On board, fault protection watches temperatures, voltages and rates,"
+    ],
+    [
+     11.1,
+     14.91,
+     "and switches to safe mode if anything leaves its limits."
+    ]
+   ],
+   "hash": "5a5f9a4b4826cb9c"
+  },
+  "t-s-power": {
+   "src": "/audio/solar-system/narration/t-s-power.mp3",
+   "duration": 19.63,
+   "phrases": [
+    [
+     0.0,
+     2.04,
+     "The generators fade slowly:"
+    ],
+    [
+     2.36,
+     7.9,
+     "from 490 watts at launch to 442 at Saturn,"
+    ],
+    [
+     8.12,
+     14.15,
+     "as plutonium-238 decays with a half-life of 87.7 years."
+    ],
+    [
+     14.65,
+     19.63,
+     "Operations plans switch instruments on and off to fit the power available."
+    ]
+   ],
+   "hash": "93c4aef64fd37181"
+  },
+  "t-s-rings": {
+   "src": "/audio/solar-system/narration/t-s-rings.mp3",
+   "duration": 15.84,
+   "phrases": [
+    [
+     0.0,
+     3.95,
+     "The rings of Saturn are countless particles of water ice,"
+    ],
+    [
+     4.17,
+     10.51,
+     "in a disc hundreds of thousands of kilometres wide but mostly less than 100 metres thick."
+    ],
+    [
+     11.01,
+     15.84,
+     "Spacecraft cross the ring plane only in known gaps, or far outside."
+    ]
+   ],
+   "hash": "e0a496c0faba96e3"
+  },
+  "t-sc-sep": {
+   "src": "/audio/solar-system/narration/t-sc-sep.mp3",
+   "duration": 13.23,
+   "phrases": [
+    [
+     0.0,
+     1.81,
+     "A clamp band opens,"
+    ],
+    [
+     2.03,
+     7.82,
+     "and springs push the spacecraft away from the spent kick stage at half a metre per second."
+    ],
+    [
+     8.32,
+     13.23,
+     "From here, RSC-1 flies alone, on the path the rocket gave it."
+    ]
+   ],
+   "hash": "880f8d46c36a9588"
+  },
+  "t-seco": {
+   "src": "/audio/solar-system/narration/t-seco.mp3",
+   "duration": 15.09,
+   "phrases": [
+    [
+     0.0,
+     4.66,
+     "The upper stage cuts off when the computed orbit reaches its target,"
+    ],
+    [
+     4.88,
+     6.36,
+     "not on a clock."
+    ],
+    [
+     6.86,
+     10.55,
+     "That absorbs small differences in engine performance."
+    ],
+    [
+     11.05,
+     15.09,
+     "8.7 tonnes of propellant remain for the departure."
+    ]
+   ],
+   "hash": "203c1b6dcdc96cc4"
+  },
+  "t-separation": {
+   "src": "/audio/solar-system/narration/t-separation.mp3",
+   "duration": 16.42,
+   "phrases": [
+    [
+     0.0,
+     3.17,
+     "Separation is a release, not an explosion."
+    ],
+    [
+     3.67,
+     8.53,
+     "The joint between the stages is cut, and the empty first stage drifts back."
+    ],
+    [
+     9.03,
+     12.74,
+     "The upper stage waits a few seconds before igniting,"
+    ],
+    [
+     12.96,
+     16.42,
+     "so its flame does not hit the stage it just left."
+    ]
+   ],
+   "hash": "b0427fe17bee18b8"
+  },
+  "t-sun-centred": {
+   "src": "/audio/solar-system/narration/t-sun-centred.mp3",
+   "duration": 14.52,
+   "phrases": [
+    [
+     0.0,
+     3.6,
+     "Free of the Earth, RSC-1 now orbits the Sun."
+    ],
+    [
+     4.1,
+     7.03,
+     "A spacecraft cannot fly straight to a planet:"
+    ],
+    [
+     7.35,
+     9.06,
+     "it follows an ellipse,"
+    ],
+    [
+     9.28,
+     14.52,
+     "timed so that Jupiter arrives at the same place at the same time, three years later."
+    ]
+   ],
+   "hash": "3b19e95a5c14076f"
+  },
+  "t-t-asteroids": {
+   "src": "/audio/solar-system/narration/t-t-asteroids.mp3",
+   "duration": 16.65,
+   "phrases": [
+    [
+     0.0,
+     3.65,
+     "The asteroid belt lies between Mars and Jupiter."
+    ],
+    [
+     4.15,
+     7.23,
+     "Despite the films, it is mostly empty:"
+    ],
+    [
+     7.55,
+     12.23,
+     "neighbouring asteroids are typically about a million kilometres apart,"
+    ],
+    [
+     12.45,
+     16.65,
+     "and all of them together weigh less than 4 per cent of our Moon."
+    ]
+   ],
+   "hash": "ba2b785bdc6d39b9"
+  },
+  "t-t-earth": {
+   "src": "/audio/solar-system/narration/t-t-earth.mp3",
+   "duration": 8.96,
+   "phrases": [
+    [
+     0.0,
+     3.81,
+     "Earth: liquid water oceans, a protective atmosphere,"
+    ],
+    [
+     4.03,
+     8.96,
+     "and the only world we know with life, one astronomical unit from the Sun."
+    ]
+   ],
+   "hash": "70bc458ce362b4a9"
+  },
+  "t-t-jupiter": {
+   "src": "/audio/solar-system/narration/t-t-jupiter.mp3",
+   "duration": 13.16,
+   "phrases": [
+    [
+     0.0,
+     1.91,
+     "Jupiter is the giant:"
+    ],
+    [
+     2.23,
+     5.84,
+     "318 times the mass of the Earth,"
+    ],
+    [
+     6.06,
+     9.26,
+     "more than twice all the other planets combined."
+    ],
+    [
+     9.76,
+     13.16,
+     "Its four large moons are worlds in their own right."
+    ]
+   ],
+   "hash": "8e3077600e12e73b"
+  },
+  "t-t-kuiper": {
+   "src": "/audio/solar-system/narration/t-t-kuiper.mp3",
+   "duration": 14.07,
+   "phrases": [
+    [
+     0.0,
+     2.99,
+     "Beyond Neptune lies the Kuiper Belt:"
+    ],
+    [
+     3.31,
+     9.79,
+     "icy bodies 30 to 50 astronomical units from the Sun, including Pluto and Arrokoth,"
+    ],
+    [
+     10.01,
+     14.07,
+     "the most distant object a spacecraft has ever visited."
+    ]
+   ],
+   "hash": "06b0c75479b2cee9"
+  },
+  "t-t-mars": {
+   "src": "/audio/solar-system/narration/t-t-mars.mp3",
+   "duration": 13.12,
+   "phrases": [
+    [
+     0.0,
+     3.36,
+     "Mars has a thin carbon dioxide atmosphere."
+    ],
+    [
+     3.86,
+     8.81,
+     "It is home to Olympus Mons, the tallest volcano in the Solar System,"
+    ],
+    [
+     9.03,
+     13.12,
+     "and Valles Marineris, a canyon as long as a continent."
+    ]
+   ],
+   "hash": "ad69cf0b90c32875"
+  },
+  "t-t-mercury": {
+   "src": "/audio/solar-system/narration/t-t-mercury.mp3",
+   "duration": 12.84,
+   "phrases": [
+    [
+     0.0,
+     3.95,
+     "Mercury is the smallest planet and the closest to the Sun:"
+    ],
+    [
+     4.27,
+     7.13,
+     "heavily cratered, with a huge iron core,"
+    ],
+    [
+     7.35,
+     12.84,
+     "and temperatures from minus 180 to 430 degrees."
+    ]
+   ],
+   "hash": "84a917a732fb549c"
+  },
+  "t-t-moon": {
+   "src": "/audio/solar-system/narration/t-t-moon.mp3",
+   "duration": 9.49,
+   "phrases": [
+    [
+     0.0,
+     5.12,
+     "The Moon, 384,400 kilometres away:"
+    ],
+    [
+     5.44,
+     9.49,
+     "dark plains of ancient lava, and bright, cratered highlands."
+    ]
+   ],
+   "hash": "ba4084fb5cdc45f4"
+  },
+  "t-t-neptune": {
+   "src": "/audio/solar-system/narration/t-t-neptune.mp3",
+   "duration": 12.04,
+   "phrases": [
+    [
+     0.0,
+     4.63,
+     "Neptune, 30 astronomical units out, is the windiest planet."
+    ],
+    [
+     5.13,
+     8.44,
+     "Its largest moon, Triton, orbits backwards:"
+    ],
+    [
+     8.76,
+     12.04,
+     "probably a captured object from the Kuiper Belt."
+    ]
+   ],
+   "hash": "a0e593b2af0711fb"
+  },
+  "t-t-pluto": {
+   "src": "/audio/solar-system/narration/t-t-pluto.mp3",
+   "duration": 17.57,
+   "phrases": [
+    [
+     0.0,
+     2.94,
+     "Pluto is a dwarf planet in the Kuiper Belt."
+    ],
+    [
+     3.44,
+     7.75,
+     "New Horizons found a heart-shaped region of nitrogen ice,"
+    ],
+    [
+     7.97,
+     11.09,
+     "Sputnik Planitia, and a large moon, Charon."
+    ],
+    [
+     11.59,
+     14.89,
+     "Its far side was in darkness during the flyby,"
+    ],
+    [
+     15.11,
+     17.57,
+     "so it is shown as a plain tone."
+    ]
+   ],
+   "hash": "204361b7c0a861b1"
+  },
+  "t-t-saturn": {
+   "src": "/audio/solar-system/narration/t-t-saturn.mp3",
+   "duration": 14.83,
+   "phrases": [
+    [
+     0.0,
+     6.71,
+     "Saturn, and its rings of water ice reaching 140,000 kilometres from the centre,"
+    ],
+    [
+     6.93,
+     10.05,
+     "yet mostly thinner than 100 metres."
+    ],
+    [
+     10.55,
+     14.83,
+     "Its largest moon, Titan, has a thick atmosphere of its own."
+    ]
+   ],
+   "hash": "4a7baf83ae9fea28"
+  },
+  "t-t-sun": {
+   "src": "/audio/solar-system/narration/t-t-sun.mp3",
+   "duration": 15.11,
+   "phrases": [
+    [
+     0.0,
+     2.38,
+     "The Sun is an ordinary star,"
+    ],
+    [
+     2.6,
+     8.21,
+     "but it holds 99.86 per cent of all the mass in the Solar System."
+    ],
+    [
+     8.71,
+     11.62,
+     "Its light weakens with the square of the distance,"
+    ],
+    [
+     11.84,
+     15.11,
+     "which is why the outer planets are so cold."
+    ]
+   ],
+   "hash": "a08eb7eb70d43f67"
+  },
+  "t-t-uranus": {
+   "src": "/audio/solar-system/narration/t-t-uranus.mp3",
+   "duration": 10.4,
+   "phrases": [
+    [
+     0.0,
+     2.94,
+     "Uranus rolls around the Sun on its side,"
+    ],
+    [
+     3.16,
+     6.75,
+     "tilted 98 degrees, with faint, narrow rings."
+    ],
+    [
+     7.25,
+     10.4,
+     "A single season there lasts 21 years."
+    ]
+   ],
+   "hash": "920de0780e57bf31"
+  },
+  "t-t-venus": {
+   "src": "/audio/solar-system/narration/t-t-venus.mp3",
+   "duration": 14.01,
+   "phrases": [
+    [
+     0.0,
+     3.39,
+     "Venus is almost the twin of the Earth in size,"
+    ],
+    [
+     3.61,
+     11.19,
+     "but a runaway greenhouse effect heats its surface to about 465 degrees, hot enough to melt lead."
+    ],
+    [
+     11.69,
+     14.01,
+     "What we see are its cloud tops."
+    ]
+   ],
+   "hash": "7ebb15a38e3fa81c"
+  },
+  "t-tanks": {
+   "src": "/audio/solar-system/narration/t-tanks.mp3",
+   "duration": 21.98,
+   "phrases": [
+    [
+     0.0,
+     2.27,
+     "Most of each stage is tank:"
+    ],
+    [
+     2.59,
+     6.47,
+     "thin walls holding fuel and oxidiser under pressure."
+    ],
+    [
+     6.97,
+     11.51,
+     "Propellant is about 92 per cent of the mass on the launch pad,"
+    ],
+    [
+     11.73,
+     16.47,
+     "so every kilogram saved in structure is a kilogram more for the journey."
+    ],
+    [
+     16.97,
+     21.98,
+     "The liquid hydrogen is kept at minus 253 degrees."
+    ]
+   ],
+   "hash": "4bcfbe29b5df0fa0"
+  },
+  "t-thrust": {
+   "src": "/audio/solar-system/narration/t-thrust.mp3",
+   "duration": 22.01,
+   "phrases": [
+    [
+     0.0,
+     3.03,
+     "Thrust comes from pushing exhaust backwards."
+    ],
+    [
+     3.53,
+     6.95,
+     "Near the ground, air pressure pushes back on the nozzle,"
+    ],
+    [
+     7.17,
+     10.84,
+     "so the same engines give more thrust as the air thins:"
+    ],
+    [
+     11.16,
+     17.77,
+     "from 4,150 to 4,580 kilonewtons."
+    ],
+    [
+     18.27,
+     22.01,
+     "Watch the plume widen as the pressure outside falls."
+    ]
+   ],
+   "hash": "75cf17a0572afcfb"
+  },
+  "t-upper-stage": {
+   "src": "/audio/solar-system/narration/t-upper-stage.mp3",
+   "duration": 18.19,
+   "phrases": [
+    [
+     0.0,
+     5.54,
+     "Above the interstage sits the upper stage, burning liquid hydrogen and oxygen."
+    ],
+    [
+     6.04,
+     10.12,
+     "Hydrogen engines are the most efficient chemical engines,"
+    ],
+    [
+     10.34,
+     14.03,
+     "which matters most once the vehicle is light and high."
+    ],
+    [
+     14.53,
+     18.19,
+     "This stage can restart in orbit for the departure burn."
+    ]
+   ],
+   "hash": "8eec6b822fa6a181"
+  },
+  "t-us-ignition": {
+   "src": "/audio/solar-system/narration/t-us-ignition.mp3",
+   "duration": 12.76,
+   "phrases": [
+    [
+     0.0,
+     2.12,
+     "The upper stage ignites."
+    ],
+    [
+     2.62,
+     8.98,
+     "Its hydrogen flame is almost invisible, but it is the most efficient engine on the vehicle,"
+    ],
+    [
+     9.2,
+     12.76,
+     "and now it only has to push a much lighter rocket."
+    ]
+   ],
+   "hash": "dfff92e8cf2acab5"
+  },
+  "t-w-engine": {
+   "src": "/audio/solar-system/narration/t-w-engine.mp3",
+   "duration": 24.81,
+   "phrases": [
+    [
+     0.0,
+     5.56,
+     "What if one of the two first-stage engines fails, 60 seconds after liftoff?"
+    ],
+    [
+     6.06,
+     8.57,
+     "We ran the same flight simulation."
+    ],
+    [
+     9.07,
+     13.15,
+     "Thrust halves, and the rocket can no longer out-climb gravity:"
+    ],
+    [
+     13.47,
+     16.49,
+     "it falls back 60 kilometres downrange."
+    ],
+    [
+     16.99,
+     20.71,
+     "Fail after about 2 minutes, and it could still reach orbit."
+    ],
+    [
+     21.21,
+     24.81,
+     "That is why margins, and engines to spare, matter."
+    ]
+   ],
+   "hash": "0599d51f56d0faed"
+  },
+  "t-w-link": {
+   "src": "/audio/solar-system/narration/t-w-link.mp3",
+   "duration": 28.58,
+   "phrases": [
+    [
+     0.0,
+     2.12,
+     "This one is not a what-if."
+    ],
+    [
+     2.62,
+     13.97,
+     "On this very trajectory, from 26 June 2037 to 3 July 2037, RSC-1 appears within three degrees of the Sun,"
+    ],
+    [
+     14.19,
+     18.78,
+     "as seen from Earth, and the Sun's corona scrambles its radio signal."
+    ],
+    [
+     19.28,
+     24.16,
+     "So the most important week of the cruise passes without a reliable link:"
+    ],
+    [
+     24.48,
+     28.58,
+     "the flyby has to run on commands uploaded beforehand."
+    ]
+   ],
+   "hash": "26569902312d5a4b"
+  },
+  "t-w-rtg": {
+   "src": "/audio/solar-system/narration/t-w-rtg.mp3",
+   "duration": 27.54,
+   "phrases": [
+    [
+     0.0,
+     3.34,
+     "What if one generator fails at separation?"
+    ],
+    [
+     3.84,
+     5.68,
+     "With the same power model:"
+    ],
+    [
+     6.0,
+     9.79,
+     "one generator gives 245 watts,"
+    ],
+    [
+     10.01,
+     15.01,
+     "but once the instruments switch on, the spacecraft needs 281."
+    ],
+    [
+     15.51,
+     19.33,
+     "The battery slowly drains, and after about 8 hours,"
+    ],
+    [
+     19.55,
+     23.96,
+     "fault protection switches to safe mode and turns the instruments off."
+    ],
+    [
+     24.46,
+     27.54,
+     "The mission survives; the science has to wait."
+    ]
+   ],
+   "hash": "87a3274287035499"
+  },
+  "t-why-orbit": {
+   "src": "/audio/solar-system/narration/t-why-orbit.mp3",
+   "duration": 16.6,
+   "phrases": [
+    [
+     0.0,
+     1.62,
+     "Why does it not fall?"
+    ],
+    [
+     2.12,
+     3.96,
+     "It does, all the time."
+    ],
+    [
+     4.46,
+     8.44,
+     "Gravity up here is still nine-tenths of its strength on the ground,"
+    ],
+    [
+     8.66,
+     13.12,
+     "but the vehicle moves sideways so fast that it keeps missing the Earth."
+    ],
+    [
+     13.62,
+     16.6,
+     "That is an orbit: continuous free fall."
+    ]
+   ],
+   "hash": "0925511d398526c8"
+  },
+  "t-why-stages": {
+   "src": "/audio/solar-system/narration/t-why-stages.mp3",
+   "duration": 17.88,
+   "phrases": [
+    [
+     0.0,
+     1.81,
+     "Why drop stages at all?"
+    ],
+    [
+     2.31,
+     7.64,
+     "The rocket equation rewards a high ratio of starting mass to final mass."
+    ],
+    [
+     8.14,
+     12.38,
+     "Empty tanks ruin that ratio, so the rocket throws them away:"
+    ],
+    [
+     12.7,
+     17.88,
+     "dropping the first stage removes 43 per cent of the mass in an instant."
+    ]
+   ],
+   "hash": "3da9869ae6c67760"
+  }
+ },
+ "model": "Kokoro-82M (Apache-2.0)",
+ "voice": "hf_alpha",
+ "speed": 0.9,
+ "lufs": -16.0
+}

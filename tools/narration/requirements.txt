@@ -5,3 +5,5 @@ kokoro==0.9.4
 soundfile
 numpy
 num2words
+pyloudnorm
+# qa.py only: faster-whisper jiwer librosa

@@ -351,7 +351,9 @@ export function JupiterView({ met, scientific = () => true }: { met: () => numbe
     }, [registry]);
     const state = useDeployedState();
     const craft = useRef<Group>(null);
-    useLabelAnchor('jup-craft', craft, [0, 1.6, 0]);
+    // Named in the diagram; in the close cinematic shots the spacecraft is unmistakable (and a chip that
+    // close to the camera drifts away from it).
+    useLabelAnchor(sci ? 'jup-craft' : null, craft, [0, 1.6, 0]);
     const sunDir = useMemo(() => toScene(planetAt('jupiter', m.jupiter)).normalize().negate(), [m.jupiter]);
     const path = useMemo(() => {
         const out: Vector3[] = [];

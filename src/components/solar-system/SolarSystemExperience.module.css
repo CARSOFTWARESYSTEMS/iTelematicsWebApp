@@ -1465,6 +1465,71 @@
     stroke-width: 1.2;
 }
 
+/* ---------- Voice narration: subtitles and controls ---------- */
+
+/* Topic and summary subtitles: film-style, at the foot of the scene, clear of the hardware. */
+.subtitle {
+    position: absolute;
+    left: 20px;
+    right: 20px;
+    bottom: 40px;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.subtitle span {
+    max-width: min(720px, 100%);
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    background: rgba(3, 6, 12, 0.74);
+    color: var(--text);
+    font-size: 1rem;
+    line-height: 1.45;
+    text-align: center;
+}
+
+@media (min-width: 900px) {
+    .solar[data-mode='label'] .subtitle,
+    .solar[data-mode='finale'] .subtitle {
+        left: 400px;
+    }
+
+    .solar[data-mode='finale'] .subtitle {
+        left: 480px;
+    }
+}
+
+.linkAction {
+    min-height: 34px;
+    padding: 0 4px;
+    border: 0;
+    background: none;
+    color: var(--telemetry);
+    font-size: 0.84rem;
+    cursor: pointer;
+}
+
+.linkAction:hover {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+}
+
+.cardFoot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.ccTool {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+}
+
 /* ---------- Tablets ---------- */
 
 @media (max-width: 1099px) {
@@ -1568,13 +1633,18 @@
         flex: 1 1 auto;
     }
 
-    /* The current stage keeps its name in the timeline. */
+    /* The current stage keeps its whole name in the timeline. */
+    .timeline li {
+        min-width: 20px;
+    }
+
     .timeline li[data-current] {
-        flex: 3 1 0;
+        flex: 0 0 auto;
     }
 
     .timeline li[data-current] .tlName {
         display: block;
+        overflow: visible;
         font-size: 0.72rem;
     }
 

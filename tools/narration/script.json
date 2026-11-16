@@ -1,0 +1,770 @@
+[
+ {
+  "id": "c-prep-1",
+  "program": "chapter:prep",
+  "at": 0.6,
+  "text": "This is RLV-1: two liquid-fuelled stages and a solid kick stage, 334 tonnes, fuelled and ready."
+ },
+ {
+  "id": "c-prep-2",
+  "program": "chapter:prep",
+  "at": 10.1,
+  "text": "92 per cent of it is propellant. At the very top sits the reason for all of it: RSC-1, just 720 kilograms."
+ },
+ {
+  "id": "c-liftoff-1",
+  "program": "chapter:liftoff",
+  "at": 0.285714285714286,
+  "text": "The final count is automatic."
+ },
+ {
+  "id": "c-liftoff-2",
+  "program": "chapter:liftoff",
+  "at": 11.42,
+  "text": "Thrust is 1.27 times the weight, so it climbs slowly at first."
+ },
+ {
+  "id": "c-liftoff-3",
+  "program": "chapter:liftoff",
+  "at": 19.125,
+  "text": "Now a small tilt. From here, gravity bends the path towards orbit."
+ },
+ {
+  "id": "c-ascent-1",
+  "program": "chapter:ascent",
+  "at": 0.2,
+  "text": "Speed builds faster than the air thins, so the pressure on the rocket rises."
+ },
+ {
+  "id": "c-ascent-2",
+  "program": "chapter:ascent",
+  "at": 8.360000000000099,
+  "text": "Max Q, 31.3 kilopascals: the hardest moment for the structure."
+ },
+ {
+  "id": "c-ascent-3",
+  "program": "chapter:ascent",
+  "at": 16.114285714285714,
+  "text": "Beyond it, the air thins faster than the speed grows, and the load falls away."
+ },
+ {
+  "id": "c-ascent-4",
+  "program": "chapter:ascent",
+  "at": 23.61553841460685,
+  "text": "Gravity costs far more than drag: 726 metres per second."
+ },
+ {
+  "id": "c-staging-1",
+  "program": "chapter:staging",
+  "at": 0.2142857142857224,
+  "text": "The first stage is almost empty."
+ },
+ {
+  "id": "c-staging-2",
+  "program": "chapter:staging",
+  "at": 7.95081967213112,
+  "text": "Released, not blown apart: 21 tonnes of empty stage fall away."
+ },
+ {
+  "id": "c-staging-3",
+  "program": "chapter:staging",
+  "at": 14.147540983606415,
+  "text": "Hydrogen burns almost invisibly."
+ },
+ {
+  "id": "c-fairing-1",
+  "program": "chapter:fairing",
+  "at": 0.8695652173913554,
+  "text": "Above 100 kilometres, the air can no longer harm the spacecraft."
+ },
+ {
+  "id": "c-fairing-2",
+  "program": "chapter:fairing",
+  "at": 7.503448275862078,
+  "text": "So the fairing halves fall away, and RSC-1 sees open space for the first time."
+ },
+ {
+  "id": "c-orbit-1",
+  "program": "chapter:orbit",
+  "at": 0.2,
+  "text": "The upper stage now pushes almost sideways. An orbit is mostly horizontal speed."
+ },
+ {
+  "id": "c-orbit-2",
+  "program": "chapter:orbit",
+  "at": 10.8,
+  "text": "Watch the perigee: the lowest point of the path climbs out of the atmosphere."
+ },
+ {
+  "id": "c-orbit-3",
+  "program": "chapter:orbit",
+  "at": 16.82666666666667,
+  "text": "Cutoff. 7.79 kilometres per second: it is now in orbit, falling around the Earth."
+ },
+ {
+  "id": "c-departure-1",
+  "program": "chapter:departure",
+  "at": 0.2,
+  "text": "Half an orbit later, the stack reaches its departure point."
+ },
+ {
+  "id": "c-departure-2",
+  "program": "chapter:departure",
+  "at": 6.298517556086741,
+  "text": "The upper stage restarts, low and fast, where each kilogram of propellant buys the most energy."
+ },
+ {
+  "id": "c-departure-3",
+  "program": "chapter:departure",
+  "at": 15.057142857142857,
+  "text": "It stops short, on purpose."
+ },
+ {
+  "id": "c-departure-4",
+  "program": "chapter:departure",
+  "at": 20.39245732885309,
+  "text": "The solid kick stage cannot stop. It burns to the end, and RSC-1 escapes the Earth."
+ },
+ {
+  "id": "c-departure-5",
+  "program": "chapter:departure",
+  "at": 27.895734597156398,
+  "text": "C3, 79.6: exactly the energy the path to Jupiter needs."
+ },
+ {
+  "id": "c-deploy-1",
+  "program": "chapter:deploy",
+  "at": 1.4285714285714286,
+  "text": "Springs push RSC-1 free. From here, it flies alone."
+ },
+ {
+  "id": "c-deploy-2",
+  "program": "chapter:deploy",
+  "at": 6.571428571428571,
+  "text": "Thrusters damp the tumble."
+ },
+ {
+  "id": "c-deploy-3",
+  "program": "chapter:deploy",
+  "at": 10.09090909090909,
+  "text": "Booms swing out, carrying the generators' heat away from the instruments."
+ },
+ {
+  "id": "c-deploy-4",
+  "program": "chapter:deploy",
+  "at": 19.08235294117647,
+  "text": "Ten minutes after separation, a ground station hears it for the first time."
+ },
+ {
+  "id": "c-cruise-1",
+  "program": "chapter:cruise",
+  "at": 0.2,
+  "text": "Engines off, for good. From here, the Sun's gravity alone shapes the path."
+ },
+ {
+  "id": "c-cruise-2",
+  "program": "chapter:cruise",
+  "at": 11.199685534591195,
+  "text": "A year out, radio takes 37 minutes each way."
+ },
+ {
+  "id": "c-cruise-3",
+  "program": "chapter:cruise",
+  "at": 15.756813417190775,
+  "text": "Sunlight here is just 4 per cent of Earth's. The generators do not notice."
+ },
+ {
+  "id": "c-jupiter-1",
+  "program": "chapter:jupiter",
+  "at": 0.6081081081081081,
+  "text": "Four days out, Jupiter's gravity has taken over, and RSC-1 is speeding up as it falls in."
+ },
+ {
+  "id": "c-jupiter-2",
+  "program": "chapter:jupiter",
+  "at": 8.716216216216216,
+  "text": "From Earth, it is now hidden in the Sun's glare. The flyby runs on commands stored on board."
+ },
+ {
+  "id": "c-jupiter-3",
+  "program": "chapter:jupiter",
+  "at": 17.64,
+  "text": "Above the cloud tops now, falling faster every minute."
+ },
+ {
+  "id": "c-jupiter-4",
+  "program": "chapter:jupiter",
+  "at": 27.240000000000002,
+  "text": "Closest approach: 4.1 Jupiter radii."
+ },
+ {
+  "id": "c-jupiter-5",
+  "program": "chapter:jupiter",
+  "at": 32.76,
+  "text": "Jupiter's gravity turns the path by 135 degrees."
+ },
+ {
+  "id": "c-jupiter-6",
+  "program": "chapter:jupiter",
+  "at": 39.87837837837838,
+  "text": "It leaves at the same speed relative to Jupiter, but 11 kilometres per second faster around the Sun, with no propellant used."
+ },
+ {
+  "id": "c-saturn-1",
+  "program": "chapter:saturn",
+  "at": 0.2,
+  "text": "Jupiter's push sends RSC-1 on: 3.4 more years to Saturn."
+ },
+ {
+  "id": "c-saturn-2",
+  "program": "chapter:saturn",
+  "at": 6.5,
+  "text": "It is already faster than the Sun's escape speed. It will never fall back."
+ },
+ {
+  "id": "c-saturn-3",
+  "program": "chapter:saturn",
+  "at": 12.4,
+  "text": "Saturn. Radio now takes 86 minutes each way."
+ },
+ {
+  "id": "c-discovery-1",
+  "program": "chapter:discovery",
+  "at": 0.4,
+  "text": "The Solar System from above: eight planets, two belts, and Pluto."
+ },
+ {
+  "id": "c-discovery-2",
+  "program": "chapter:discovery",
+  "at": 7,
+  "text": "The Sun holds 99.86 per cent of all the mass in the Solar System."
+ },
+ {
+  "id": "c-discovery-3",
+  "program": "chapter:discovery",
+  "at": 18,
+  "text": "Earth: liquid oceans, and the only world we know with life."
+ },
+ {
+  "id": "c-discovery-4",
+  "program": "chapter:discovery",
+  "at": 29,
+  "text": "Mars: a thin carbon dioxide sky over the tallest volcano in the Solar System."
+ },
+ {
+  "id": "c-discovery-5",
+  "program": "chapter:discovery",
+  "at": 40,
+  "text": "Jupiter: more than twice the mass of all the other planets together."
+ },
+ {
+  "id": "c-discovery-6",
+  "program": "chapter:discovery",
+  "at": 51,
+  "text": "Saturn's rings are vast, but mostly less than 100 metres thick."
+ },
+ {
+  "id": "c-discovery-7",
+  "program": "chapter:discovery",
+  "at": 62,
+  "text": "Neptune, 30 times farther out than Earth. Its moon Triton orbits backwards."
+ },
+ {
+  "id": "c-discovery-8",
+  "program": "chapter:discovery",
+  "at": 73,
+  "text": "Pluto, in the Kuiper Belt: nitrogen ice, and a frozen plain shaped like a heart."
+ },
+ {
+  "id": "finale",
+  "program": "finale",
+  "at": 0.8,
+  "text": "From a launch pad on Earth to Saturn in 6.4 years, with one engine-free push from Jupiter. Every number you saw came from the same models as the pictures. Explore any stage again, or ask: what if?"
+ },
+ {
+  "id": "t-explore-rocket",
+  "program": "topic:explore-rocket",
+  "at": 0.6,
+  "text": "RLV-1 is a two-stage rocket with a solid kick stage on top: 334 tonnes on the launch pad. Why stages? No single rocket can carry enough propellant and still be light enough to reach orbit, so empty sections are dropped on the way."
+ },
+ {
+  "id": "t-first-stage",
+  "program": "topic:first-stage",
+  "at": 0.6,
+  "text": "The first stage is the lower 33 metres: kerosene and liquid oxygen feeding two engines. It does the heaviest work, lifting the whole vehicle through the dense lower atmosphere, then falls away when its tanks are empty."
+ },
+ {
+  "id": "t-upper-stage",
+  "program": "topic:upper-stage",
+  "at": 0.6,
+  "text": "Above the interstage sits the upper stage, burning liquid hydrogen and oxygen. Hydrogen engines are the most efficient chemical engines, which matters most once the vehicle is light and high. This stage can restart in orbit for the departure burn."
+ },
+ {
+  "id": "t-engines",
+  "program": "topic:engines",
+  "at": 0.6,
+  "text": "A rocket engine pumps fuel and oxidiser into a combustion chamber, and the bell-shaped nozzle expands the hot gas into a fast jet. Pushing that mass backwards pushes the rocket forwards. The faster the exhaust, the less propellant each push costs."
+ },
+ {
+  "id": "t-tanks",
+  "program": "topic:tanks",
+  "at": 0.6,
+  "text": "Most of each stage is tank: thin walls holding fuel and oxidiser under pressure. Propellant is about 92 per cent of the mass on the launch pad, so every kilogram saved in structure is a kilogram more for the journey. The liquid hydrogen is kept at minus 253 degrees."
+ },
+ {
+  "id": "t-fairing",
+  "program": "topic:fairing",
+  "at": 0.6,
+  "text": "The fairing is a shell in two halves. It shields the spacecraft from air pressure, heating and noise during the climb. On the launch pad it stays closed; the cutaway shows the spacecraft waiting inside."
+ },
+ {
+  "id": "t-payload",
+  "program": "topic:payload",
+  "at": 0.6,
+  "text": "Inside the fairing, on its kick stage, waits RSC-1: a 720-kilogram spacecraft built for the outer planets. It carries a 3.7-metre dish to talk to Earth, two radioisotope generators for power, and a magnetometer boom that unfolds in space. Everything else on this rocket exists to deliver it."
+ },
+ {
+  "id": "t-readiness",
+  "program": "topic:readiness",
+  "at": 0.6,
+  "text": "In the final minutes, every system reports go: propellant, pressures, guidance, range and weather. One no-go holds the count, because once the engines ignite and the clamps let go, there is no turning back."
+ },
+ {
+  "id": "t-countdown",
+  "program": "topic:countdown",
+  "at": 0.6,
+  "text": "In the last ten seconds, computers run the count. Hundreds of steps must happen at exact moments, faster than people could react. Ignition is commanded three seconds before release."
+ },
+ {
+  "id": "t-ignition",
+  "program": "topic:ignition",
+  "at": 0.6,
+  "text": "The engines start while clamps hold the rocket down. In under three seconds they reach full thrust, and the computers check every one. If any engine falls short, they shut it down before liftoff, with the rocket still safe on the launch pad."
+ },
+ {
+  "id": "t-liftoff",
+  "program": "topic:liftoff",
+  "at": 0.6,
+  "text": "The clamps release only when thrust beats weight. Here thrust is 1.27 times the weight, so the excess gives a gentle first acceleration of 2.6 metres per second, every second. The rocket clears its 75-metre tower in about 7 seconds."
+ },
+ {
+  "id": "t-thrust",
+  "program": "topic:thrust",
+  "at": 0.6,
+  "text": "Thrust comes from pushing exhaust backwards. Near the ground, air pressure pushes back on the nozzle, so the same engines give more thrust as the air thins: from 4,150 to 4,580 kilonewtons. Watch the plume widen as the pressure outside falls."
+ },
+ {
+  "id": "t-acceleration",
+  "program": "topic:acceleration",
+  "at": 0.6,
+  "text": "As propellant burns, the rocket gets lighter while the thrust stays strong, so it accelerates harder and harder. To protect the structure and the payload, the engines throttle back to hold four and a half g."
+ },
+ {
+  "id": "t-gravity-turn",
+  "program": "topic:gravity-turn",
+  "at": 0.6,
+  "text": "A rocket does not steer its way to orbit. After rising straight up, it tilts just 3.4 degrees, then lets gravity bend its path. Flying along its own direction of travel keeps sideways loads on the structure low."
+ },
+ {
+  "id": "t-layers",
+  "program": "topic:layers",
+  "at": 0.6,
+  "text": "The atmosphere has layers, defined by how temperature changes with height. Air density halves roughly every five and a half kilometres, so by 100 kilometres almost nothing is left. Watch the sky darken from blue to black."
+ },
+ {
+  "id": "t-gravity-turn-2",
+  "program": "topic:gravity-turn-2",
+  "at": 0.6,
+  "text": "The path keeps bending towards horizontal. An orbit is mostly sideways speed, about 7.8 kilometres per second at this height, so the climb gradually becomes a race along the horizon."
+ },
+ {
+  "id": "t-drag",
+  "program": "topic:drag",
+  "at": 0.6,
+  "text": "Drag is the air pushing back. It grows with the square of the speed and with the density of the air. Climbing out of the dense air quickly keeps it small: on this flight drag costs just 49 metres per second, against 726 lost to gravity."
+ },
+ {
+  "id": "t-max-q",
+  "program": "topic:max-q",
+  "at": 0.6,
+  "text": "Dynamic pressure is the push of the oncoming air: it rises with speed and falls as the air thins. The two effects meet at a peak called Max Q, here 31.3 kilopascals, 11 kilometres up. The rocket and its fairing are designed to survive this moment with margin."
+ },
+ {
+  "id": "t-engine-performance",
+  "program": "topic:engine-performance",
+  "at": 0.6,
+  "text": "Rocket engines work better in thinner air. With less outside pressure on the nozzle, every kilogram of propellant gives more push, so thrust rises through the climb while the propellant flow stays the same."
+ },
+ {
+  "id": "t-flight-path",
+  "program": "topic:flight-path",
+  "at": 0.6,
+  "text": "This is the path the guidance computer flies. Too steep, and propellant is wasted fighting gravity; too shallow, and the rocket stays too long in thick air. The modelled path is drawn behind the vehicle."
+ },
+ {
+  "id": "t-w-engine",
+  "program": "topic:w-engine",
+  "at": 0.6,
+  "text": "What if one of the two first-stage engines fails, 60 seconds after liftoff? We ran the same flight simulation. Thrust halves, and the rocket can no longer out-climb gravity: it falls back 60 kilometres downrange. Fail after about 2 minutes, and it could still reach orbit. That is why margins, and engines to spare, matter."
+ },
+ {
+  "id": "t-meco",
+  "program": "topic:meco",
+  "at": 0.6,
+  "text": "Main engine cutoff. The first stage burns until its usable propellant is gone, 221 seconds after liftoff, then stops. Carrying it any further would only add dead weight."
+ },
+ {
+  "id": "t-separation",
+  "program": "topic:separation",
+  "at": 0.6,
+  "text": "Separation is a release, not an explosion. The joint between the stages is cut, and the empty first stage drifts back. The upper stage waits a few seconds before igniting, so its flame does not hit the stage it just left."
+ },
+ {
+  "id": "t-us-ignition",
+  "program": "topic:us-ignition",
+  "at": 0.6,
+  "text": "The upper stage ignites. Its hydrogen flame is almost invisible, but it is the most efficient engine on the vehicle, and now it only has to push a much lighter rocket."
+ },
+ {
+  "id": "t-why-stages",
+  "program": "topic:why-stages",
+  "at": 0.6,
+  "text": "Why drop stages at all? The rocket equation rewards a high ratio of starting mass to final mass. Empty tanks ruin that ratio, so the rocket throws them away: dropping the first stage removes 43 per cent of the mass in an instant."
+ },
+ {
+  "id": "t-mass-reduction",
+  "program": "topic:mass-reduction",
+  "at": 0.6,
+  "text": "Watch the mass fall: 334 tonnes at liftoff, 49 at first-stage cutoff, 28 after separation, and 14 in orbit. Less mass means the same thrust gives more acceleration."
+ },
+ {
+  "id": "t-fairing-2",
+  "program": "topic:fairing-2",
+  "at": 0.6,
+  "text": "The two-piece fairing has shielded the spacecraft since liftoff. Without it, the airflow would tear off antennas, booms and instruments. But every kilogram carried longer than needed is a kilogram less for the journey."
+ },
+ {
+  "id": "t-fairing-sep",
+  "program": "topic:fairing-sep",
+  "at": 0.6,
+  "text": "The fairing is dropped on a condition, not a clock: when the heating from the thin air falls below 1,135 watts per square metre. Here that happens 121 kilometres up. Springs push the two halves apart."
+ },
+ {
+  "id": "t-protection",
+  "program": "topic:protection",
+  "at": 0.6,
+  "text": "Inside the fairing, the spacecraft is protected from three things: the pressure of the air, the heat of friction, and intense noise. All three peak low in the atmosphere, around Max Q."
+ },
+ {
+  "id": "t-exposure",
+  "program": "topic:exposure",
+  "at": 0.6,
+  "text": "For the first time, RSC-1 is in open space: direct sunlight on one side, the cold of space on the other. From here on, its own thermal design keeps it within its temperature limits."
+ },
+ {
+  "id": "t-orbital-velocity",
+  "program": "topic:orbital-velocity",
+  "at": 0.6,
+  "text": "Orbital velocity is the speed at which the ground curves away as fast as you fall towards it. At 185 kilometres, that is 7.79 kilometres per second. The Earth's own rotation gave 458 metres per second of it for free."
+ },
+ {
+  "id": "t-parking-orbit",
+  "program": "topic:parking-orbit",
+  "at": 0.6,
+  "text": "A parking orbit is a waiting place: a low, nearly circular orbit where the vehicle coasts for 25 minutes, until it reaches the right point for the departure burn."
+ },
+ {
+  "id": "t-orbital-altitude",
+  "program": "topic:orbital-altitude",
+  "at": 0.6,
+  "text": "The lowest point of an orbit around the Earth is the perigee, and the highest is the apogee: here 184 and 188 kilometres. At this height, thin air would bring the vehicle down within days, which is fine for a short wait."
+ },
+ {
+  "id": "t-inclination",
+  "program": "topic:inclination",
+  "at": 0.6,
+  "text": "The orbit is tilted 10 degrees to the equator, the latitude of the launch site. Changing the tilt of an orbit later is very expensive, so the launch site and direction decide it."
+ },
+ {
+  "id": "t-seco",
+  "program": "topic:seco",
+  "at": 0.6,
+  "text": "The upper stage cuts off when the computed orbit reaches its target, not on a clock. That absorbs small differences in engine performance. 8.7 tonnes of propellant remain for the departure."
+ },
+ {
+  "id": "t-why-orbit",
+  "program": "topic:why-orbit",
+  "at": 0.6,
+  "text": "Why does it not fall? It does, all the time. Gravity up here is still nine-tenths of its strength on the ground, but the vehicle moves sideways so fast that it keeps missing the Earth. That is an orbit: continuous free fall."
+ },
+ {
+  "id": "t-parking-2",
+  "program": "topic:parking-2",
+  "at": 0.6,
+  "text": "The coast to the departure point. Launch windows to Jupiter open about every thirteen months, when Earth and Jupiter are well placed; the parking orbit fixes the exact departure point within the day."
+ },
+ {
+  "id": "t-departure-burn",
+  "program": "topic:departure-burn",
+  "at": 0.6,
+  "text": "The departure burn adds speed along the direction of motion, low and fast in the Earth’s gravity, where each kilogram of propellant gives the most energy. This is called the Oberth effect."
+ },
+ {
+  "id": "t-delta-v",
+  "program": "topic:delta-v",
+  "at": 0.6,
+  "text": "Delta-v is the change in velocity a manoeuvre needs: the currency of spaceflight. Leaving a 185-kilometre orbit for Jupiter costs about 6.3 kilometres per second, paid for with propellant, burn by burn."
+ },
+ {
+  "id": "t-kick",
+  "program": "topic:kick",
+  "at": 0.6,
+  "text": "The kick stage is a solid rocket motor under the spacecraft. It spins up for stability, and once lit it cannot stop: it burns all its propellant in about 82 seconds, adding the last few kilometres per second."
+ },
+ {
+  "id": "t-escape",
+  "program": "topic:escape",
+  "at": 0.6,
+  "text": "Past escape speed, the path is no longer a closed orbit but an open curve. The spacecraft keeps a leftover speed after climbing out of the Earth's gravity: 8.9 kilometres per second. Added to the Earth's own 29.8 around the Sun, that sets the road to Jupiter."
+ },
+ {
+  "id": "t-sun-centred",
+  "program": "topic:sun-centred",
+  "at": 0.6,
+  "text": "Free of the Earth, RSC-1 now orbits the Sun. A spacecraft cannot fly straight to a planet: it follows an ellipse, timed so that Jupiter arrives at the same place at the same time, three years later."
+ },
+ {
+  "id": "t-sc-sep",
+  "program": "topic:sc-sep",
+  "at": 0.6,
+  "text": "A clamp band opens, and springs push the spacecraft away from the spent kick stage at half a metre per second. From here, RSC-1 flies alone, on the path the rocket gave it."
+ },
+ {
+  "id": "t-attitude",
+  "program": "topic:attitude",
+  "at": 0.6,
+  "text": "Separation leaves the spacecraft slowly tumbling. Small hydrazine thrusters fire short pulses to stop it; then Sun and star sensors lock its orientation, so the dish can point at Earth."
+ },
+ {
+  "id": "t-rtg-boom",
+  "program": "topic:rtg-boom",
+  "at": 0.6,
+  "text": "The RTG boom swings out, carrying the two generators away from the body of the spacecraft, so their heat and radiation stay clear of the instruments. Why not solar panels? At Jupiter, sunlight is only 3.7 per cent as strong as at Earth."
+ },
+ {
+  "id": "t-eps",
+  "program": "topic:eps",
+  "at": 0.6,
+  "text": "Power flows from the generators, through a regulator, to a 30-volt bus that feeds every system. The battery covers short peaks, like a boom motor running. At every moment, the power generated equals the power used, stored and dissipated."
+ },
+ {
+  "id": "t-computer",
+  "program": "topic:computer",
+  "at": 0.6,
+  "text": "The flight computers run the deployment on their own: damping the tumble, finding the Sun and stars, deploying three booms, and switching on the radio. Far from Earth, commands arrive late, so the spacecraft must look after itself."
+ },
+ {
+  "id": "t-comms",
+  "program": "topic:comms",
+  "at": 0.6,
+  "text": "RSC-1 talks to Earth by radio. Near Earth, a small low-gain antenna is enough; far away, the 3.7-metre dish, pointed precisely at Earth, keeps the link alive. The signal travels at the speed of light, yet at Jupiter it still takes 35 to 52 minutes."
+ },
+ {
+  "id": "t-first-contact",
+  "program": "topic:first-contact",
+  "at": 0.6,
+  "text": "Ten minutes after separation, a ground station hears the spacecraft for the first time. Until that moment, nobody on Earth knows whether separation went well."
+ },
+ {
+  "id": "t-health-check",
+  "program": "topic:health-check",
+  "at": 0.6,
+  "text": "The first health check compares every temperature, voltage and rate with its limits. Problems found now can be worked around before the long cruise begins."
+ },
+ {
+  "id": "t-w-rtg",
+  "program": "topic:w-rtg",
+  "at": 0.6,
+  "text": "What if one generator fails at separation? With the same power model: one generator gives 245 watts, but once the instruments switch on, the spacecraft needs 281. The battery slowly drains, and after about 8 hours, fault protection switches to safe mode and turns the instruments off. The mission survives; the science has to wait."
+ },
+ {
+  "id": "t-b-trajectory",
+  "program": "topic:b-trajectory",
+  "at": 0.6,
+  "text": "This is the whole path to Jupiter, to scale: an arc around the Sun from the Earth's orbit out to Jupiter's, flown in 3.0 years without any engine. Once the departure burn is over, the Sun's gravity alone shapes it."
+ },
+ {
+  "id": "t-b-window",
+  "program": "topic:b-window",
+  "at": 0.6,
+  "text": "A launch window is the range of dates when the trajectory works. Leave a few weeks early or late, and the energy needed climbs steeply. For this mission, Earth, Jupiter and Saturn line up like this only about once every twenty years."
+ },
+ {
+  "id": "t-b-delay",
+  "program": "topic:b-delay",
+  "at": 0.6,
+  "text": "Radio travels at the speed of light, but space is big. As RSC-1 moves away, each message takes longer: tens of minutes by the time it reaches Jupiter. Commands are planned in advance; there is no live control."
+ },
+ {
+  "id": "t-b-power",
+  "program": "topic:b-power",
+  "at": 0.6,
+  "text": "Sunlight weakens with the square of the distance from the Sun, but the generators do not depend on sunlight. Their power falls only slowly, as the plutonium decays and the thermocouples age."
+ },
+ {
+  "id": "t-b-planets",
+  "program": "topic:b-planets",
+  "at": 0.6,
+  "text": "The planets keep moving while the spacecraft travels. The trajectory is aimed at where Jupiter will be in three years, not where it is today."
+ },
+ {
+  "id": "t-b-navigation",
+  "program": "topic:b-navigation",
+  "at": 0.6,
+  "text": "How do engineers know where the spacecraft is? Ground antennas measure the distance and the Doppler shift of its radio signal, and fit its orbit to those measurements. Small errors grow over the years, so small corrections remove them. This model flies exactly on the planned path."
+ },
+ {
+  "id": "t-j-approach",
+  "program": "topic:j-approach",
+  "at": 0.6,
+  "text": "In the final days, the gravity of Jupiter takes over from the Sun’s. RSC-1 speeds up as it falls in, on an aim point set weeks earlier. Jupiter grows from a disc to a world that fills the view."
+ },
+ {
+  "id": "t-j-closest",
+  "program": "topic:j-closest",
+  "at": 0.6,
+  "text": "Closest approach: 4.1 Jupiter radii from the centre, about 220,000 kilometres above the cloud tops. Closer passes bend the path more, but Jupiter's radiation belts set the limit."
+ },
+ {
+  "id": "t-j-assist",
+  "program": "topic:j-assist",
+  "at": 0.6,
+  "text": "Here is the trick of a gravity assist. Relative to Jupiter, the spacecraft leaves at the same speed it arrived: only its direction turns, by 135 degrees. But Jupiter itself moves around the Sun at 13 kilometres per second. Add that motion, and the speed of RSC-1 around the Sun jumps from 7.6 to 18.6 kilometres per second, without a drop of propellant."
+ },
+ {
+  "id": "t-j-moons",
+  "program": "topic:j-moons",
+  "at": 0.6,
+  "text": "These are the four great moons of Jupiter, discovered by Galileo: volcanic Io; icy Europa, which may hide an ocean; Ganymede, larger than the planet Mercury; and cratered Callisto. Their orbits are drawn to scale."
+ },
+ {
+  "id": "t-j-radiation",
+  "program": "topic:j-radiation",
+  "at": 0.6,
+  "text": "The powerful magnetic field of Jupiter traps energetic particles in intense radiation belts. Radiation damages electronics, so it sets how close a spacecraft can safely pass."
+ },
+ {
+  "id": "t-w-link",
+  "program": "topic:w-link",
+  "at": 0.6,
+  "text": "This one is not a what-if. On this very trajectory, from 26 June 2037 to 3 July 2037, RSC-1 appears within three degrees of the Sun, as seen from Earth, and the Sun's corona scrambles its radio signal. So the most important week of the cruise passes without a reliable link: the flyby has to run on commands uploaded beforehand."
+ },
+ {
+  "id": "t-s-flyby",
+  "program": "topic:s-flyby",
+  "at": 0.6,
+  "text": "After Jupiter, the spacecraft reaches Saturn on 28 November 2040. A second flyby could bend the path again, towards the outer planets. The pass shown here is placed for illustration: this phase designs the arrival, not the flyby itself."
+ },
+ {
+  "id": "t-s-rings",
+  "program": "topic:s-rings",
+  "at": 0.6,
+  "text": "The rings of Saturn are countless particles of water ice, in a disc hundreds of thousands of kilometres wide but mostly less than 100 metres thick. Spacecraft cross the ring plane only in known gaps, or far outside."
+ },
+ {
+  "id": "t-s-escape",
+  "program": "topic:s-escape",
+  "at": 0.6,
+  "text": "Is RSC-1 still bound to the Sun? At Saturn it moves at 13.69 kilometres per second, just above the Sun's escape speed there, 13.57. The Jupiter flyby supplied the difference: the spacecraft will leave the Solar System."
+ },
+ {
+  "id": "t-s-ops",
+  "program": "topic:s-ops",
+  "at": 0.6,
+  "text": "Hours of light-time away, a spacecraft is run by sequences uploaded in advance. On board, fault protection watches temperatures, voltages and rates, and switches to safe mode if anything leaves its limits."
+ },
+ {
+  "id": "t-s-power",
+  "program": "topic:s-power",
+  "at": 0.6,
+  "text": "The generators fade slowly: from 490 watts at launch to 442 at Saturn, as plutonium-238 decays with a half-life of 87.7 years. Operations plans switch instruments on and off to fit the power available."
+ },
+ {
+  "id": "t-t-sun",
+  "program": "topic:t-sun",
+  "at": 0.6,
+  "text": "The Sun is an ordinary star, but it holds 99.86 per cent of all the mass in the Solar System. Its light weakens with the square of the distance, which is why the outer planets are so cold."
+ },
+ {
+  "id": "t-t-mercury",
+  "program": "topic:t-mercury",
+  "at": 0.6,
+  "text": "Mercury is the smallest planet and the closest to the Sun: heavily cratered, with a huge iron core, and temperatures from minus 180 to 430 degrees."
+ },
+ {
+  "id": "t-t-venus",
+  "program": "topic:t-venus",
+  "at": 0.6,
+  "text": "Venus is almost the twin of the Earth in size, but a runaway greenhouse effect heats its surface to about 465 degrees, hot enough to melt lead. What we see are its cloud tops."
+ },
+ {
+  "id": "t-t-earth",
+  "program": "topic:t-earth",
+  "at": 0.6,
+  "text": "Earth: liquid water oceans, a protective atmosphere, and the only world we know with life, one astronomical unit from the Sun."
+ },
+ {
+  "id": "t-t-moon",
+  "program": "topic:t-moon",
+  "at": 0.6,
+  "text": "The Moon, 384,400 kilometres away: dark plains of ancient lava, and bright, cratered highlands."
+ },
+ {
+  "id": "t-t-mars",
+  "program": "topic:t-mars",
+  "at": 0.6,
+  "text": "Mars has a thin carbon dioxide atmosphere. It is home to Olympus Mons, the tallest volcano in the Solar System, and Valles Marineris, a canyon as long as a continent."
+ },
+ {
+  "id": "t-t-asteroids",
+  "program": "topic:t-asteroids",
+  "at": 0.6,
+  "text": "The asteroid belt lies between Mars and Jupiter. Despite the films, it is mostly empty: neighbouring asteroids are typically about a million kilometres apart, and all of them together weigh less than 4 per cent of our Moon."
+ },
+ {
+  "id": "t-t-jupiter",
+  "program": "topic:t-jupiter",
+  "at": 0.6,
+  "text": "Jupiter is the giant: 318 times the mass of the Earth, more than twice all the other planets combined. Its four large moons are worlds in their own right."
+ },
+ {
+  "id": "t-t-saturn",
+  "program": "topic:t-saturn",
+  "at": 0.6,
+  "text": "Saturn, and its rings of water ice reaching 140,000 kilometres from the centre, yet mostly thinner than 100 metres. Its largest moon, Titan, has a thick atmosphere of its own."
+ },
+ {
+  "id": "t-t-uranus",
+  "program": "topic:t-uranus",
+  "at": 0.6,
+  "text": "Uranus rolls around the Sun on its side, tilted 98 degrees, with faint, narrow rings. A single season there lasts 21 years."
+ },
+ {
+  "id": "t-t-neptune",
+  "program": "topic:t-neptune",
+  "at": 0.6,
+  "text": "Neptune, 30 astronomical units out, is the windiest planet. Its largest moon, Triton, orbits backwards: probably a captured object from the Kuiper Belt."
+ },
+ {
+  "id": "t-t-pluto",
+  "program": "topic:t-pluto",
+  "at": 0.6,
+  "text": "Pluto is a dwarf planet in the Kuiper Belt. New Horizons found a heart-shaped region of nitrogen ice, Sputnik Planitia, and a large moon, Charon. Its far side was in darkness during the flyby, so it is shown as a plain tone."
+ },
+ {
+  "id": "t-t-kuiper",
+  "program": "topic:t-kuiper",
+  "at": 0.6,
+  "text": "Beyond Neptune lies the Kuiper Belt: icy bodies 30 to 50 astronomical units from the Sun, including Pluto and Arrokoth, the most distant object a spacecraft has ever visited."
+ }
+]

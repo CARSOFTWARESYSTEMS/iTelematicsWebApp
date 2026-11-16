@@ -75,6 +75,7 @@ class MissionSound {
     private params: Record<string, AudioParam> = {};
     private enabled = false;
     private active = false;
+    private ducked = false;
     private lastMet = NaN;
     private listeners = new Set<() => void>();
 
@@ -117,10 +118,17 @@ class MissionSound {
         this.apply();
     }
 
+    /** Lowers the effects under the narrator's voice (speech clarity first). */
+    duck(on: boolean) {
+        if (this.ducked === on) return;
+        this.ducked = on;
+        this.apply();
+    }
+
     private apply() {
         if (!this.ctx || !this.master) return;
         const on = this.enabled && this.active;
-        this.master.gain.setTargetAtTime(on ? 0.9 : 0, this.ctx.currentTime, on ? 0.25 : 0.12);
+        this.master.gain.setTargetAtTime(on ? (this.ducked ? 0.36 : 0.9) : 0, this.ctx.currentTime, on ? 0.25 : 0.12);
     }
 
     private build(ctx: AudioContext) {
@@ -279,7 +287,18 @@ class MissionSound {
     /** Development checks: the audio state and the current levels. */
     debug() {
         const g = (n: string) => +((this.nodes[n] as GainNode | undefined)?.gain.value ?? 0).toFixed(3);
-        return { state: this.ctx?.state ?? 'none', on: this.enabled, active: this.active, master: +(this.master?.gain.value ?? 0).toFixed(3), engine: g('engineGain'), wind: g('windGain'), breeze: g('breezeGain'), ambience: g('ambGain'), delay: +(this.params.delay?.value ?? 0).toFixed(2), air: Math.round(this.params.air?.value ?? 0) };
+        return {
+            state: this.ctx?.state ?? 'none',
+            on: this.enabled,
+            active: this.active,
+            master: +(this.master?.gain.value ?? 0).toFixed(3),
+            engine: g('engineGain'),
+            wind: g('windGain'),
+            breeze: g('breezeGain'),
+            ambience: g('ambGain'),
+            delay: +(this.params.delay?.value ?? 0).toFixed(2),
+            air: Math.round(this.params.air?.value ?? 0),
+        };
     }
 
     /** Called every frame by the scene. */
