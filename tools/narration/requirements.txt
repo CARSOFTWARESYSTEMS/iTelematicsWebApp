@@ -1,0 +1,7 @@
+# Narration generation for the Solar System experience (run locally; never at visitor playback).
+# Python 3.12. Also needs espeak-ng from Homebrew (`brew install espeak-ng`): the pip-bundled
+# espeakng-loader cannot find its data on macOS.
+kokoro==0.9.4
+soundfile
+numpy
+num2words
