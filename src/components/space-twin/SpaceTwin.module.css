@@ -8,6 +8,33 @@
     margin: 0;
 }
 
+/* Only present for a valid URL launch; the scene mounts behind this small launch card. */
+.stagePanel:has(.launchOverlay) {
+    position: relative;
+}
+
+.launchOverlay {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    display: grid;
+    align-items: start;
+    justify-items: center;
+    padding: clamp(1rem, 5vw, 4rem) 1rem;
+    background: rgb(3 5 10 / 55%);
+}
+
+.launchCard {
+    display: grid;
+    gap: 1rem;
+    max-width: 32rem;
+    padding: 1.5rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-control);
+    background: var(--bg);
+    text-align: center;
+}
+
 /* ---------- Experience selector (Research Workspace tab pattern) ---------- */
 
 .selector {

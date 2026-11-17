@@ -1,4 +1,5 @@
-import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { StrictMode } from 'react';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import SpaceTwinViewer from './SpaceTwinViewer';
 
@@ -6,6 +7,10 @@ import SpaceTwinViewer from './SpaceTwinViewer';
 vi.mock('next/dynamic', () => ({ default: () => () => null }));
 
 let reduced = false;
+afterEach(() => {
+    window.history.replaceState(null, '', '/');
+    vi.restoreAllMocks();
+});
 
 beforeAll(() => {
     // jsdom does no layout.
@@ -34,6 +39,55 @@ beforeAll(() => {
 });
 
 describe('SpaceTwinViewer', () => {
+    it.each(['Satellite', 'Orbital Constellation', 'Spacecraft', 'Space Station', 'Station Power & Energy', 'Solar System'])('selects the URL experience %s', (label) => {
+        const id = ['Satellite', 'Orbital Constellation', 'Spacecraft', 'Space Station', 'Station Power & Energy', 'Solar System'].indexOf(label) + 1;
+        window.history.replaceState(null, '', `/?space_digital_twin=${id}&utm_source=share`);
+        render(<StrictMode><SpaceTwinViewer /></StrictMode>);
+        expect(screen.getByRole('tab', { name: label })).toHaveAttribute('aria-selected', 'true');
+        expect(window.location.search).toContain('utm_source=share');
+        expect(screen.getByRole('region', { name: 'Launch selected experience' })).toBeInTheDocument();
+    });
+
+    it('waits for one click, tolerates fullscreen rejection and never retries on Escape', async () => {
+        window.history.replaceState(null, '', '/?space_digital_twin=1');
+        const request = vi.fn().mockRejectedValue(new Error('Not allowed'));
+        Object.defineProperty(HTMLElement.prototype, 'requestFullscreen', { configurable: true, value: request });
+        try {
+            render(<SpaceTwinViewer />);
+            expect(request).not.toHaveBeenCalled();
+            expect(screen.getByRole('button', { name: 'Play the animation' })).toBeInTheDocument();
+            fireEvent.click(screen.getByRole('button', { name: 'Enter Full Screen & Start Mission' }));
+            await act(async () => {});
+            expect(request).toHaveBeenCalledTimes(1);
+            expect(screen.getByRole('button', { name: 'Pause the animation' })).toBeInTheDocument();
+            expect(screen.queryByRole('region', { name: 'Launch selected experience' })).toBeNull();
+            fireEvent.keyDown(document, { key: 'Escape' });
+            expect(screen.getByRole('figure')).not.toHaveAttribute('data-present');
+            fireEvent.click(screen.getByRole('button', { name: 'Pause the animation' }));
+            expect(request).toHaveBeenCalledTimes(1);
+        } finally {
+            Reflect.deleteProperty(HTMLElement.prototype, 'requestFullscreen');
+        }
+    });
+
+    it('respects disabled fullscreen/autoplay and does not reset visitor navigation', () => {
+        window.history.replaceState(null, '', '/?space_digital_twin=3&fullscreen=0&autoplay=0');
+        const view = render(<SpaceTwinViewer />);
+        expect(screen.queryByRole('region', { name: 'Launch selected experience' })).toBeNull();
+        expect(screen.getByRole('figure')).not.toHaveAttribute('data-present');
+        expect(screen.getByRole('button', { name: 'Play the animation' })).toBeInTheDocument();
+        fireEvent.click(screen.getByRole('tab', { name: 'Satellite' }));
+        view.rerender(<SpaceTwinViewer />);
+        expect(screen.getByRole('tab', { name: 'Satellite' })).toHaveAttribute('aria-selected', 'true');
+    });
+
+    it('falls back to normal behavior for an invalid URL', () => {
+        window.history.replaceState(null, '', '/?space_digital_twin=garbage&autoplay=0');
+        render(<SpaceTwinViewer />);
+        expect(screen.queryByRole('region', { name: 'Launch selected experience' })).toBeNull();
+        expect(screen.getByRole('tab', { name: 'Satellite' })).toHaveAttribute('aria-selected', 'true');
+        expect(screen.getByRole('button', { name: 'Pause the animation' })).toBeInTheDocument();
+    });
     it('offers the four experiences, Station Power & Energy and Solar System as keyboard-operable tabs', () => {
         render(<SpaceTwinViewer />);
         const tabs = screen.getAllByRole('tab');

@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import ExternalLink from './ExternalLink';
 import styles from './PosterDialog.module.css';
+import { parseSpaceLaunch } from '@/lib/space-twin/launch';
 
 export type PosterAction = { label: string; href: string; tone?: 'whatsapp' };
 
@@ -18,6 +19,8 @@ type Props = {
     actions?: readonly PosterAction[];
     /** Seconds before the poster closes on its own. */
     seconds?: number;
+    /** On the homepage, a valid mission URL takes precedence over the automatic poster. */
+    spaceLaunchRegistry?: readonly { id: string; number: string }[];
 };
 
 /**
@@ -25,7 +28,7 @@ type Props = {
  * seconds, or sooner with ✕, Esc or a click outside it. A bar shows the time left; the countdown
  * waits for the image and holds while the mouse is over the poster or the tab is in the background.
  */
-export default function PosterDialog({ id, src, width, height, alt, label, actions = [], seconds = 8 }: Props) {
+export default function PosterDialog({ id, src, width, height, alt, label, actions = [], seconds = 8, spaceLaunchRegistry }: Props) {
     const dialog = useRef<HTMLDialogElement>(null);
     const remaining = useRef(seconds * 1000);
     const [open, setOpen] = useState(false);
@@ -34,6 +37,7 @@ export default function PosterDialog({ id, src, width, height, alt, label, actio
     const [hidden, setHidden] = useState(false);
 
     useEffect(() => {
+        if (spaceLaunchRegistry && parseSpaceLaunch(window.location.search, spaceLaunchRegistry)) return;
         const key = `poster-seen:${id}`;
         try {
             if (sessionStorage.getItem(key)) return;
@@ -42,7 +46,7 @@ export default function PosterDialog({ id, src, width, height, alt, label, actio
             // storage blocked (private mode, policy): show it on every load rather than never
         }
         setOpen(true);
-    }, [id]);
+    }, [id, spaceLaunchRegistry]);
 
     useEffect(() => {
         const el = dialog.current;

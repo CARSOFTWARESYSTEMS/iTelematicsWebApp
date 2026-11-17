@@ -90,6 +90,7 @@ class Narrator {
     private audio: HTMLAudioElement | null = null;
     private preload: HTMLAudioElement | null = null;
     private enabled = true;
+    private volume = 1;
     private cueId: string | null = null;
     private endedId: string | null = null;
     private failed = new Set<string>();
@@ -126,6 +127,7 @@ class Narrator {
     private element() {
         if (this.audio || typeof window === 'undefined') return this.audio;
         const a = new Audio();
+        a.volume = this.volume;
         a.preload = 'auto';
         (a as HTMLAudioElement & { preservesPitch?: boolean }).preservesPitch = true;
         const changed = () => {
@@ -161,6 +163,12 @@ class Narrator {
         this.enabled = on;
         if (!on && this.audio) pause(this.audio);
         this.notify();
+    }
+
+    /** Launch volume uses the same narration element and synchronization. */
+    setVolume(volume: number) {
+        this.volume = Math.max(0, Math.min(1, volume));
+        if (this.audio) this.audio.volume = this.volume;
     }
 
     /**

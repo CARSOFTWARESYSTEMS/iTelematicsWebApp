@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeAll, beforeEach, afterEach } from 'vitest';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import PosterDialog from './PosterDialog';
+import { EXPERIENCES } from '@/lib/space-twin/experiences';
+import { EXTRA_TABS } from '@/lib/space-twin/launch';
 
 const POSTER = { id: 'test', src: '/images/test.webp', width: 1600, height: 900, alt: 'Test poster image', label: 'Test poster' };
 
@@ -19,7 +21,29 @@ describe('PosterDialog', () => {
     });
 
     beforeEach(() => sessionStorage.clear());
-    afterEach(() => vi.useRealTimers());
+    afterEach(() => {
+        vi.useRealTimers();
+        window.history.replaceState(null, '', '/');
+    });
+
+    it.each([1, 2, 3, 4, 5, 6])('does not obstruct a valid mission URL %s or mark the poster as seen', (id) => {
+        window.history.replaceState(null, '', `/?space_digital_twin=${id}`);
+        render(<PosterDialog {...POSTER} spaceLaunchRegistry={[...EXPERIENCES, ...EXTRA_TABS]} />);
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        expect(sessionStorage.getItem('poster-seen:test')).toBeNull();
+    });
+
+    it('keeps the normal poster for invalid mission URLs', () => {
+        window.history.replaceState(null, '', '/?space_digital_twin=7');
+        render(<PosterDialog {...POSTER} spaceLaunchRegistry={[...EXPERIENCES, ...EXTRA_TABS]} />);
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
+    });
+
+    it('does not change posters on other pages', () => {
+        window.history.replaceState(null, '', '/ev-engineer?space_digital_twin=6');
+        render(<PosterDialog {...POSTER} />);
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
+    });
 
     it('opens once per browser session', () => {
         const first = render(<PosterDialog {...POSTER} />);

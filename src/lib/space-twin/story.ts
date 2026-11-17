@@ -49,11 +49,22 @@ export class StoryClock {
     private phaseListeners = new Set<(phase: number) => void>();
     private tickListeners = new Set<() => void>();
     private requestFrame: () => void = () => {};
+    private stopAt: number | null = null;
 
     constructor(readonly story: StoryShape, private readonly tickSeconds = 0.2) {}
 
     get time() {
-        return this.t;
+        // Hold the completed scene on its last sample, rather than wrapping into the next stage.
+        return this.done ? Math.max(0, this.t - Math.max(1, this.t) * Number.EPSILON * 4) : this.t;
+    }
+
+    /** Optional launch-only boundary. Normal stories keep their existing continuous loop. */
+    setStopAt(seconds: number | null) {
+        this.stopAt = seconds;
+    }
+
+    get done() {
+        return this.stopAt !== null && this.t >= this.stopAt;
     }
 
     get elapsed() {
@@ -61,7 +72,7 @@ export class StoryClock {
     }
 
     get phase() {
-        return phaseIndexAt(this.story, this.t);
+        return phaseIndexAt(this.story, this.time);
     }
 
     get stage() {
@@ -99,12 +110,13 @@ export class StoryClock {
 
     /** Moves the story on by `seconds` of story time (callers clamp large frame gaps). */
     advance(seconds: number) {
-        if (seconds <= 0) return;
+        if (seconds <= 0 || this.done) return;
         const before = this.phase;
-        this.t = wrap(this.t + seconds, this.story.loopSeconds);
-        this.total += seconds;
-        this.sinceTick += seconds;
-        if (this.phase !== before) {
+        const step = this.stopAt === null ? seconds : Math.min(seconds, this.stopAt - this.t);
+        this.t = this.stopAt === null ? wrap(this.t + step, this.story.loopSeconds) : this.t + step;
+        this.total += step;
+        this.sinceTick += step;
+        if (this.phase !== before || this.done) {
             this.emitPhase();
             this.emitTick();
         } else if (this.sinceTick >= this.tickSeconds) this.emitTick();

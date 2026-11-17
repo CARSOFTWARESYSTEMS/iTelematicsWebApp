@@ -11,6 +11,10 @@ import StationHero from '@/components/station-twin/StationHero';
 import { EcosystemList } from '@/components/site/blocks';
 import { RESEARCH_THEMES } from '@/lib/research-lab';
 import { FLAGSHIP, JOIN_HREF, RESOURCES, SITE, STATION_IMAGE } from '@/lib/site';
+import { EXPERIENCES } from '@/lib/space-twin/experiences';
+import { EXTRA_TABS } from '@/lib/space-twin/launch';
+
+const SPACE_LAUNCH_REGISTRY = [...EXPERIENCES, ...EXTRA_TABS].map(({ id, number }) => ({ id, number }));
 
 export default function Home() {
     return (
@@ -18,6 +22,7 @@ export default function Home() {
             <JsonLd data={pageSchema({ path: '/', name: SITE.title, description: SITE.description, image: STATION_IMAGE })} />
             <PosterDialog
                 id="gamyaa-digital-twin"
+                spaceLaunchRegistry={SPACE_LAUNCH_REGISTRY}
                 src="/images/gamyaa-digital-twin-research.webp"
                 width={1672}
                 height={941}

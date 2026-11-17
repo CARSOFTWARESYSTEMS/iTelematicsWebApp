@@ -9,6 +9,7 @@ import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { useMedia, useNoWebGL, usePageVisible, usePresence, useReducedMotion, useStageQuality } from '@/components/space-twin/device';
 import { StoryClock } from '@/lib/space-twin/story';
+import { useLaunchAction, type LaunchProps } from '@/components/space-twin/launch';
 import type { Health } from '@/lib/station-eps/model';
 import { DATA_LABEL, EPS_MESSAGE, EPS_SECONDARY, EPS_STORY, EPS_SUPPORT, EPS_TITLE, FAULTS, GUIDED, LABELS, OVERVIEW, OVERVIEW_STAGES, type Scene } from '@/lib/station-eps/scenes';
 import { sampleNow } from './EpsScene';
@@ -32,7 +33,8 @@ function sceneOf(mode: Mode): Scene {
 /** Labels and faults loop their window; the overview and the guided steps play once. */
 const loops = (mode: Mode) => mode.kind === 'label' || mode.kind === 'fault';
 
-export default function EpsExperience() {
+export default function EpsExperience(launchProps: LaunchProps = {}) {
+    const { launch } = launchProps;
     const reducedMotion = useReducedMotion();
     const quality = useStageQuality();
     const noWebGL = useNoWebGL();
@@ -41,9 +43,9 @@ export default function EpsExperience() {
     const frameRef = useRef<HTMLDivElement>(null);
     const { near, onScreen } = usePresence(frameRef);
 
-    const [mode, setMode] = useState<Mode>({ kind: 'overview' });
+    const [mode, setMode] = useState<Mode>(launch ? { kind: 'guided', i: 0 } : { kind: 'overview' });
     const [menu, setMenu] = useState<Menu>(null);
-    const [paused, setPaused] = useState<boolean | null>(null);
+    const [paused, setPaused] = useState<boolean | null>(launch ? true : null);
     const [overlay, setOverlay] = useState(true);
     const [ready, setReady] = useState(false);
     const [, setTick] = useState(0);
@@ -61,7 +63,12 @@ export default function EpsExperience() {
     );
 
     const autoplay = !(paused ?? reducedMotion);
-    const playing = near && onScreen && pageVisible && autoplay && ready;
+    const visible = near && onScreen && pageVisible;
+    const playing = visible && autoplay && ready && !clock.done;
+
+    useEffect(() => {
+        clock.setStopAt(launch ? scene.seconds : null);
+    }, [clock, launch, scene.seconds]);
 
     const advanceGuided = useCallback(() => {
         setMode((m) => (m.kind === 'guided' ? (m.i + 1 < GUIDED.length ? { kind: 'guided', i: m.i + 1 } : { kind: 'overview' }) : m));
@@ -70,10 +77,24 @@ export default function EpsExperience() {
     useEffect(() => {
         const off = clock.onTick(() => {
             setTick((n) => n + 1);
-            if (mode.kind === 'guided' && clock.time >= scene.seconds) advanceGuided();
+            if (!launch && mode.kind === 'guided' && clock.time >= scene.seconds) advanceGuided();
         });
         return off;
-    }, [clock, mode.kind, scene.seconds, advanceGuided]);
+    }, [clock, mode.kind, scene.seconds, advanceGuided, launch]);
+
+    // The existing frame clock signals completion; no independent playback timer is needed.
+    useEffect(() => {
+        if (!launch || !clock.done || !visible || !autoplay || !ready) return;
+        if (launch.autonext && mode.kind !== 'overview') {
+            const count = mode.kind === 'guided' ? GUIDED.length : mode.kind === 'label' ? LABELS.length : FAULTS.length;
+            if (mode.i + 1 < count) {
+                setMode({ ...mode, i: mode.i + 1 });
+                return;
+            }
+        }
+        // Retain the final summary (or the selected module when autonext=0).
+        setPaused(true);
+    }, [launch, clock, clock.done, visible, autoplay, ready, mode]);
 
     const sample = sampleNow(scene, clock);
     const tonesKey = JSON.stringify(scene.tones(sample));
@@ -89,12 +110,18 @@ export default function EpsExperience() {
 
     const go = (next: Mode) => {
         setMode(next);
-        if (paused) setPaused(null);
+        if (paused && !launch) setPaused(null);
     };
     const start = () => {
+        if (launch) setPaused(false);
         setMenu(null);
         go({ kind: 'guided', i: 0 });
     };
+    useLaunchAction(launchProps, () => {
+        if (!launch) return;
+        start();
+        setPaused(!launch.autoplay);
+    });
     const step = (delta: 1 | -1) => {
         if (mode.kind === 'overview') return go({ kind: 'label', i: delta > 0 ? 0 : LABELS.length - 1 });
         const n = mode.kind === 'label' ? LABELS.length : mode.kind === 'fault' ? FAULTS.length : GUIDED.length;
@@ -155,7 +182,7 @@ export default function EpsExperience() {
                     <button type="button" className={styles.tool} onClick={() => step(-1)} aria-label="Previous" data-track="station_model_interaction" data-track-name="EPS control: previous">
                         <span aria-hidden="true">‹</span>
                     </button>
-                    <button type="button" className={styles.tool} onClick={() => setPaused(autoplay)} aria-pressed={!autoplay} aria-label={autoplay ? 'Pause' : 'Play'} data-track="station_model_interaction" data-track-name={autoplay ? 'EPS control: pause' : 'EPS control: play'}>
+                    <button type="button" className={styles.tool} onClick={() => { if (!autoplay && clock.done) clock.replay(); setPaused(autoplay); }} aria-pressed={!autoplay} aria-label={autoplay ? 'Pause' : 'Play'} data-track="station_model_interaction" data-track-name={autoplay ? 'EPS control: pause' : 'EPS control: play'}>
                         <span aria-hidden="true">{autoplay ? '❚❚' : '▶'}</span>
                     </button>
                     <button type="button" className={styles.tool} onClick={() => clock.replay()} aria-label="Replay" data-track="station_model_interaction" data-track-name="EPS control: replay">

@@ -76,6 +76,7 @@ class MissionSound {
     private enabled = false;
     private active = false;
     private ducked = false;
+    private volume = 1;
     private lastMet = NaN;
     private listeners = new Set<() => void>();
 
@@ -100,7 +101,7 @@ class MissionSound {
         const AC = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
         if (!AC) return;
         if (!this.ctx) this.build(new AC());
-        void this.ctx!.resume();
+        void this.ctx!.resume().catch(() => {});
         this.enabled = true;
         this.apply();
         this.notify();
@@ -110,6 +111,12 @@ class MissionSound {
         this.enabled = false;
         this.apply();
         this.notify();
+    }
+
+    /** Launch volume scales the existing mix without changing its balance or sound design. */
+    setVolume(volume: number) {
+        this.volume = Math.max(0, Math.min(1, volume));
+        this.apply();
     }
 
     /** Playing and visible: sound runs; paused, hidden or away from the scene: it fades out. */
@@ -128,7 +135,7 @@ class MissionSound {
     private apply() {
         if (!this.ctx || !this.master) return;
         const on = this.enabled && this.active;
-        this.master.gain.setTargetAtTime(on ? (this.ducked ? 0.36 : 0.9) : 0, this.ctx.currentTime, on ? 0.25 : 0.12);
+        this.master.gain.setTargetAtTime(on ? (this.ducked ? 0.36 : 0.9) * this.volume : 0, this.ctx.currentTime, on ? 0.25 : 0.12);
     }
 
     private build(ctx: AudioContext) {

@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent }
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { EXPERIENCES, type ExperienceId } from '@/lib/space-twin/experiences';
+import { EXTRA_TABS, parseSpaceLaunch, type Extra, type LaunchSettings } from '@/lib/space-twin/launch';
 import { StoryClock, type Hud, type Tone } from '@/lib/space-twin/story';
 import { MaturityBadge } from '@/components/site/blocks';
 import { useMedia, useNoWebGL, usePageVisible, usePresence, useReducedMotion, useStageQuality } from './device';
@@ -20,11 +21,7 @@ const StationPowerExperience = dynamic(() => import('@/components/station-eps/Ep
 // Sixth option (added 2026-11-14): Solar System — From Earth Launch to Deep Space Exploration, also a
 // separate experience with its own scene, state and resources, loaded only when its tab is chosen.
 const SolarSystemExperience = dynamic(() => import('@/components/solar-system/SolarSystemExperience'), { ssr: false });
-type Extra = 'eps' | 'solar';
-const EXTRA_TABS: readonly { id: Extra; number: string; label: string; title: string }[] = [
-    { id: 'eps', number: '05', label: 'Station Power & Energy', title: 'Space Station Electrical Power & Energy Management Digital Twin' },
-    { id: 'solar', number: '06', label: 'Solar System', title: 'Solar System — From Earth Launch to Deep Space Exploration' },
-];
+const LAUNCH_REGISTRY = [...EXPERIENCES, ...EXTRA_TABS];
 
 const POSTER = (id: ExperienceId) => `/images/space-twin/poster-${id}.jpg`;
 const SWITCH_MS = 320;
@@ -123,6 +120,36 @@ export default function SpaceTwinViewer() {
     const [extra, setExtra] = useState<Extra | null>(null);
     const extraOpen = extra !== null;
     const [present, setPresent] = useState(false);
+    const [launch, setLaunch] = useState<(LaunchSettings & { id: ExperienceId | Extra }) | null>(null);
+    const [launchPending, setLaunchPending] = useState(false);
+    const [launchReady, setLaunchReady] = useState(false);
+    const launchRef = useRef<(() => void) | null>(null);
+    const initialized = useRef(false);
+    const launched = useRef(false);
+    const markLaunchReady = useCallback(() => setLaunchReady(true), []);
+
+    useEffect(() => {
+        if (initialized.current) return;
+        initialized.current = true;
+        const request = parseSpaceLaunch(window.location.search, LAUNCH_REGISTRY);
+        if (!request) return;
+        setLaunch(request);
+        setLaunchPending(true);
+        setPaused(true);
+        if (request.id === 'eps' || request.id === 'solar') setExtra(request.id);
+        else {
+            setExperienceId(request.id);
+            setLaunchReady(true);
+        }
+        viewerRef.current?.scrollIntoView({ block: 'start', behavior: 'instant' });
+    }, []);
+
+    const cancelLaunch = () => {
+        if (!launch) return;
+        setLaunch(null);
+        setLaunchPending(false);
+        setPaused(null);
+    };
 
     useEffect(() => {
         setPhaseIndex(clock.phase);
@@ -137,7 +164,10 @@ export default function SpaceTwinViewer() {
     const phase = exp.story.phases[phaseIndex];
     const stageIndex = phase.stage;
     const stage = exp.story.stages[stageIndex];
-    const autoplay = !(paused ?? reducedMotion);
+    useEffect(() => {
+        clock.setStopAt(launch?.id === experienceId ? (launch.autonext ? exp.story.loopSeconds : stage.start + stage.seconds) : null);
+    }, [clock, launch, experienceId, exp, stage]);
+    const autoplay = !(paused ?? reducedMotion) && !clock.done;
     const playing = near && onScreen && pageVisible && autoplay && ready && !switching;
 
     const tones = exp.tones(phase.id, selected);
@@ -153,6 +183,7 @@ export default function SpaceTwinViewer() {
     }, []);
 
     const switchTo = (id: ExperienceId, i: number) => {
+        if (extra || id !== experienceId) cancelLaunch();
         tabRefs.current[i]?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
         if (extra) setExtra(null);
         if (id === experienceId) return;
@@ -175,6 +206,7 @@ export default function SpaceTwinViewer() {
     };
 
     const openExtra = (id: Extra) => {
+        if (id !== extra) cancelLaunch();
         tabRefs.current[EXPERIENCES.length + EXTRA_TABS.findIndex((t) => t.id === id)]?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
         setExtra(id);
         // The shared canvas unmounts; show the poster again until it is recreated on return.
@@ -196,6 +228,7 @@ export default function SpaceTwinViewer() {
     const goToStage = (i: number) => {
         setSelected(null);
         viewRef.current?.release();
+        if (launch?.id === experienceId && !launch.autonext) clock.setStopAt(exp.story.stages[i].start + exp.story.stages[i].seconds);
         clock.jumpToStage(i);
         setRun((r) => r + 1);
     };
@@ -204,6 +237,7 @@ export default function SpaceTwinViewer() {
         if (!autoplay) {
             setSelected(null);
             viewRef.current?.release();
+            if (clock.done) clock.jumpToStage(stageIndex);
         }
         setPaused(autoplay);
     };
@@ -216,6 +250,7 @@ export default function SpaceTwinViewer() {
     const replay = () => {
         setSelected(null);
         viewRef.current?.reset();
+        if (launch?.id === experienceId && !launch.autonext) clock.setStopAt(exp.story.stages[0].start + exp.story.stages[0].seconds);
         clock.replay();
         setRun((r) => r + 1);
         if (paused) setPaused(false);
@@ -223,16 +258,32 @@ export default function SpaceTwinViewer() {
 
     const fallback = noWebGL && near;
 
-    const enterPresent = () => {
+    const enterPresent = useCallback(() => {
         setPresent(true);
         const el = viewerRef.current as FullscreenElement | null;
         try {
-            if (el?.requestFullscreen) el.requestFullscreen({ navigationUI: 'hide' }).catch(() => {});
-            else el?.webkitRequestFullscreen?.();
+            if (el?.requestFullscreen && document.fullscreenEnabled !== false) el.requestFullscreen({ navigationUI: 'hide' }).catch(() => {});
+            else if (!el?.requestFullscreen) el?.webkitRequestFullscreen?.();
         } catch {
             // No Fullscreen API: the viewer still fills the browser window.
         }
-    };
+    }, []);
+
+    const startLaunch = useCallback(() => {
+        if (!launch || !launchReady || launched.current) return;
+        launched.current = true;
+        // Unlock audio before fullscreen can consume the transient user activation. Never await here.
+        launchRef.current?.();
+        setPaused(!launch.autoplay);
+        if (launch.fullscreen) enterPresent();
+        setLaunchPending(false);
+    }, [launch, launchReady, enterPresent]);
+
+    useEffect(() => {
+        if (!launchPending || !launch || !launchReady) return;
+        const needsAudioGesture = launch.id === 'solar' && launch.sound && launch.volume > 0;
+        if ((!launch.fullscreen && !needsAudioGesture) || navigator.userActivation?.isActive) startLaunch();
+    }, [launch, launchPending, launchReady, startLaunch]);
 
     const exitPresent = useCallback(() => {
         setPresent(false);
@@ -249,7 +300,7 @@ export default function SpaceTwinViewer() {
     useEffect(() => {
         if (!present) return;
         // Leaving the browser's full screen (Esc, or the system gesture) also leaves presentation.
-        let entered = false;
+        let entered = !!fullscreenElement();
         const onChange = () => {
             if (fullscreenElement()) entered = true;
             else if (entered) setPresent(false);
@@ -337,10 +388,21 @@ export default function SpaceTwinViewer() {
             </div>
 
             <div id="twin-stage" role="tabpanel" aria-labelledby={extra ? `twin-tab-${extra}` : `twin-tab-${experienceId}`} className={styles.stagePanel}>
-                {extra === 'eps' && <StationPowerExperience />}
-                {extra === 'solar' && <SolarSystemExperience />}
-                {/* Hidden (not unmounted) while the fifth or sixth option is open, so the presence observer keeps
-                    tracking the frame: it reports it off-screen, which releases the 3D canvas. */}
+                {launchPending && launch && (
+                    <div className={styles.launchOverlay} role="region" aria-label="Launch selected experience">
+                        <div className={styles.launchCard}>
+                            <p className="eyebrow">Space Digital Twin · {LAUNCH_REGISTRY.find((e) => e.id === launch.id)?.label}</p>
+                            <p>{launchReady ? 'Your mission is ready. Start when you are ready to explore.' : 'Preparing your mission…'}</p>
+                            <button type="button" className="btn btn-primary" disabled={!launchReady} onClick={startLaunch}>
+                                {launch.autoplay ? (launch.fullscreen ? 'Enter Full Screen & Start Mission' : 'Start Mission') : (launch.fullscreen ? 'Enter Full Screen' : 'Open Mission')}
+                            </button>
+                        </div>
+                    </div>
+                )}
+                <div inert={launchPending || undefined} style={{ display: 'contents' }}>
+                {extra === 'eps' && <StationPowerExperience launch={launch?.id === 'eps' ? launch : undefined} launchRef={launch?.id === 'eps' ? launchRef : undefined} onLaunchReady={markLaunchReady} />}
+                {extra === 'solar' && <SolarSystemExperience launch={launch?.id === 'solar' ? launch : undefined} launchRef={launch?.id === 'solar' ? launchRef : undefined} onLaunchReady={markLaunchReady} />}
+                {/* Keep the observed frame, but release the shared canvas while a separate scene is open. */}
                 <div style={{ display: extraOpen ? 'none' : 'contents' }}>
                 <div className={styles.frameWrap}>
                     <div
@@ -351,7 +413,7 @@ export default function SpaceTwinViewer() {
                         aria-label={`${exp.label}: ${exp.summary} Stage ${stageIndex + 1} of 4: ${stage.title}.${selectedLabel ? ` Selected: ${selectedLabel}.` : ''}`}
                     >
                         <Image key={experienceId} className={styles.poster} src={POSTER(experienceId)} alt="" fill sizes="(min-width: 1320px) 1240px, 100vw" />
-                        {near && quality !== null && (
+                        {!extraOpen && near && quality !== null && (
                             <div className={styles.canvas} aria-hidden="true">
                                 <SpaceTwinCanvas
                                     experience={experienceId}
@@ -436,6 +498,7 @@ export default function SpaceTwinViewer() {
                     <p className="visually-hidden" aria-live="polite">
                         {`${exp.label}, stage ${stageIndex + 1} of 4: ${stage.title}`}
                     </p>
+                </div>
                 </div>
                 </div>
             </div>
