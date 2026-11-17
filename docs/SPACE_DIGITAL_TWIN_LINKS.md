@@ -19,6 +19,13 @@ exactly as before.
 The numbers are the tab numbers. `06` also works for `6`. The same parameter works on `/research-lab`,
 which shows the same viewer.
 
+### Sharing from the page
+
+**Share**, beside **Full screen** in the viewer, shares the link of the experience on screen. It follows the
+selected tab, so each of the six links above can be shared from there. It shows the link with **Copy link**,
+**WhatsApp** and **Email**, plus **More…** (the device's share sheet) where the browser has one. Its clicks
+are reported as `station_model_interaction` (`Space Digital Twin share: copy 06` and so on).
+
 ## Options
 
 | Parameter | Values | Default with a link | Meaning |
@@ -98,13 +105,14 @@ System's chapter end plus narration end). No timers or durations were added.
 | `src/lib/space-twin/story.ts` | `StoryClock.setEnd()` / `ended`: plays once instead of looping, only when set |
 | `src/components/space-twin/launch.ts` | `useLinkStart`: an experience gives the viewer its start action, run inside the click |
 | `src/components/space-twin/SpaceTwinViewer.tsx` | Reads the link, the launch action, play-once for 1–4. Leaving full screen restores the scroll position |
-| `src/components/space-twin/SpaceTwin.module.css` | Launch styles (the Solar System's Start Mission pill) |
+| `src/components/space-twin/ShareLink.tsx` | **Share**: the link of the experience on screen, with Copy, WhatsApp, Email and the device share sheet |
+| `src/components/space-twin/SpaceTwin.module.css` | Launch and Share styles (the launch reuses the Solar System's Start Mission pill) |
 | `src/components/solar-system/SolarSystemExperience.tsx` | Opens Stage 01 for a link. Applies voice, subtitles and volume for the visit. Picking a stage carries on in order |
 | `src/components/solar-system/narrator.ts`, `sound.ts` | `setVolume()`, which scales the existing narration element and effects mix |
 | `src/components/station-eps/EpsExperience.tsx` | Starts the guided investigation. `autonext=0` holds the first step |
 | `src/components/site/PosterDialog.tsx`, `src/app/page.tsx` | Homepage poster skipped for a valid link |
 
 Tests: `src/lib/space-twin/launch.test.ts`, the one-pass clock in `space-twin.test.ts`,
-`src/components/space-twin/SpaceTwinViewer.test.tsx` (selection, click, full screen, invalid links) and
+`src/components/space-twin/SpaceTwinViewer.test.tsx` (selection, click, full screen, invalid links, Share) and
 `src/components/space-twin/SequentialPlayback.test.tsx` (every stage of all six experiences in order, pause,
 stage picks, `autonext=0`, narration gating).

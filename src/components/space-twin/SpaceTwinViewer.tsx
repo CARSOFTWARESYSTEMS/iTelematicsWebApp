@@ -12,6 +12,7 @@ import { StoryClock, type Hud, type Tone } from '@/lib/space-twin/story';
 import { MaturityBadge } from '@/components/site/blocks';
 import { useMedia, useNoWebGL, usePageVisible, usePresence, useReducedMotion, useStageQuality } from './device';
 import type { ViewHandle } from './rig';
+import ShareLink from './ShareLink';
 import styles from './SpaceTwin.module.css';
 
 const SpaceTwinCanvas = dynamic(() => import('./SpaceTwinCanvas'), { ssr: false });
@@ -397,6 +398,8 @@ export default function SpaceTwinViewer() {
     // Nothing needs a click (no full screen, no sound): the link starts as soon as the experience is there.
     const canStart = !!link && (!isExtra(link.id) || extraReady);
     const linkOption = link ? OPTIONS.find((o) => o.id === link.id) : undefined;
+    // The option on screen, for Share.
+    const shown = OPTIONS.find((o) => o.id === (extra ?? experienceId))!;
     useEffect(() => {
         if (canStart && !linkWaiting && !linkStarted) startLink();
         // startLink reads the current render; it runs once, when the link can start.
@@ -454,6 +457,7 @@ export default function SpaceTwinViewer() {
                     </button>
                 ))}
             </div>
+            <ShareLink number={shown.number} label={shown.label} narrated={NARRATED.includes(shown.id)} />
             <button
                 type="button"
                 className={styles.presentBtn}

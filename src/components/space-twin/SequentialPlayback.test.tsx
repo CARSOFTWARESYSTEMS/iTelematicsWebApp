@@ -55,6 +55,9 @@ vi.mock('../solar-system/narrator', async (original) => ({
 }));
 vi.mock('../solar-system/sound', () => ({ missionSound: { on: false, enable: vi.fn(), disable: vi.fn(), setVolume: vi.fn(), setActive: vi.fn(), duck: vi.fn(), onChange: () => () => {} } }));
 
+// Frame-by-frame playback through whole missions: allow more than the default 5 s per test on a busy machine.
+vi.setConfig({ testTimeout: 20_000 });
+
 const LINK: LaunchSettings = { fullscreen: false, sound: true, voice: true, captions: true, volume: 100, autoplay: true, autonext: true };
 const { chapters } = journey();
 

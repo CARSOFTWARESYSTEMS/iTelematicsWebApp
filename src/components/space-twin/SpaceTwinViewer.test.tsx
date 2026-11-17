@@ -267,3 +267,33 @@ describe('SpaceTwinViewer shareable links', () => {
         expect(screen.getAllByRole('button', { name: 'Enter Full Screen & Start Mission' })).toHaveLength(1);
     });
 });
+
+describe('SpaceTwinViewer share', () => {
+    it('shares the link of the option on screen, and follows the visitor to another option', async () => {
+        const writeText = vi.fn().mockResolvedValue(undefined);
+        Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
+        render(<SpaceTwinViewer />);
+        fireEvent.click(screen.getByRole('button', { name: 'Share Satellite' }));
+        const panel = screen.getByRole('dialog', { name: 'Share Satellite' });
+        expect(within(panel).getByLabelText('Link to Satellite')).toHaveTextContent('https://itelematics.com/?space_digital_twin=1');
+        expect(within(panel).getByRole('link', { name: /WhatsApp/ })).toHaveAttribute('href', expect.stringContaining(encodeURIComponent('https://itelematics.com/?space_digital_twin=1')));
+        await act(async () => {
+            fireEvent.click(within(panel).getByRole('button', { name: 'Copy link' }));
+        });
+        expect(writeText).toHaveBeenCalledWith('https://itelematics.com/?space_digital_twin=1');
+        expect(within(panel).getByRole('button', { name: 'Copied ✓' })).toBeInTheDocument();
+        fireEvent.click(screen.getByRole('tab', { name: 'Solar System' }));
+        expect(screen.getByLabelText('Link to Solar System')).toHaveTextContent('https://itelematics.com/?space_digital_twin=6');
+        expect(screen.getByText(/with sound and voice narration/)).toBeInTheDocument();
+        fireEvent.keyDown(document, { key: 'Escape' });
+        expect(screen.queryByRole('dialog', { name: /^Share/ })).toBeNull();
+        Reflect.deleteProperty(navigator, 'clipboard');
+    });
+
+    it.each([1, 2, 3, 4, 5, 6])('gives option %i its own link', (n) => {
+        render(<SpaceTwinViewer />);
+        fireEvent.click(screen.getAllByRole('tab')[n - 1]);
+        fireEvent.click(screen.getByRole('button', { name: /^Share / }));
+        expect(screen.getByLabelText(/^Link to /)).toHaveTextContent(`https://itelematics.com/?space_digital_twin=${n}`);
+    });
+});
