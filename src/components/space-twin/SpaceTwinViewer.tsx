@@ -7,7 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent }
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { EXPERIENCES, type ExperienceId } from '@/lib/space-twin/experiences';
-import { EXTRA_TABS, parseSpaceLaunch, type Extra, type LaunchSettings } from '@/lib/space-twin/launch';
+import { EXTRA_TABS, NARRATED, parseSpaceLaunch, type Extra, type LaunchSettings } from '@/lib/space-twin/launch';
 import { StoryClock, type Hud, type Tone } from '@/lib/space-twin/story';
 import { MaturityBadge } from '@/components/site/blocks';
 import { useMedia, useNoWebGL, usePageVisible, usePresence, useReducedMotion, useStageQuality } from './device';
@@ -21,7 +21,25 @@ const StationPowerExperience = dynamic(() => import('@/components/station-eps/Ep
 // Sixth option (added 2026-11-14): Solar System — From Earth Launch to Deep Space Exploration, also a
 // separate experience with its own scene, state and resources, loaded only when its tab is chosen.
 const SolarSystemExperience = dynamic(() => import('@/components/solar-system/SolarSystemExperience'), { ssr: false });
-const LAUNCH_REGISTRY = [...EXPERIENCES, ...EXTRA_TABS];
+
+// Shareable links (added 2026-11-17): /?space_digital_twin=1…6 opens that option, numbered as on the tabs.
+// Docs: docs/SPACE_DIGITAL_TWIN_LINKS.md.
+const OPTIONS = [...EXPERIENCES, ...EXTRA_TABS];
+type Link = LaunchSettings & { id: ExperienceId | Extra };
+const isExtra = (id: ExperienceId | Extra): id is Extra => EXTRA_TABS.some((t) => t.id === id);
+
+function launchLabel(link: Link) {
+    if (link.autoplay) return link.fullscreen ? 'Enter Full Screen & Start Mission' : 'Start Mission';
+    return link.fullscreen ? 'Enter Full Screen' : 'Open Mission';
+}
+
+/** One line on what the click starts, true to the link's options and to what the experience has. */
+function launchLine(link: Link) {
+    const plays = !link.autoplay ? 'Opens at the first stage, paused' : link.autonext ? 'Every stage plays in order' : 'Plays the first stage';
+    const audio = NARRATED.includes(link.id) && link.sound ? ['sound', ...(link.voice ? ['voice narration'] : []), ...(link.captions ? ['subtitles'] : [])] : [];
+    const withAudio = audio.length ? `, with ${audio.length > 1 ? `${audio.slice(0, -1).join(', ')} and ${audio[audio.length - 1]}` : audio[0]}` : '';
+    return `${plays}${withAudio}.`;
+}
 
 const POSTER = (id: ExperienceId) => `/images/space-twin/poster-${id}.jpg`;
 const SWITCH_MS = 320;
@@ -120,36 +138,39 @@ export default function SpaceTwinViewer() {
     const [extra, setExtra] = useState<Extra | null>(null);
     const extraOpen = extra !== null;
     const [present, setPresent] = useState(false);
-    const [launch, setLaunch] = useState<(LaunchSettings & { id: ExperienceId | Extra }) | null>(null);
-    const [launchPending, setLaunchPending] = useState(false);
-    const [launchReady, setLaunchReady] = useState(false);
-    const launchRef = useRef<(() => void) | null>(null);
-    const initialized = useRef(false);
-    const launched = useRef(false);
-    const markLaunchReady = useCallback(() => setLaunchReady(true), []);
 
-    useEffect(() => {
-        if (initialized.current) return;
-        initialized.current = true;
-        const request = parseSpaceLaunch(window.location.search, LAUNCH_REGISTRY);
-        if (!request) return;
-        setLaunch(request);
-        setLaunchPending(true);
-        setPaused(true);
-        if (request.id === 'eps' || request.id === 'solar') setExtra(request.id);
-        else {
-            setExperienceId(request.id);
-            setLaunchReady(true);
-        }
-        viewerRef.current?.scrollIntoView({ block: 'start', behavior: 'instant' });
+    // A shareable link: the option it opened (until the visitor picks another), whether it waits for the
+    // visitor's click (full screen and sound need one) and whether it has started.
+    const [link, setLink] = useState<Link | null>(null);
+    const [linkWaiting, setLinkWaiting] = useState(false);
+    const [linkStarted, setLinkStarted] = useState(false);
+    // The fifth and sixth options register their start action once they have loaded.
+    const extraStart = useRef<(() => void) | null>(null);
+    const [extraReady, setExtraReady] = useState(false);
+    const onLinkReady = useCallback((start: () => void) => {
+        extraStart.current = start;
+        setExtraReady(true);
     }, []);
 
-    const cancelLaunch = () => {
-        if (!launch) return;
-        setLaunch(null);
-        setLaunchPending(false);
-        setPaused(null);
-    };
+    // Read once, after hydration (the server never sees the query). The URL is left as it is.
+    useEffect(() => {
+        const parsed = parseSpaceLaunch(window.location.search, OPTIONS);
+        if (!parsed) return;
+        setLink(parsed);
+        if (isExtra(parsed.id)) setExtra(parsed.id);
+        else {
+            setExperienceId(parsed.id);
+            // Held at the start until the mission starts.
+            setPaused(true);
+        }
+        // A click is needed for full screen and for sound; with reduced motion, the click is the choice to play.
+        const audible = NARRATED.includes(parsed.id) && parsed.sound;
+        const still = parsed.autoplay && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        setLinkWaiting(parsed.fullscreen || audible || still);
+        viewerRef.current?.scrollIntoView({ block: 'start' });
+        // On narrow screens the tabs scroll sideways: show the chosen one, as a click on it does.
+        tabRefs.current[OPTIONS.findIndex((o) => o.id === parsed.id)]?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    }, []);
 
     useEffect(() => {
         setPhaseIndex(clock.phase);
@@ -164,11 +185,13 @@ export default function SpaceTwinViewer() {
     const phase = exp.story.phases[phaseIndex];
     const stageIndex = phase.stage;
     const stage = exp.story.stages[stageIndex];
-    useEffect(() => {
-        clock.setStopAt(launch?.id === experienceId ? (launch.autonext ? exp.story.loopSeconds : stage.start + stage.seconds) : null);
-    }, [clock, launch, experienceId, exp, stage]);
-    const autoplay = !(paused ?? reducedMotion) && !clock.done;
-    const playing = near && onScreen && pageVisible && autoplay && ready && !switching;
+    const autoplay = !(paused ?? reducedMotion);
+    // A link plays the story once (all stages, or one with autonext=0) and holds the last frame.
+    const storyLink = link && !isExtra(link.id) ? link : null;
+    const ended = clock.ended;
+    const running = autoplay && !ended;
+    const playing = near && onScreen && pageVisible && running && ready && !switching;
+    const stageEnd = (i: number) => exp.story.stages[i].start + exp.story.stages[i].seconds;
 
     const tones = exp.tones(phase.id, selected);
     const chips = exp.chips(clock.time, phase.id, selected, compact);
@@ -182,8 +205,22 @@ export default function SpaceTwinViewer() {
         viewRef.current?.release();
     }, []);
 
+    /** The visitor picked another option: the link no longer applies, everything behaves as normal. */
+    const leaveLink = () => {
+        if (!link) return;
+        if (storyLink) {
+            clock.setEnd(null);
+            if (!linkStarted) setPaused(null);
+        }
+        setLink(null);
+        setLinkWaiting(false);
+        setLinkStarted(false);
+        extraStart.current = null;
+        setExtraReady(false);
+    };
+
     const switchTo = (id: ExperienceId, i: number) => {
-        if (extra || id !== experienceId) cancelLaunch();
+        if (extra || id !== experienceId) leaveLink();
         tabRefs.current[i]?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
         if (extra) setExtra(null);
         if (id === experienceId) return;
@@ -206,7 +243,7 @@ export default function SpaceTwinViewer() {
     };
 
     const openExtra = (id: Extra) => {
-        if (id !== extra) cancelLaunch();
+        if (id !== link?.id) leaveLink();
         tabRefs.current[EXPERIENCES.length + EXTRA_TABS.findIndex((t) => t.id === id)]?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
         setExtra(id);
         // The shared canvas unmounts; show the poster again until it is recreated on return.
@@ -228,18 +265,24 @@ export default function SpaceTwinViewer() {
     const goToStage = (i: number) => {
         setSelected(null);
         viewRef.current?.release();
-        if (launch?.id === experienceId && !launch.autonext) clock.setStopAt(exp.story.stages[i].start + exp.story.stages[i].seconds);
+        // With autonext=0 a link plays only the stage the visitor picks.
+        if (storyLink && !storyLink.autonext) clock.setEnd(stageEnd(i));
         clock.jumpToStage(i);
         setRun((r) => r + 1);
     };
 
     const togglePlay = () => {
-        if (!autoplay) {
+        if (!running) {
             setSelected(null);
             viewRef.current?.release();
-            if (clock.done) clock.jumpToStage(stageIndex);
+            // A link's story that has played to its end plays again: every stage, or the stage it held.
+            if (ended) {
+                if (storyLink?.autonext) clock.replay();
+                else clock.jumpToStage(stageIndex);
+                setRun((r) => r + 1);
+            }
         }
-        setPaused(autoplay);
+        setPaused(running);
     };
 
     const resetView = () => {
@@ -250,7 +293,7 @@ export default function SpaceTwinViewer() {
     const replay = () => {
         setSelected(null);
         viewRef.current?.reset();
-        if (launch?.id === experienceId && !launch.autonext) clock.setStopAt(exp.story.stages[0].start + exp.story.stages[0].seconds);
+        if (storyLink && !storyLink.autonext) clock.setEnd(stageEnd(0));
         clock.replay();
         setRun((r) => r + 1);
         if (paused) setPaused(false);
@@ -258,32 +301,43 @@ export default function SpaceTwinViewer() {
 
     const fallback = noWebGL && near;
 
-    const enterPresent = useCallback(() => {
+    // Where the page was: leaving full screen returns there (otherwise scroll anchoring can leave the viewer
+    // off-screen when it rejoins the page, and an off-screen scene pauses).
+    const presentScroll = useRef<number | null>(null);
+    useEffect(() => {
+        if (present || presentScroll.current === null) return;
+        const y = presentScroll.current;
+        presentScroll.current = null;
+        if (!fullscreenElement()) {
+            window.scrollTo(0, y);
+            return;
+        }
+        // Still leaving the browser's full screen, which moves the page as it goes: restore once it has left.
+        const onChange = () => {
+            if (fullscreenElement()) return;
+            window.scrollTo(0, y);
+            off();
+        };
+        const off = () => {
+            document.removeEventListener('fullscreenchange', onChange);
+            document.removeEventListener('webkitfullscreenchange', onChange);
+        };
+        document.addEventListener('fullscreenchange', onChange);
+        document.addEventListener('webkitfullscreenchange', onChange);
+        return off;
+    }, [present]);
+
+    const enterPresent = () => {
+        presentScroll.current = window.scrollY;
         setPresent(true);
         const el = viewerRef.current as FullscreenElement | null;
         try {
-            if (el?.requestFullscreen && document.fullscreenEnabled !== false) el.requestFullscreen({ navigationUI: 'hide' }).catch(() => {});
-            else if (!el?.requestFullscreen) el?.webkitRequestFullscreen?.();
+            if (el?.requestFullscreen) el.requestFullscreen({ navigationUI: 'hide' }).catch(() => {});
+            else el?.webkitRequestFullscreen?.();
         } catch {
             // No Fullscreen API: the viewer still fills the browser window.
         }
-    }, []);
-
-    const startLaunch = useCallback(() => {
-        if (!launch || !launchReady || launched.current) return;
-        launched.current = true;
-        // Unlock audio before fullscreen can consume the transient user activation. Never await here.
-        launchRef.current?.();
-        setPaused(!launch.autoplay);
-        if (launch.fullscreen) enterPresent();
-        setLaunchPending(false);
-    }, [launch, launchReady, enterPresent]);
-
-    useEffect(() => {
-        if (!launchPending || !launch || !launchReady) return;
-        const needsAudioGesture = launch.id === 'solar' && launch.sound && launch.volume > 0;
-        if ((!launch.fullscreen && !needsAudioGesture) || navigator.userActivation?.isActive) startLaunch();
-    }, [launch, launchPending, launchReady, startLaunch]);
+    };
 
     const exitPresent = useCallback(() => {
         setPresent(false);
@@ -300,7 +354,7 @@ export default function SpaceTwinViewer() {
     useEffect(() => {
         if (!present) return;
         // Leaving the browser's full screen (Esc, or the system gesture) also leaves presentation.
-        let entered = !!fullscreenElement();
+        let entered = false;
         const onChange = () => {
             if (fullscreenElement()) entered = true;
             else if (entered) setPresent(false);
@@ -320,6 +374,33 @@ export default function SpaceTwinViewer() {
             document.documentElement.style.overflow = overflow;
         };
     }, [present, exitPresent]);
+
+    /** Starts what a link opened. On a click it runs inside it: sound first, then full screen. */
+    const startLink = () => {
+        if (!link || linkStarted) return;
+        if (isExtra(link.id)) {
+            if (!extraStart.current) return;
+            extraStart.current();
+        } else {
+            clock.setEnd(link.autonext ? exp.story.loopSeconds : stageEnd(0));
+            setSelected(null);
+            viewRef.current?.reset();
+            clock.replay();
+            setRun((r) => r + 1);
+            setPaused(!link.autoplay);
+        }
+        if (link.fullscreen && !present) enterPresent();
+        setLinkWaiting(false);
+        setLinkStarted(true);
+    };
+
+    // Nothing needs a click (no full screen, no sound): the link starts as soon as the experience is there.
+    const canStart = !!link && (!isExtra(link.id) || extraReady);
+    const linkOption = link ? OPTIONS.find((o) => o.id === link.id) : undefined;
+    useEffect(() => {
+        if (canStart && !linkWaiting && !linkStarted) startLink();
+        // startLink reads the current render; it runs once, when the link can start.
+    }, [canStart, linkWaiting, linkStarted]);
 
     return (
         <figure ref={viewerRef} className={styles.viewer} aria-labelledby="space-twin-caption" data-present={present || undefined}>
@@ -388,21 +469,42 @@ export default function SpaceTwinViewer() {
             </div>
 
             <div id="twin-stage" role="tabpanel" aria-labelledby={extra ? `twin-tab-${extra}` : `twin-tab-${experienceId}`} className={styles.stagePanel}>
-                {launchPending && launch && (
-                    <div className={styles.launchOverlay} role="region" aria-label="Launch selected experience">
-                        <div className={styles.launchCard}>
-                            <p className="eyebrow">Space Digital Twin · {LAUNCH_REGISTRY.find((e) => e.id === launch.id)?.label}</p>
-                            <p>{launchReady ? 'Your mission is ready. Start when you are ready to explore.' : 'Preparing your mission…'}</p>
-                            <button type="button" className="btn btn-primary" disabled={!launchReady} onClick={startLaunch}>
-                                {launch.autoplay ? (launch.fullscreen ? 'Enter Full Screen & Start Mission' : 'Start Mission') : (launch.fullscreen ? 'Enter Full Screen' : 'Open Mission')}
+                {/* A shareable link that needs a click: one action over the scene, which waits behind it. */}
+                {linkWaiting && link && linkOption && (
+                    <div className={styles.launch} role="group" aria-labelledby="twin-launch-title" aria-describedby="twin-launch-line">
+                        <div className={styles.launchInner}>
+                            <p className={styles.launchKicker}>Space Digital Twin · {linkOption.number}</p>
+                            <p id="twin-launch-title" className={styles.launchTitle}>
+                                {linkOption.label}
+                            </p>
+                            <p id="twin-launch-line" className={styles.launchLine}>
+                                {launchLine(link)}
+                            </p>
+                            <button
+                                type="button"
+                                className={styles.launchBtn}
+                                onClick={startLink}
+                                disabled={!canStart}
+                                aria-busy={!canStart || undefined}
+                                data-track="station_model_interaction"
+                                data-track-name={`Space Digital Twin link: start ${linkOption.number}`}
+                            >
+                                <span className={styles.launchIcon} aria-hidden="true">
+                                    <svg viewBox="0 0 16 16" width="14" height="14">
+                                        <path d="M5 3.2v9.6l7.8-4.8z" fill="currentColor" />
+                                    </svg>
+                                </span>
+                                {canStart ? launchLabel(link) : 'Preparing the mission…'}
                             </button>
                         </div>
                     </div>
                 )}
-                <div inert={launchPending || undefined} style={{ display: 'contents' }}>
-                {extra === 'eps' && <StationPowerExperience launch={launch?.id === 'eps' ? launch : undefined} launchRef={launch?.id === 'eps' ? launchRef : undefined} onLaunchReady={markLaunchReady} />}
-                {extra === 'solar' && <SolarSystemExperience launch={launch?.id === 'solar' ? launch : undefined} launchRef={launch?.id === 'solar' ? launchRef : undefined} onLaunchReady={markLaunchReady} />}
-                {/* Keep the observed frame, but release the shared canvas while a separate scene is open. */}
+                {/* Not interactive while the link waits for its click; always present, so nothing remounts. */}
+                <div className={styles.stageContent} inert={linkWaiting || undefined}>
+                {extra === 'eps' && <StationPowerExperience link={link?.id === 'eps' ? link : undefined} onLinkReady={onLinkReady} />}
+                {extra === 'solar' && <SolarSystemExperience link={link?.id === 'solar' ? link : undefined} onLinkReady={onLinkReady} />}
+                {/* Hidden (not unmounted) while the fifth or sixth option is open, so the presence observer keeps
+                    tracking the frame: it reports it off-screen, which releases the 3D canvas. */}
                 <div style={{ display: extraOpen ? 'none' : 'contents' }}>
                 <div className={styles.frameWrap}>
                     <div
@@ -413,7 +515,7 @@ export default function SpaceTwinViewer() {
                         aria-label={`${exp.label}: ${exp.summary} Stage ${stageIndex + 1} of 4: ${stage.title}.${selectedLabel ? ` Selected: ${selectedLabel}.` : ''}`}
                     >
                         <Image key={experienceId} className={styles.poster} src={POSTER(experienceId)} alt="" fill sizes="(min-width: 1320px) 1240px, 100vw" />
-                        {!extraOpen && near && quality !== null && (
+                        {near && quality !== null && (
                             <div className={styles.canvas} aria-hidden="true">
                                 <SpaceTwinCanvas
                                     experience={experienceId}
@@ -450,8 +552,8 @@ export default function SpaceTwinViewer() {
                     </div>
 
                     <div className={styles.tools}>
-                        <button type="button" className={styles.tool} aria-pressed={!autoplay} onClick={togglePlay} aria-label={autoplay ? 'Pause the animation' : 'Play the animation'}>
-                            <span aria-hidden="true">{autoplay ? '❚❚' : '▶'}</span>
+                        <button type="button" className={styles.tool} aria-pressed={!running} onClick={togglePlay} aria-label={running ? 'Pause the animation' : 'Play the animation'}>
+                            <span aria-hidden="true">{running ? '❚❚' : '▶'}</span>
                         </button>
                         <button type="button" className={styles.tool} onClick={resetView} aria-label="Reset the camera view">
                             <span aria-hidden="true">⟲</span>

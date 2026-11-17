@@ -333,6 +333,36 @@ describe('stories, clocks and time', () => {
         expect(len([a[0] - b[0], a[1] - b[1], a[2] - b[2]])).toBeCloseTo(speedKmS(CON.altKm) * dtMin * 60, 1);
     });
 
+    it('plays once for a shareable link: every stage in order, then holds the last frame (the loop is unchanged otherwise)', () => {
+        const clock = new StoryClock(SAT_STORY, 0.2);
+        const phases: number[] = [];
+        let ticks = 0;
+        clock.onPhase((p) => phases.push(p));
+        clock.onTick(() => ticks++);
+        clock.setEnd(SAT_STORY.loopSeconds);
+        for (let i = 0; i < 60 * SAT_LOOP * 2; i++) clock.advance(1 / 60);
+        expect(clock.ended).toBe(true);
+        // Each phase once, in order, never wrapping back to the first.
+        expect(phases.filter((p, i) => p !== phases[i - 1])).toEqual(SAT_STORY.phases.map((_, i) => i).slice(1));
+        expect(clock.stage).toBe(SAT_STORY.stages.length - 1);
+        expect(clock.time).toBeCloseTo(SAT_STORY.loopSeconds, 2);
+        expect(clock.elapsed).toBeCloseTo(SAT_STORY.loopSeconds, 2);
+        const held = ticks;
+        clock.advance(5);
+        expect(ticks).toBe(held);
+        // A stage jump plays on from there; replay starts over; null restores the loop.
+        clock.jumpToStage(1);
+        expect(clock.ended).toBe(false);
+        clock.setEnd(SAT_STORY.stages[1].start + SAT_STORY.stages[1].seconds);
+        clock.advance(SAT_STORY.stages[1].seconds + 5);
+        expect(clock.ended).toBe(true);
+        expect(clock.stage).toBe(1);
+        clock.setEnd(null);
+        clock.advance(SAT_STORY.loopSeconds);
+        expect(clock.ended).toBe(false);
+        expect(clock.time).toBeLessThan(SAT_STORY.loopSeconds);
+    });
+
     it('shows heads-up values only where the story calls for them', () => {
         expect(satHud(2, 'reveal')).toBeNull();
         expect(stHud(2, 'reveal', null)).toBeNull();

@@ -29,7 +29,7 @@ import { PHASE_B_LABELS } from './PlanetViews';
 import styles from './SolarSystemExperience.module.css';
 import { activeCue, cuesFor, narrator, phraseAt, topicNarrationSeconds } from './narrator';
 import { missionSound } from './sound';
-import { useLaunchAction, type LaunchProps } from '@/components/space-twin/launch';
+import { useLinkStart, type LinkProps } from '@/components/space-twin/launch';
 
 const SolarCanvas = dynamic(() => import('./SolarCanvas'), { ssr: false });
 // Posters: the scene's first frame, rendered from the live scene for each layout (wide, tablet, phone),
@@ -115,8 +115,9 @@ function writeProgress(p: Progress) {
     }
 }
 
-export default function SolarSystemExperience(launchProps: LaunchProps = {}) {
-    const { launch } = launchProps;
+export default function SolarSystemExperience(linkProps: LinkProps = {}) {
+    // A shareable link (docs/SPACE_DIGITAL_TWIN_LINKS.md) opens Stage 01, held until the viewer starts it.
+    const { link } = linkProps;
     const reducedMotion = useReducedMotion();
     const quality = useStageQuality();
     const noWebGL = useNoWebGL();
@@ -127,7 +128,7 @@ export default function SolarSystemExperience(launchProps: LaunchProps = {}) {
     const { chapters, intro } = journey();
     const L = lessons();
 
-    const [mode, setMode] = useState<Mode>(launch ? { kind: 'chapter', c: 0, guided: true, view: 'cinematic' } : { kind: 'intro' });
+    const [mode, setMode] = useState<Mode>(link ? { kind: 'chapter', c: 0, guided: link.autonext, view: 'cinematic' } : { kind: 'intro' });
     const history = useRef<Mode[]>([]);
     const [stagesOpen, setStagesOpen] = useState(false);
     const [query, setQuery] = useState('');
@@ -141,7 +142,7 @@ export default function SolarSystemExperience(launchProps: LaunchProps = {}) {
     // Where to resume a stage when the visitor returns from a topic (story time, guided, view).
     const resume = useRef<{ c: number; t: number; guided: boolean; view: View } | null>(null);
     const seekFraction = useRef<number | null>(null);
-    const [paused, setPaused] = useState<boolean | null>(launch ? true : null);
+    const [paused, setPaused] = useState<boolean | null>(link ? true : null);
     const [ready, setReady] = useState(false);
     const markReady = useCallback(() => setReady(true), []);
     const [, setTick] = useState(0);
@@ -209,24 +210,13 @@ export default function SolarSystemExperience(launchProps: LaunchProps = {}) {
 
     // Sound (synthesised, see sound.ts): starts with Start Mission (browsers need a click), can be muted,
     // and the choice is remembered. It fades out whenever the mission is paused or out of view.
-    const [soundOn, setSoundOn] = useState(launch?.sound ?? false);
+    const [soundOn, setSoundOn] = useState(false);
     useEffect(() => missionSound.onChange(() => setSoundOn(missionSound.on)), []);
-    useEffect(() => {
-        if (!launch) return;
-        missionSound.disable();
-        missionSound.setVolume(launch.volume / 100);
-        setSoundOn(launch.sound);
-        return () => {
-            missionSound.disable();
-            missionSound.setVolume(1);
-        };
-    }, []);
     useEffect(() => {
         missionSound.setActive(playing);
     }, [playing]);
     useEffect(() => () => missionSound.setActive(false), []);
     const soundWanted = () => {
-        if (launch) return soundOn;
         try {
             return window.localStorage.getItem('solar-sound') !== 'off';
         } catch {
@@ -234,7 +224,7 @@ export default function SolarSystemExperience(launchProps: LaunchProps = {}) {
         }
     };
     const toggleSound = () => {
-        const next = launch ? !soundOn : !missionSound.on;
+        const next = !missionSound.on;
         if (next) missionSound.enable();
         else missionSound.disable();
         try {
@@ -248,31 +238,36 @@ export default function SolarSystemExperience(launchProps: LaunchProps = {}) {
 
     // Voice narration (narrator.ts): driven by the mission clock, on unless the visitor turned it off;
     // subtitles likewise. Both choices are remembered on the device.
-    const [voiceOn, setVoiceOn] = useState(launch ? launch.sound && launch.voice : true);
-    const [captionsOn, setCaptionsOn] = useState(launch?.captions ?? true);
+    // A link's choices apply to this visit only (nothing is stored), until the visitor changes them.
+    const [voiceOn, setVoiceOn] = useState(link ? link.sound && link.voice : true);
+    const [captionsOn, setCaptionsOn] = useState(link ? link.captions : true);
     const [, setVoiceTick] = useState(0);
     useEffect(() => {
-        if (launch) {
-            const previous = narrator.on;
-            narrator.setVolume(launch.volume / 100);
-            narrator.setEnabled(launch.sound && launch.voice);
-            const off = narrator.onChange(() => setVoiceTick((n) => n + 1));
-            return () => {
-                off();
-                narrator.setVolume(1);
-                narrator.setEnabled(previous);
-            };
-        }
-        try {
-            if (window.localStorage.getItem('solar-voice') === 'off') {
-                narrator.setEnabled(false);
-                setVoiceOn(false);
+        if (link) {
+            narrator.setEnabled(link.sound && link.voice);
+            narrator.setVolume(link.volume / 100);
+            missionSound.setVolume(link.volume / 100);
+        } else {
+            try {
+                if (window.localStorage.getItem('solar-voice') === 'off') {
+                    narrator.setEnabled(false);
+                    setVoiceOn(false);
+                }
+                if (window.localStorage.getItem('solar-captions') === 'off') setCaptionsOn(false);
+            } catch {
+                /* defaults: voice and subtitles on */
             }
-            if (window.localStorage.getItem('solar-captions') === 'off') setCaptionsOn(false);
-        } catch {
-            /* defaults: voice and subtitles on */
         }
-        return narrator.onChange(() => setVoiceTick((n) => n + 1));
+        const off = narrator.onChange(() => setVoiceTick((n) => n + 1));
+        return () => {
+            off();
+            // Back to the defaults, so a later visit to this tab follows the stored choices again.
+            if (link) {
+                narrator.setEnabled(true);
+                narrator.setVolume(1);
+                missionSound.setVolume(1);
+            }
+        };
     }, []);
     useEffect(() => () => narrator.dispose(), []);
     useEffect(() => {
@@ -309,29 +304,31 @@ export default function SolarSystemExperience(launchProps: LaunchProps = {}) {
         setMoreOpen(false);
         setInvestigate(false);
         setCountdown(null);
-        if (paused && !launch) setPaused(null);
+        if (paused) setPaused(null);
         if (next.kind === 'chapter' || next.kind === 'label') saveProgress((p) => ({ ...p, last: next.c }));
     };
     const start = () => {
-        if (launch) setPaused(false);
         if (soundWanted()) missionSound.enable();
         setStagesOpen(false);
         go({ kind: 'chapter', c: 0, guided: true, view: 'cinematic' });
     };
-    useLaunchAction(launchProps, () => {
-        if (!launch) return;
-        start();
-        setPaused(!launch.autoplay);
+    // Started by the viewer inside the visitor's click: sound and narration may play from here on.
+    useLinkStart(linkProps, () => {
+        if (!link) return;
+        if (link.sound) missionSound.enable();
+        setStagesOpen(false);
+        go({ kind: 'chapter', c: 0, guided: link.autonext, view: 'cinematic' }, false);
+        setPaused(!link.autoplay);
     });
     const discover = () => {
-        if (launch) setPaused(false);
         if (soundWanted()) missionSound.enable();
         setStagesOpen(false);
         go({ kind: 'chapter', c: chapters.length - 1, guided: true, view: 'cinematic' });
     };
     const openChapter = (c: number) => {
         setStagesOpen(false);
-        go({ kind: 'chapter', c, guided: false, view: 'cinematic' });
+        // From a link, the mission carries on in order from the stage the visitor picks.
+        go({ kind: 'chapter', c, guided: !!link?.autonext, view: 'cinematic' });
     };
     const openLabel = (c: number, l: number) => {
         const guided = mode.kind === 'chapter' || mode.kind === 'label' ? mode.guided : false;
@@ -414,7 +411,7 @@ export default function SolarSystemExperience(launchProps: LaunchProps = {}) {
     }, [ended, chapterId, saveProgress]);
 
     // The guided mission moves on after the recap, unless the visitor is engaging with it.
-    const guided = mode.kind === 'chapter' && (launch ? launch.autonext : mode.guided);
+    const guided = mode.kind === 'chapter' && mode.guided;
     useEffect(() => {
         if (!(recapShown && guided && !recapHold && visible && autoplay)) {
             setCountdown(null);
@@ -433,11 +430,6 @@ export default function SolarSystemExperience(launchProps: LaunchProps = {}) {
         return () => window.clearInterval(id);
         // nextStage reads the current mode; the effect restarts whenever the stage changes.
     }, [recapShown, guided, recapHold, visible, autoplay, programKey]);
-
-    // Preserve the existing mission summary, then stop once its animation and narration finish.
-    useEffect(() => {
-        if (launch && mode.kind === 'finale' && clock.done && !speaking) setPaused(true);
-    }, [launch, mode.kind, clock, clock.done, speaking]);
 
     const tourBody = loc.segment.body ?? (label ? label.segments.find((s) => s.body)?.body : undefined);
     const readingsFor = (list: readonly TKey[]) => list.filter((k) => k !== 'met').map((k) => readingAny(k, met, tourBody));

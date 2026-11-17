@@ -7,10 +7,6 @@ import SpaceTwinViewer from './SpaceTwinViewer';
 vi.mock('next/dynamic', () => ({ default: () => () => null }));
 
 let reduced = false;
-afterEach(() => {
-    window.history.replaceState(null, '', '/');
-    vi.restoreAllMocks();
-});
 
 beforeAll(() => {
     // jsdom does no layout.
@@ -39,55 +35,6 @@ beforeAll(() => {
 });
 
 describe('SpaceTwinViewer', () => {
-    it.each(['Satellite', 'Orbital Constellation', 'Spacecraft', 'Space Station', 'Station Power & Energy', 'Solar System'])('selects the URL experience %s', (label) => {
-        const id = ['Satellite', 'Orbital Constellation', 'Spacecraft', 'Space Station', 'Station Power & Energy', 'Solar System'].indexOf(label) + 1;
-        window.history.replaceState(null, '', `/?space_digital_twin=${id}&utm_source=share`);
-        render(<StrictMode><SpaceTwinViewer /></StrictMode>);
-        expect(screen.getByRole('tab', { name: label })).toHaveAttribute('aria-selected', 'true');
-        expect(window.location.search).toContain('utm_source=share');
-        expect(screen.getByRole('region', { name: 'Launch selected experience' })).toBeInTheDocument();
-    });
-
-    it('waits for one click, tolerates fullscreen rejection and never retries on Escape', async () => {
-        window.history.replaceState(null, '', '/?space_digital_twin=1');
-        const request = vi.fn().mockRejectedValue(new Error('Not allowed'));
-        Object.defineProperty(HTMLElement.prototype, 'requestFullscreen', { configurable: true, value: request });
-        try {
-            render(<SpaceTwinViewer />);
-            expect(request).not.toHaveBeenCalled();
-            expect(screen.getByRole('button', { name: 'Play the animation' })).toBeInTheDocument();
-            fireEvent.click(screen.getByRole('button', { name: 'Enter Full Screen & Start Mission' }));
-            await act(async () => {});
-            expect(request).toHaveBeenCalledTimes(1);
-            expect(screen.getByRole('button', { name: 'Pause the animation' })).toBeInTheDocument();
-            expect(screen.queryByRole('region', { name: 'Launch selected experience' })).toBeNull();
-            fireEvent.keyDown(document, { key: 'Escape' });
-            expect(screen.getByRole('figure')).not.toHaveAttribute('data-present');
-            fireEvent.click(screen.getByRole('button', { name: 'Pause the animation' }));
-            expect(request).toHaveBeenCalledTimes(1);
-        } finally {
-            Reflect.deleteProperty(HTMLElement.prototype, 'requestFullscreen');
-        }
-    });
-
-    it('respects disabled fullscreen/autoplay and does not reset visitor navigation', () => {
-        window.history.replaceState(null, '', '/?space_digital_twin=3&fullscreen=0&autoplay=0');
-        const view = render(<SpaceTwinViewer />);
-        expect(screen.queryByRole('region', { name: 'Launch selected experience' })).toBeNull();
-        expect(screen.getByRole('figure')).not.toHaveAttribute('data-present');
-        expect(screen.getByRole('button', { name: 'Play the animation' })).toBeInTheDocument();
-        fireEvent.click(screen.getByRole('tab', { name: 'Satellite' }));
-        view.rerender(<SpaceTwinViewer />);
-        expect(screen.getByRole('tab', { name: 'Satellite' })).toHaveAttribute('aria-selected', 'true');
-    });
-
-    it('falls back to normal behavior for an invalid URL', () => {
-        window.history.replaceState(null, '', '/?space_digital_twin=garbage&autoplay=0');
-        render(<SpaceTwinViewer />);
-        expect(screen.queryByRole('region', { name: 'Launch selected experience' })).toBeNull();
-        expect(screen.getByRole('tab', { name: 'Satellite' })).toHaveAttribute('aria-selected', 'true');
-        expect(screen.getByRole('button', { name: 'Pause the animation' })).toBeInTheDocument();
-    });
     it('offers the four experiences, Station Power & Energy and Solar System as keyboard-operable tabs', () => {
         render(<SpaceTwinViewer />);
         const tabs = screen.getAllByRole('tab');
@@ -209,5 +156,114 @@ describe('SpaceTwinViewer', () => {
         expect(screen.getByText(/3D isn.t available on this device/)).toBeInTheDocument();
         const poster = document.querySelector('img[src*="poster-satellite"]');
         expect(poster).not.toBeNull();
+    });
+});
+
+describe('SpaceTwinViewer shareable links', () => {
+    const go = (query: string) => window.history.replaceState(null, '', `/${query}`);
+    const launch = () => screen.queryByRole('group', { name: /^(Satellite|Orbital Constellation|Spacecraft|Space Station|Station Power & Energy|Solar System)$/ });
+    afterEach(() => {
+        go('');
+        reduced = false;
+        Reflect.deleteProperty(HTMLElement.prototype, 'requestFullscreen');
+    });
+
+    it.each([
+        [1, 'Satellite'],
+        [2, 'Orbital Constellation'],
+        [3, 'Spacecraft'],
+        [4, 'Space Station'],
+        [5, 'Station Power & Energy'],
+        [6, 'Solar System'],
+    ])('space_digital_twin=%i selects %s and waits for one click, leaving the URL as it is', (n, label) => {
+        go(`?utm_source=share&space_digital_twin=${n}`);
+        render(<SpaceTwinViewer />);
+        expect(screen.getByRole('tab', { name: label })).toHaveAttribute('aria-selected', 'true');
+        expect(launch()).toHaveAccessibleName(label);
+        // The fifth and sixth options load separately: the button waits for them.
+        expect(within(launch()!).getByRole('button')).toHaveTextContent(n > 4 ? 'Preparing the mission…' : 'Enter Full Screen & Start Mission');
+        expect(window.location.search).toBe(`?utm_source=share&space_digital_twin=${n}`);
+    });
+
+    it('says what the click starts, true to the experience', () => {
+        go('?space_digital_twin=6');
+        const { unmount } = render(<SpaceTwinViewer />);
+        expect(screen.getByText('Every stage plays in order, with sound, voice narration and subtitles.')).toBeInTheDocument();
+        unmount();
+        go('?space_digital_twin=2&autonext=0');
+        render(<SpaceTwinViewer />);
+        expect(screen.getByText('Plays the first stage.')).toBeInTheDocument();
+    });
+
+    it('one click starts the mission and asks for full screen once; a refusal still starts it, and Esc leaves full screen without stopping it', async () => {
+        const request = vi.fn().mockRejectedValue(new Error('Not allowed'));
+        Object.defineProperty(HTMLElement.prototype, 'requestFullscreen', { configurable: true, value: request });
+        go('?space_digital_twin=1');
+        render(<SpaceTwinViewer />);
+        expect(request).not.toHaveBeenCalled();
+        expect(screen.getByRole('button', { name: 'Play the animation' })).toBeInTheDocument();
+        fireEvent.click(screen.getByRole('button', { name: 'Enter Full Screen & Start Mission' }));
+        await act(async () => {});
+        expect(request).toHaveBeenCalledTimes(1);
+        expect(launch()).toBeNull();
+        expect(screen.getByRole('figure')).toHaveAttribute('data-present');
+        expect(screen.getByRole('button', { name: 'Pause the animation' })).toBeInTheDocument();
+        fireEvent.keyDown(document, { key: 'Escape' });
+        expect(screen.getByRole('figure')).not.toHaveAttribute('data-present');
+        expect(screen.getByRole('button', { name: 'Pause the animation' })).toBeInTheDocument();
+        expect(request).toHaveBeenCalledTimes(1);
+    });
+
+    it('starts at once, without a click or full screen, when the link asks for neither on a silent experience', () => {
+        const request = vi.fn().mockResolvedValue(undefined);
+        Object.defineProperty(HTMLElement.prototype, 'requestFullscreen', { configurable: true, value: request });
+        go('?space_digital_twin=3&fullscreen=0');
+        render(<SpaceTwinViewer />);
+        expect(launch()).toBeNull();
+        expect(screen.getByRole('figure')).not.toHaveAttribute('data-present');
+        expect(screen.getByRole('button', { name: 'Pause the animation' })).toBeInTheDocument();
+        expect(request).not.toHaveBeenCalled();
+    });
+
+    it('autoplay=0 enters full screen on the click and leaves the first stage paused', () => {
+        go('?space_digital_twin=4&autoplay=0');
+        render(<SpaceTwinViewer />);
+        fireEvent.click(screen.getByRole('button', { name: 'Enter Full Screen' }));
+        expect(screen.getByRole('button', { name: 'Play the animation' })).toBeInTheDocument();
+    });
+
+    it('with reduced motion it waits for the click even without full screen', () => {
+        reduced = true;
+        go('?space_digital_twin=2&fullscreen=0');
+        render(<SpaceTwinViewer />);
+        fireEvent.click(screen.getByRole('button', { name: 'Start Mission' }));
+        expect(screen.getByRole('button', { name: 'Pause the animation' })).toBeInTheDocument();
+    });
+
+    it('picking another experience dismisses the waiting launch and behaves as normal', () => {
+        go('?space_digital_twin=6');
+        render(<SpaceTwinViewer />);
+        fireEvent.click(screen.getByRole('tab', { name: 'Spacecraft' }));
+        expect(launch()).toBeNull();
+        expect(screen.getByRole('tab', { name: 'Spacecraft' })).toHaveAttribute('aria-selected', 'true');
+        expect(screen.getByRole('button', { name: 'Pause the animation' })).toBeInTheDocument();
+    });
+
+    it.each(['?space_digital_twin=0', '?space_digital_twin=7', '?space_digital_twin=abc', '?space_digital_twin=1&space_digital_twin=2', '?fullscreen=1&sound=1'])('%s behaves as a normal visit', (query) => {
+        go(query);
+        render(<SpaceTwinViewer />);
+        expect(launch()).toBeNull();
+        expect(screen.getByRole('tab', { name: 'Satellite' })).toHaveAttribute('aria-selected', 'true');
+        expect(screen.getByRole('button', { name: 'Pause the animation' })).toBeInTheDocument();
+    });
+
+    it('shows one launch in Strict Mode', () => {
+        go('?space_digital_twin=1');
+        render(
+            <StrictMode>
+                <SpaceTwinViewer />
+            </StrictMode>,
+        );
+        expect(screen.getAllByRole('button', { name: 'Enter Full Screen & Start Mission' })).toHaveLength(1);
     });
 });

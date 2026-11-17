@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it, vi } from 'vitest';
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import EpsExperience from './EpsExperience';
 import { FAULTS, LABELS } from '@/lib/station-eps/scenes';
 
@@ -26,15 +26,6 @@ beforeAll(() => {
 });
 
 describe('Station Power & Energy experience', () => {
-    it('prepares the guided investigation for a deep link and honors autoplay off', () => {
-        const launchRef = { current: null as (() => void) | null };
-        render(<EpsExperience launch={{ fullscreen: true, sound: true, voice: true, captions: true, volume: 100, autoplay: false, autonext: true }} launchRef={launchRef} />);
-        expect(screen.getByRole('button', { name: 'Start Investigation' })).toHaveAttribute('aria-current', 'true');
-        act(() => launchRef.current?.());
-        expect(screen.getByRole('button', { name: 'Play' })).toBeInTheDocument();
-        fireEvent.click(screen.getByRole('button', { name: 'Play' }));
-        expect(screen.getByRole('button', { name: 'Pause' })).toBeInTheDocument();
-    });
     it('opens on the overview with the central message, the story and the simulated-data label', () => {
         render(<EpsExperience />);
         expect(screen.getByRole('img', { name: /Space Station Electrical Power & Energy Management/ })).toBeInTheDocument();

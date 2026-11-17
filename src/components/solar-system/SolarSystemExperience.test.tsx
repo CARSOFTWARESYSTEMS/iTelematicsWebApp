@@ -1,11 +1,7 @@
-import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
-import { StrictMode } from 'react';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import SolarSystemExperience from './SolarSystemExperience';
 import { journey } from '@/lib/solar-system/phaseB';
-import { missionSound } from './sound';
-import { narrator } from './narrator';
-import type { LaunchSettings } from '@/lib/space-twin/launch';
 
 // jsdom has no WebGL: the experience shows its still image and keeps every control usable.
 vi.mock('next/dynamic', () => ({ default: () => () => null }));
@@ -29,55 +25,8 @@ beforeAll(() => {
 });
 
 const { chapters } = journey();
-const launch: LaunchSettings = { fullscreen: true, sound: true, voice: true, captions: true, volume: 100, autoplay: true, autonext: true };
-afterEach(() => {
-    localStorage.clear();
-    vi.restoreAllMocks();
-});
 
 describe('Solar System experience', () => {
-    it('starts the deep link at stage 01, overrides saved preferences only for this visit, and unlocks the existing audio', () => {
-        localStorage.setItem('solar-progress', JSON.stringify({ done: [], checks: {}, last: 7 }));
-        for (const key of ['solar-sound', 'solar-voice', 'solar-captions']) localStorage.setItem(key, 'off');
-        const enable = vi.spyOn(missionSound, 'enable').mockImplementation(() => {});
-        const unlock = vi.spyOn(narrator, 'unlock').mockImplementation(() => {});
-        const effectsVolume = vi.spyOn(missionSound, 'setVolume');
-        const voiceVolume = vi.spyOn(narrator, 'setVolume');
-        const launchRef = { current: null as (() => void) | null };
-        render(<StrictMode><SolarSystemExperience launch={{ ...launch, volume: 35 }} launchRef={launchRef} /></StrictMode>);
-        expect(screen.getByText(/Stage 01 of/)).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: 'Voice narration on' })).toHaveAttribute('aria-pressed', 'true');
-        expect(screen.getByRole('button', { name: 'Subtitles on' })).toHaveAttribute('aria-pressed', 'true');
-        expect(screen.getByRole('button', { name: 'Sound on' })).toHaveAttribute('aria-pressed', 'true');
-        expect(enable).not.toHaveBeenCalled();
-        expect(effectsVolume).toHaveBeenLastCalledWith(0.35);
-        expect(voiceVolume).toHaveBeenLastCalledWith(0.35);
-        act(() => launchRef.current?.());
-        expect(enable).toHaveBeenCalledTimes(1);
-        expect(unlock).toHaveBeenCalledTimes(1);
-        expect(screen.getByRole('button', { name: 'Pause' })).toBeInTheDocument();
-        for (const key of ['solar-sound', 'solar-voice', 'solar-captions']) expect(localStorage.getItem(key)).toBe('off');
-        fireEvent.click(screen.getByRole('button', { name: 'Voice narration on' }));
-        fireEvent.click(screen.getByRole('button', { name: 'Subtitles on' }));
-        fireEvent.click(screen.getByRole('button', { name: 'Next' }));
-        expect(screen.getByRole('button', { name: 'Voice narration off' })).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: 'Subtitles off' })).toBeInTheDocument();
-    });
-
-    it('honors master mute, captions off and autoplay off without resetting them on replay', () => {
-        const enable = vi.spyOn(missionSound, 'enable').mockImplementation(() => {});
-        vi.spyOn(narrator, 'unlock').mockImplementation(() => {});
-        const launchRef = { current: null as (() => void) | null };
-        render(<SolarSystemExperience launch={{ ...launch, sound: false, voice: true, captions: false, autoplay: false }} launchRef={launchRef} />);
-        act(() => launchRef.current?.());
-        expect(enable).not.toHaveBeenCalled();
-        expect(screen.getByRole('button', { name: 'Sound off' })).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: 'Voice narration off' })).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: 'Subtitles off' })).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: 'Play' })).toBeInTheDocument();
-        fireEvent.click(screen.getByRole('button', { name: 'Play' }));
-        expect(enable).not.toHaveBeenCalled();
-    });
     it('opens on the launch pad with Start Mission and Explore Mission Stages, labelled as simulated', () => {
         render(<SolarSystemExperience />);
         const img = screen.getByRole('img');

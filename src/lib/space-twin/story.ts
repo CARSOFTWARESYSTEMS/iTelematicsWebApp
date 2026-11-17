@@ -28,6 +28,9 @@ export interface StoryShape {
 
 export const wrap = (t: number, loop: number) => ((t % loop) + loop) % loop;
 
+/** A story that plays once holds this far (s) before its end, so it shows its last stage, not the first. */
+const END_HOLD = 1e-3;
+
 export const smooth = (x: number) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
 
 export function phaseIndexAt(story: StoryShape, t: number): number {
@@ -49,22 +52,25 @@ export class StoryClock {
     private phaseListeners = new Set<(phase: number) => void>();
     private tickListeners = new Set<() => void>();
     private requestFrame: () => void = () => {};
-    private stopAt: number | null = null;
+    private end: number | null = null;
 
     constructor(readonly story: StoryShape, private readonly tickSeconds = 0.2) {}
 
     get time() {
-        // Hold the completed scene on its last sample, rather than wrapping into the next stage.
-        return this.done ? Math.max(0, this.t - Math.max(1, this.t) * Number.EPSILON * 4) : this.t;
+        return this.t;
     }
 
-    /** Optional launch-only boundary. Normal stories keep their existing continuous loop. */
-    setStopAt(seconds: number | null) {
-        this.stopAt = seconds;
+    /**
+     * Plays once instead of looping (a shareable link): the story stops just short of `seconds`, holding
+     * the last frame of the stage that ends there. Null, the default, keeps the continuous loop.
+     */
+    setEnd(seconds: number | null) {
+        this.end = seconds === null ? null : Math.min(seconds, this.story.loopSeconds) - END_HOLD;
     }
 
-    get done() {
-        return this.stopAt !== null && this.t >= this.stopAt;
+    /** True once a story that plays once has reached its end. */
+    get ended() {
+        return this.end !== null && this.t >= this.end;
     }
 
     get elapsed() {
@@ -72,7 +78,7 @@ export class StoryClock {
     }
 
     get phase() {
-        return phaseIndexAt(this.story, this.time);
+        return phaseIndexAt(this.story, this.t);
     }
 
     get stage() {
@@ -110,13 +116,13 @@ export class StoryClock {
 
     /** Moves the story on by `seconds` of story time (callers clamp large frame gaps). */
     advance(seconds: number) {
-        if (seconds <= 0 || this.done) return;
+        if (seconds <= 0 || this.ended) return;
         const before = this.phase;
-        const step = this.stopAt === null ? seconds : Math.min(seconds, this.stopAt - this.t);
-        this.t = this.stopAt === null ? wrap(this.t + step, this.story.loopSeconds) : this.t + step;
+        const step = this.end === null ? seconds : Math.min(seconds, this.end - this.t);
+        this.t = this.end === null ? wrap(this.t + step, this.story.loopSeconds) : this.t + step;
         this.total += step;
         this.sinceTick += step;
-        if (this.phase !== before || this.done) {
+        if (this.phase !== before || this.ended) {
             this.emitPhase();
             this.emitTick();
         } else if (this.sinceTick >= this.tickSeconds) this.emitTick();

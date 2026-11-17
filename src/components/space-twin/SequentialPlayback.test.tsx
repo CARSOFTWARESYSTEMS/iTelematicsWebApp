@@ -5,247 +5,271 @@ import SpaceTwinViewer from './SpaceTwinViewer';
 import SolarSystemExperience from '../solar-system/SolarSystemExperience';
 import EpsExperience from '../station-eps/EpsExperience';
 import { EXPERIENCES } from '@/lib/space-twin/experiences';
-import { GUIDED, LABELS } from '@/lib/station-eps/scenes';
+import { GUIDED } from '@/lib/station-eps/scenes';
 import { journey } from '@/lib/solar-system/phaseB';
 import type { MissionClock } from '@/lib/solar-system/clock';
 import type { StoryClock } from '@/lib/space-twin/story';
 import type { LaunchSettings } from '@/lib/space-twin/launch';
 
-// Exercise real controllers, registries and clocks. Only rendering/audio hardware is replaced.
-const driver = vi.hoisted(() => ({ current: null as null | { clock: MissionClock | StoryClock; playing: boolean; onReady: () => void } }));
-const voice = vi.hoisted(() => ({ speaking: false, listeners: new Set<() => void>(), unlock: vi.fn(), update: vi.fn() }));
+// Shareable links play every stage in order. These tests drive the real experiences, registries and clocks;
+// only the 3D canvas (a stand-in that advances the clock it is given while playing) and audio are replaced.
+const scene = vi.hoisted(() => ({ current: null as null | { clock: MissionClock | StoryClock; playing: boolean; onReady: () => void } }));
+const voice = vi.hoisted(() => ({ speaking: false, listeners: new Set<() => void>(), unlock: vi.fn(), setEnabled: vi.fn() }));
 vi.mock('next/dynamic', async () => {
     const { useEffect } = await import('react');
-    return { default: () => function Canvas(props: NonNullable<typeof driver.current>) {
-        driver.current = props;
-        useEffect(() => { props.onReady(); }, [props.onReady]);
-        return null;
-    } };
+    return {
+        default: () =>
+            function Canvas(props: NonNullable<typeof scene.current>) {
+                scene.current = props;
+                useEffect(() => props.onReady(), [props.onReady]);
+                return null;
+            },
+    };
 });
 vi.mock('./device', () => ({
-    useMedia: () => false, useNoWebGL: () => false, usePageVisible: () => true,
-    usePresence: () => ({ near: true, onScreen: true }), useReducedMotion: () => false, useStageQuality: () => 'low',
+    useMedia: () => false,
+    useNoWebGL: () => false,
+    usePageVisible: () => true,
+    usePresence: () => ({ near: true, onScreen: true }),
+    useReducedMotion: () => false,
+    useStageQuality: () => 'low',
 }));
 vi.mock('../solar-system/narrator', async (original) => ({
-    ...await original<typeof import('../solar-system/narrator')>(),
+    ...(await original<typeof import('../solar-system/narrator')>()),
     narrator: {
-        get speaking() { return voice.speaking; }, position: null, on: true,
-        unlock: voice.unlock, update: voice.update, setVolume: vi.fn(), setEnabled: vi.fn(), dispose: vi.fn(),
-        onChange: (fn: () => void) => { voice.listeners.add(fn); return () => { voice.listeners.delete(fn); }; },
+        get speaking() {
+            return voice.speaking;
+        },
+        position: null,
+        on: true,
+        unlock: voice.unlock,
+        update: () => {},
+        setVolume: () => {},
+        setEnabled: voice.setEnabled,
+        dispose: () => {},
+        onChange: (fn: () => void) => {
+            voice.listeners.add(fn);
+            return () => voice.listeners.delete(fn);
+        },
     },
 }));
-vi.mock('../solar-system/sound', () => ({ missionSound: { on: true, enable: vi.fn(), disable: vi.fn(), setVolume: vi.fn(), setActive: vi.fn(), onChange: () => () => {} } }));
-const launch: LaunchSettings = { fullscreen: false, sound: true, voice: true, captions: true, volume: 100, autoplay: true, autonext: true };
+vi.mock('../solar-system/sound', () => ({ missionSound: { on: false, enable: vi.fn(), disable: vi.fn(), setVolume: vi.fn(), setActive: vi.fn(), duck: vi.fn(), onChange: () => () => {} } }));
+
+const LINK: LaunchSettings = { fullscreen: false, sound: true, voice: true, captions: true, volume: 100, autoplay: true, autonext: true };
 const { chapters } = journey();
 
 beforeEach(() => {
     vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'setTimeout', 'clearTimeout', 'performance'] });
     Element.prototype.scrollIntoView = () => {};
+    window.matchMedia = ((query: string) => ({ matches: false, media: query, addEventListener: () => {}, removeEventListener: () => {} })) as unknown as typeof window.matchMedia;
     voice.speaking = false;
     voice.unlock.mockClear();
-    voice.update.mockClear();
+    voice.setEnabled.mockClear();
 });
 afterEach(() => {
     cleanup();
     vi.useRealTimers();
     localStorage.clear();
     window.history.replaceState(null, '', '/');
-    driver.current = null;
+    scene.current = null;
 });
-const advance = (seconds: number) => act(() => {
-    if (driver.current?.playing) driver.current.clock.advance(seconds);
-});
-const finish = () => advance((driver.current!.clock as MissionClock).duration);
-const speaking = (value: boolean) => act(() => { voice.speaking = value; voice.listeners.forEach(fn => fn()); });
-const recap = () => {
-    const seconds = Number(screen.getByText(/continues in \d+ s/).textContent!.match(/\d+/)![0]);
-    act(() => vi.advanceTimersByTime(seconds * 1000));
-};
-function solar(settings = launch) {
-    const launchRef = { current: null as (() => void) | null };
-    render(<StrictMode><SolarSystemExperience launch={settings} launchRef={launchRef} /></StrictMode>);
-    act(() => launchRef.current!());
-}
-function eps(settings = launch) {
-    const launchRef = { current: null as (() => void) | null };
-    render(<EpsExperience launch={settings} launchRef={launchRef} />);
-    act(() => launchRef.current!());
-}
 
-describe('Sequential deep-link playback', () => {
-    it('plays all Solar System chapters exactly once, waits for narration, then holds the completed summary', () => {
-        solar();
-        expect(voice.unlock).toHaveBeenCalledTimes(1);
+/** Plays `seconds` of story time, frame by frame as the scene would (only while it is playing; React renders between frames). */
+const play = (seconds: number, frame = 0.25) => {
+    for (let t = 0; t < seconds; t += frame)
+        act(() => {
+            if (scene.current?.playing) scene.current.clock.advance(frame);
+        });
+};
+
+describe('shareable links: the four story experiences', () => {
+    const stageNow = () => Number(screen.getByText(/, stage \d of 4:/).textContent!.match(/stage (\d) of 4/)![1]);
+
+    it.each(EXPERIENCES.map((e) => [e.number, e.label, e] as const))('%s %s plays each stage once, in order, then holds the end', (number, _label, exp) => {
+        window.history.replaceState(null, '', `/?space_digital_twin=${Number(number)}&fullscreen=0`);
+        render(<SpaceTwinViewer />);
+        // Silent and not full screen: no click needed, it starts at stage 1.
+        expect(screen.queryByRole('button', { name: /Start Mission/ })).toBeNull();
+        expect(stageNow()).toBe(1);
+        const seen = [1];
+        for (let i = 0; i < 400 && !(scene.current!.clock as StoryClock).ended; i++) {
+            play(1);
+            if (seen[seen.length - 1] !== stageNow()) seen.push(stageNow());
+        }
+        expect(seen).toEqual(exp.story.stages.map((_, i) => i + 1));
+        expect(screen.getByRole('button', { name: 'Play the animation' })).toBeInTheDocument();
+        const held = scene.current!.clock.time;
+        play(30);
+        expect(scene.current!.clock.time).toBe(held);
+        expect(stageNow()).toBe(4);
+        // Play at the end starts the mission over.
+        fireEvent.click(screen.getByRole('button', { name: 'Play the animation' }));
+        expect(stageNow()).toBe(1);
+        expect(screen.getByRole('button', { name: 'Pause the animation' })).toBeInTheDocument();
+    });
+
+    it('carries on in order from a stage the visitor picks, and pause stops it', () => {
+        window.history.replaceState(null, '', '/?space_digital_twin=2&fullscreen=0');
+        render(<SpaceTwinViewer />);
+        play(2);
+        fireEvent.click(within(screen.getByRole('group', { name: 'Orbital Constellation stages' })).getAllByRole('button')[2]);
+        expect(stageNow()).toBe(3);
+        fireEvent.click(screen.getByRole('button', { name: 'Pause the animation' }));
+        const t = scene.current!.clock.time;
+        play(60);
+        expect(scene.current!.clock.time).toBe(t);
+        fireEvent.click(screen.getByRole('button', { name: 'Play the animation' }));
+        play(400);
+        expect(stageNow()).toBe(4);
+        expect((scene.current!.clock as StoryClock).ended).toBe(true);
+    });
+
+    it('autonext=0 plays one stage: the first, then the one the visitor picks', () => {
+        window.history.replaceState(null, '', '/?space_digital_twin=1&fullscreen=0&autonext=0');
+        render(<SpaceTwinViewer />);
+        play(400);
+        expect(stageNow()).toBe(1);
+        expect(screen.getByRole('button', { name: 'Play the animation' })).toBeInTheDocument();
+        fireEvent.click(within(screen.getByRole('group', { name: 'Satellite stages' })).getAllByRole('button')[2]);
+        play(400);
+        expect(stageNow()).toBe(3);
+    });
+
+    it('picking another experience ends the link: that one loops as normal', () => {
+        window.history.replaceState(null, '', '/?space_digital_twin=1&fullscreen=0');
+        render(<SpaceTwinViewer />);
+        fireEvent.click(screen.getByRole('tab', { name: /Spacecraft/ }));
+        act(() => vi.advanceTimersByTime(1000));
+        const loop = EXPERIENCES.find((e) => e.id === 'spacecraft')!.story.loopSeconds;
+        play(loop + 5);
+        expect((scene.current!.clock as StoryClock).ended).toBe(false);
+        expect(scene.current!.clock.time).toBeCloseTo(5, 5);
+    });
+});
+
+describe('shareable links: Solar System', () => {
+    const stageText = () => document.querySelector('[class*="whereNum"]')!.textContent;
+    // The mission clock stops at its end (it never wraps), so a stage can finish in one step.
+    const finish = () =>
+        act(() => {
+            if (scene.current?.playing) scene.current.clock.advance((scene.current.clock as MissionClock).duration + 1);
+        });
+    const speaking = (on: boolean) =>
+        act(() => {
+            voice.speaking = on;
+            voice.listeners.forEach((fn) => fn());
+        });
+    function open(settings: LaunchSettings = LINK) {
+        let start: (() => void) | undefined;
+        render(
+            <StrictMode>
+                <SolarSystemExperience link={settings} onLinkReady={(s) => (start = s)} />
+            </StrictMode>,
+        );
+        return () => act(() => start!());
+    }
+
+    it('waits at Stage 01 for the click, then plays all twelve stages in order, each after its narration, and ends on the summary', () => {
+        const start = open();
+        expect(stageText()).toBe('Stage 01 of 12');
+        expect(scene.current!.playing).toBe(false);
+        play(30);
+        expect(scene.current!.clock.time).toBe(0);
+        start();
+        expect(voice.unlock).toHaveBeenCalled();
+        expect(scene.current!.playing).toBe(true);
         const clocks = new Set();
         for (const chapter of chapters) {
-            expect(screen.getByRole('heading', { name: chapter.title })).toBeInTheDocument();
-            expect(driver.current!.clock.time).toBe(0);
-            clocks.add(driver.current!.clock);
+            expect(stageText()).toBe(`Stage ${chapter.number} of 12`);
+            expect(scene.current!.clock.time).toBe(0);
+            clocks.add(scene.current!.clock);
+            // The picture ends while the narrator is still speaking: nothing moves on until the line ends.
             speaking(true);
             finish();
             act(() => vi.advanceTimersByTime(60_000));
+            expect(stageText()).toBe(`Stage ${chapter.number} of 12`);
             expect(screen.queryByText(/continues in/)).toBeNull();
-            expect(screen.getByRole('heading', { name: chapter.title })).toBeInTheDocument();
             speaking(false);
-            recap();
+            expect(screen.getByText(/continues in/)).toBeInTheDocument();
+            act(() => vi.advanceTimersByTime(13_000));
         }
         expect(clocks.size).toBe(chapters.length);
         expect(document.querySelector('[data-mode="finale"]')).not.toBeNull();
-        speaking(true);
         finish();
-        expect(driver.current!.playing).toBe(true); // final narration may outlast the picture
-        speaking(false);
-        expect(driver.current!.playing).toBe(false);
-        const finalClock = driver.current!.clock;
-        advance(10_000);
         act(() => vi.advanceTimersByTime(60_000));
-        expect(driver.current!.clock).toBe(finalClock);
+        // It stops there: no other experience, no loop back to Stage 01.
         expect(document.querySelector('[data-mode="finale"]')).not.toBeNull();
-        expect(voice.update).toHaveBeenCalledWith(expect.objectContaining({ done: true }));
-    });
+    }, 30_000);
 
-    it('continues from a manual Solar stage, honors pause/resume, and cancels the previous recap transition', () => {
-        solar();
+    it('carries on in order from a stage the visitor picks; pause holds it', () => {
+        const start = open();
+        start();
         finish();
-        expect(screen.getByText(/continues in/)).toBeInTheDocument();
         fireEvent.click(screen.getByRole('button', { name: `Stage ${chapters[7].number}: ${chapters[7].title}` }));
-        act(() => vi.advanceTimersByTime(60_000));
-        expect(screen.getByRole('heading', { name: chapters[7].title })).toBeInTheDocument();
+        expect(stageText()).toBe(`Stage ${chapters[7].number} of 12`);
         fireEvent.click(screen.getByRole('button', { name: 'Pause' }));
-        advance(10_000);
-        expect(driver.current!.clock.time).toBe(0);
-        fireEvent.click(screen.getByRole('button', { name: `Stage ${chapters[8].number}: ${chapters[8].title}` }));
-        expect(driver.current!.playing).toBe(false);
+        play(60);
+        expect(scene.current!.clock.time).toBe(0);
         fireEvent.click(screen.getByRole('button', { name: 'Play' }));
         finish();
-        fireEvent.click(screen.getByRole('button', { name: 'Pause' }));
-        act(() => vi.advanceTimersByTime(60_000));
-        expect(screen.getByRole('heading', { name: chapters[8].title })).toBeInTheDocument();
-        fireEvent.click(screen.getByRole('button', { name: 'Play' }));
-        recap();
-        expect(screen.getByRole('heading', { name: chapters[9].title })).toBeInTheDocument();
+        act(() => vi.advanceTimersByTime(13_000));
+        expect(stageText()).toBe(`Stage ${chapters[8].number} of 12`);
     });
 
-    it('holds a completed Solar stage with autonext=0', () => {
-        solar({ ...launch, autonext: false });
+    it('autonext=0 stops after Stage 01 with its recap and no countdown', () => {
+        const start = open({ ...LINK, autonext: false });
+        start();
         finish();
         act(() => vi.advanceTimersByTime(60_000));
+        expect(stageText()).toBe('Stage 01 of 12');
         expect(screen.queryByText(/continues in/)).toBeNull();
-        expect(screen.getByRole('heading', { name: chapters[0].title })).toBeInTheDocument();
     });
 
-    it('waits for Play when autoplay=0, then continues the existing guided mission', () => {
-        solar({ ...launch, autoplay: false });
-        finish();
-        expect(driver.current!.clock.time).toBe(0);
-        expect(screen.queryByText(/continues in/)).toBeNull();
-        fireEvent.click(screen.getByRole('button', { name: 'Play' }));
-        finish();
-        recap();
-        expect(screen.getByRole('heading', { name: chapters[1].title })).toBeInTheDocument();
+    it('autoplay=0 opens Stage 01 paused after the click', () => {
+        const start = open({ ...LINK, autoplay: false });
+        start();
+        expect(scene.current!.playing).toBe(false);
+        expect(screen.getByRole('button', { name: 'Play' })).toBeInTheDocument();
     });
 
-    it('keeps normal manually selected Solar chapters non-guided', () => {
-        render(<SolarSystemExperience />);
-        fireEvent.click(screen.getByRole('button', { name: `Stage ${chapters[0].number}: ${chapters[0].title}` }));
-        finish();
-        act(() => vi.advanceTimersByTime(60_000));
-        expect(screen.queryByText(/continues in/)).toBeNull();
-        expect(screen.getByRole('heading', { name: chapters[0].title })).toBeInTheDocument();
-    });
-
-    it.each(EXPERIENCES)('plays $id stages once, preserves pause and fullscreen exit, then stops on the last stage', (experience) => {
-        window.history.replaceState(null, '', `/?space_digital_twin=${Number(experience.number)}&fullscreen=0`);
-        render(<SpaceTwinViewer />);
-        const clock = driver.current!.clock as StoryClock;
-        expect(driver.current!.playing).toBe(true);
-        for (const [i, stage] of experience.story.stages.entries()) {
-            expect(clock.stage).toBe(i);
-            expect(clock.done).toBe(false);
-            advance(stage.seconds / 2);
-            fireEvent.click(screen.getByRole('button', { name: 'Pause the animation' }));
-            const time = clock.time;
-            advance(100);
-            expect(clock.time).toBe(time);
-            fireEvent.click(screen.getByRole('button', { name: 'Full screen' }));
-            fireEvent.keyDown(document, { key: 'Escape' });
-            expect(clock.time).toBe(time);
-            fireEvent.click(screen.getByRole('button', { name: 'Play the animation' }));
-            advance(stage.seconds / 2 + 1e-9);
-        }
-        expect(clock.done).toBe(true);
-        expect(clock.stage).toBe(experience.story.stages.length - 1);
-        expect(driver.current!.playing).toBe(false);
-        const end = clock.time;
-        advance(100);
-        expect(clock.time).toBe(end);
-        expect(screen.getByRole('tab', { name: experience.label })).toHaveAttribute('aria-selected', 'true');
-        fireEvent.click(screen.getByRole('button', { name: 'Replay from the start' }));
-        expect(clock.time).toBe(0);
-        expect(driver.current!.playing).toBe(true);
-    });
-
-    it.each(EXPERIENCES)('holds $id at stage boundaries with autonext=0, and supports manual selection', (experience) => {
-        window.history.replaceState(null, '', `/?space_digital_twin=${Number(experience.number)}&fullscreen=0&autonext=0`);
-        render(<SpaceTwinViewer />);
-        const clock = driver.current!.clock as StoryClock;
-        advance(experience.story.loopSeconds * 2);
-        expect(clock.stage).toBe(0);
-        expect(driver.current!.playing).toBe(false);
-        fireEvent.click(within(screen.getByRole('group', { name: `${experience.label} stages` })).getAllByRole('button')[2]);
-        expect(clock.stage).toBe(2);
-        expect(driver.current!.playing).toBe(true);
-        advance(experience.story.loopSeconds * 2);
-        expect(clock.stage).toBe(2);
-        expect(clock.done).toBe(true);
-    });
-
-    it('keeps the normal homepage story looping and does not apply launch settings to another experience', () => {
-        render(<SpaceTwinViewer />);
-        const clock = driver.current!.clock as StoryClock;
-        advance(EXPERIENCES[0].story.loopSeconds + 1);
-        expect(clock.done).toBe(false);
-        expect(clock.time).toBeCloseTo(1);
+    it('voice and subtitles follow the link for this visit without storing anything', () => {
+        localStorage.setItem('solar-voice', 'off');
+        localStorage.setItem('solar-captions', 'off');
+        open({ ...LINK, voice: true, captions: true });
+        expect(voice.setEnabled).toHaveBeenLastCalledWith(true);
+        expect(screen.getByRole('button', { name: 'Voice narration on' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Subtitles on' })).toBeInTheDocument();
+        expect(localStorage.getItem('solar-voice')).toBe('off');
         cleanup();
-        window.history.replaceState(null, '', '/?space_digital_twin=1&fullscreen=0');
-        render(<SpaceTwinViewer />);
-        fireEvent.click(screen.getByRole('tab', { name: EXPERIENCES[1].label }));
-        act(() => vi.advanceTimersByTime(1000));
-        const nextClock = driver.current!.clock as StoryClock;
-        advance(EXPERIENCES[1].story.loopSeconds + 1);
-        expect(nextClock.done).toBe(false);
-        expect(nextClock.time).toBeCloseTo(1);
+        open({ ...LINK, sound: false });
+        expect(voice.setEnabled).toHaveBeenLastCalledWith(false);
+        expect(screen.getByRole('button', { name: 'Voice narration off' })).toBeInTheDocument();
     });
+});
 
-    it('plays every EPS guided step once and holds its final summary', () => {
-        eps();
-        for (const step of GUIDED) {
-            expect(screen.getByRole('heading', { name: step.scene.title })).toBeInTheDocument();
-            expect(driver.current!.clock.time).toBe(0);
-            advance(step.scene.seconds);
+describe('shareable links: Station Power & Energy', () => {
+    const caption = () => document.querySelector('[class*="titleNum"]')!.textContent;
+    function open(settings: LaunchSettings = LINK) {
+        let start: (() => void) | undefined;
+        render(<EpsExperience link={settings} onLinkReady={(s) => (start = s)} />);
+        return () => act(() => start!());
+    }
+
+    it('plays the guided investigation step by step, then ends on the overview, as Start Investigation does', () => {
+        const start = open();
+        expect(scene.current!.playing).toBe(false);
+        start();
+        for (let i = 0; i < GUIDED.length; i++) {
+            expect(caption()).toBe(`${i + 1} / ${GUIDED.length} · ${GUIDED[i].caption}`);
+            play(GUIDED[i].scene.seconds + 0.5);
         }
-        expect(screen.getByRole('heading', { name: GUIDED.at(-1)!.scene.title })).toBeInTheDocument();
-        expect(driver.current!.playing).toBe(false);
-        const endClock = driver.current!.clock;
-        advance(10_000);
-        expect(driver.current!.clock).toBe(endClock);
+        expect(caption()).toBe('Overview');
     });
 
-    it('continues EPS from a manually selected subsystem without overriding pause', () => {
-        eps();
-        fireEvent.click(screen.getByRole('button', { name: 'Pause' }));
-        fireEvent.click(screen.getByRole('button', { name: 'Subsystems' }));
-        fireEvent.click(screen.getByRole('button', { name: LABELS[3].title }));
-        expect(driver.current!.playing).toBe(false);
-        fireEvent.click(screen.getByRole('button', { name: 'Play' }));
-        advance(LABELS[3].seconds);
-        expect(screen.getByRole('heading', { name: LABELS[4].title })).toBeInTheDocument();
-    });
-
-    it('holds the selected EPS step when autonext=0', () => {
-        eps({ ...launch, autonext: false });
-        advance(GUIDED[0].scene.seconds * 2);
-        expect(driver.current!.playing).toBe(false);
-        expect(screen.getByRole('heading', { name: GUIDED[0].scene.title })).toBeInTheDocument();
+    it('autonext=0 holds the end of the first step', () => {
+        const start = open({ ...LINK, autonext: false });
+        start();
+        play(GUIDED[0].scene.seconds + 30);
+        expect(caption()).toBe(`1 / ${GUIDED.length} · ${GUIDED[0].caption}`);
     });
 });
