@@ -1,6 +1,6 @@
 # Space Station Electrical Power & Energy Management (EPS-1)
 
-The fifth Space Digital Twin option ("05 Station Power & Energy"), on the homepage and `/research-lab`.
+The fifth Space Digital Twin option ("05 Power & Energy"), on the homepage and `/research-lab`.
 A guided engineering investigation of the electrical power system of Station Reference Case SRC-1:
 a conceptual modular station modelled on no real station. Every value is **SIMULATED — Conceptual
 Space Station EPS**; it is not an operational digital twin and is connected to no real system.

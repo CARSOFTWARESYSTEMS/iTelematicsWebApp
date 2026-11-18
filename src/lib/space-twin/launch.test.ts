@@ -12,7 +12,7 @@ describe('shareable Space Digital Twin links', () => {
             ['02', 'Orbital Constellation'],
             ['03', 'Spacecraft'],
             ['04', 'Space Station'],
-            ['05', 'Station Power & Energy'],
+            ['05', 'Power & Energy'],
             ['06', 'Solar System'],
         ]);
     });

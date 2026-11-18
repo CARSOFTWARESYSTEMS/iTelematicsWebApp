@@ -252,7 +252,7 @@ export default function SpaceTwinViewer() {
     };
 
     const onTabKey = (e: KeyboardEvent<HTMLButtonElement>, i: number) => {
-        const count = EXPERIENCES.length + EXTRA_TABS.length; // the four experiences, Station Power & Energy and Solar System
+        const count = EXPERIENCES.length + EXTRA_TABS.length; // the four experiences, Power & Energy and Solar System
         const delta = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
         const jump = e.key === 'Home' ? 0 : e.key === 'End' ? count - 1 : null;
         if (!delta && jump === null) return;

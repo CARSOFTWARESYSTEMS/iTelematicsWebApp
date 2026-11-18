@@ -6,7 +6,7 @@
 /** The fifth and sixth options: separate experiences beside the four story experiences. */
 export type Extra = 'eps' | 'solar';
 export const EXTRA_TABS: readonly { id: Extra; number: string; label: string; title: string }[] = [
-    { id: 'eps', number: '05', label: 'Station Power & Energy', title: 'Space Station Electrical Power & Energy Management Digital Twin' },
+    { id: 'eps', number: '05', label: 'Power & Energy', title: 'Space Station Electrical Power & Energy Management Digital Twin' },
     { id: 'solar', number: '06', label: 'Solar System', title: 'Solar System — From Earth Launch to Deep Space Exploration' },
 ];
 

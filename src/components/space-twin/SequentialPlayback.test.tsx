@@ -219,6 +219,36 @@ describe('shareable links: Solar System', () => {
         expect(stageText()).toBe(`Stage ${chapters[8].number} of 12`);
     });
 
+    it('the pointer over the recap or focus in it does not stop the sequence; answering the check restarts the countdown', () => {
+        const start = open();
+        start();
+        finish();
+        const recap = () => document.querySelector<HTMLElement>('[aria-labelledby="solar-recap-title"]')!;
+        // In full screen the recap sits above the controls: the pointer passing over it is not a pause.
+        fireEvent.pointerEnter(recap());
+        fireEvent.focus(within(recap()).getByRole('group').querySelector('button')!);
+        expect(screen.getByText(/continues in/)).toBeInTheDocument();
+        act(() => vi.advanceTimersByTime(13_000));
+        expect(stageText()).toBe(`Stage ${chapters[1].number} of 12`);
+        finish();
+        act(() => vi.advanceTimersByTime(8_000));
+        fireEvent.click(within(within(recap()).getByRole('group')).getAllByRole('button')[0]);
+        act(() => vi.advanceTimersByTime(8_000));
+        expect(stageText()).toBe(`Stage ${chapters[1].number} of 12`);
+        act(() => vi.advanceTimersByTime(5_000));
+        expect(stageText()).toBe(`Stage ${chapters[2].number} of 12`);
+    });
+
+    it('without a link, the pointer over the recap still holds the guided mission', () => {
+        render(<SolarSystemExperience />);
+        fireEvent.click(screen.getByRole('button', { name: /Start Mission/ }));
+        finish();
+        fireEvent.pointerEnter(document.querySelector('[aria-labelledby="solar-recap-title"]')!);
+        act(() => vi.advanceTimersByTime(60_000));
+        expect(stageText()).toBe('Stage 01 of 12');
+        expect(screen.queryByText(/continues in/)).toBeNull();
+    });
+
     it('autonext=0 stops after Stage 01 with its recap and no countdown', () => {
         const start = open({ ...LINK, autonext: false });
         start();
@@ -250,7 +280,7 @@ describe('shareable links: Solar System', () => {
     });
 });
 
-describe('shareable links: Station Power & Energy', () => {
+describe('shareable links: Power & Energy', () => {
     const caption = () => document.querySelector('[class*="titleNum"]')!.textContent;
     function open(settings: LaunchSettings = LINK) {
         let start: (() => void) | undefined;

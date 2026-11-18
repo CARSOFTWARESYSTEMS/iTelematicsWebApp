@@ -13,7 +13,7 @@ exactly as before.
 | 02 Orbital Constellation | <https://itelematics.com/?space_digital_twin=2> |
 | 03 Spacecraft | <https://itelematics.com/?space_digital_twin=3> |
 | 04 Space Station | <https://itelematics.com/?space_digital_twin=4> |
-| 05 Station Power & Energy | <https://itelematics.com/?space_digital_twin=5> |
+| 05 Power & Energy | <https://itelematics.com/?space_digital_twin=5> |
 | 06 Solar System | <https://itelematics.com/?space_digital_twin=6> |
 
 The numbers are the tab numbers. `06` also works for `6`. The same parameter works on `/research-lab`,
@@ -70,7 +70,7 @@ straight away with no click. The homepage poster popup is skipped for a valid li
 | | Plays in order | At the end |
 | --- | --- | --- |
 | 1–4 | The four stages, once (normally they loop) | Holds the last frame. Play starts again from Stage 1 |
-| 5 Station Power & Energy | The eight guided investigation steps, the same as **Start Investigation** | The overview with its closing message, as **Start Investigation** does |
+| 5 Power & Energy | The eight guided investigation steps, the same as **Start Investigation** | The overview with its closing message, as **Start Investigation** does |
 | 6 Solar System | The twelve stages. Each stage's narration finishes, then its recap counts down (12 s, unchanged) and the next stage begins | The mission summary |
 
 Each stage advances only on its own completion signal (the story clock, the EPS step clock, or the Solar
@@ -79,6 +79,10 @@ System's chapter end plus narration end). No timers or durations were added.
 ### Control stays with the visitor
 
 - **Pause / Play** stops and resumes the sequence.
+- **Solar System recaps** do not stop it. Moving the pointer over a recap, or focus inside it, keeps the
+  countdown running: in full screen the recap sits right above the controls. Answering its quick check
+  restarts the 12 s countdown so the explanation can be read. (Without a link, the guided mission still
+  waits while the visitor engages with a recap.)
 - **Picking a stage** goes there at once, and the sequence carries on from it (with `autonext=0`, that stage
   only).
 - **Esc / Exit full screen** leaves full screen. The mission keeps playing and the page returns to where it

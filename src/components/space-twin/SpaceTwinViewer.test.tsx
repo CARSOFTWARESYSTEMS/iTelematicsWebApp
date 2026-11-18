@@ -35,10 +35,10 @@ beforeAll(() => {
 });
 
 describe('SpaceTwinViewer', () => {
-    it('offers the four experiences, Station Power & Energy and Solar System as keyboard-operable tabs', () => {
+    it('offers the four experiences, Power & Energy and Solar System as keyboard-operable tabs', () => {
         render(<SpaceTwinViewer />);
         const tabs = screen.getAllByRole('tab');
-        expect(tabs.map((t) => t.textContent)).toEqual(['01Satellite', '02Orbital Constellation', '03Spacecraft', '04Space Station', '05Station Power & Energy', '06Solar System']);
+        expect(tabs.map((t) => t.textContent)).toEqual(['01Satellite', '02Orbital Constellation', '03Spacecraft', '04Space Station', '05Power & Energy', '06Solar System']);
         expect(tabs[0]).toHaveAttribute('aria-selected', 'true');
         expect(tabs[1]).toHaveAttribute('tabindex', '-1');
 
@@ -49,9 +49,9 @@ describe('SpaceTwinViewer', () => {
         expect(screen.getByRole('tab', { name: /Solar System/ })).toHaveAttribute('aria-selected', 'true');
         expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-labelledby', 'twin-tab-solar');
         fireEvent.keyDown(screen.getByRole('tab', { name: /Solar System/ }), { key: 'ArrowLeft' });
-        expect(screen.getByRole('tab', { name: /Station Power & Energy/ })).toHaveAttribute('aria-selected', 'true');
+        expect(screen.getByRole('tab', { name: /Power & Energy/ })).toHaveAttribute('aria-selected', 'true');
         expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-labelledby', 'twin-tab-eps');
-        fireEvent.keyDown(screen.getByRole('tab', { name: /Station Power & Energy/ }), { key: 'ArrowLeft' });
+        fireEvent.keyDown(screen.getByRole('tab', { name: /Power & Energy/ }), { key: 'ArrowLeft' });
         expect(screen.getByRole('tab', { name: /Space Station/ })).toHaveAttribute('aria-selected', 'true');
         expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-labelledby', 'twin-tab-station');
     });
@@ -59,7 +59,7 @@ describe('SpaceTwinViewer', () => {
     it('opens the fifth option without disturbing the four experiences', () => {
         render(<SpaceTwinViewer />);
         expect(screen.getByRole('group', { name: 'Satellite stages' })).toBeInTheDocument();
-        fireEvent.click(screen.getByRole('tab', { name: /Station Power & Energy/ }));
+        fireEvent.click(screen.getByRole('tab', { name: /Power & Energy/ }));
         expect(screen.queryByRole('group', { name: 'Satellite stages' })).not.toBeInTheDocument();
         expect(screen.queryByText('Model assumptions and limits')).not.toBeInTheDocument();
         fireEvent.click(screen.getByRole('tab', { name: /Satellite/ }));
@@ -73,7 +73,7 @@ describe('SpaceTwinViewer', () => {
         fireEvent.click(screen.getByRole('tab', { name: /Solar System/ }));
         expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-labelledby', 'twin-tab-solar');
         expect(screen.queryByRole('group', { name: 'Satellite stages' })).not.toBeInTheDocument();
-        fireEvent.click(screen.getByRole('tab', { name: /Station Power & Energy/ }));
+        fireEvent.click(screen.getByRole('tab', { name: /Power & Energy/ }));
         expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-labelledby', 'twin-tab-eps');
         fireEvent.click(screen.getByRole('tab', { name: /Spacecraft/ }));
         expect(screen.getByRole('group', { name: 'Spacecraft stages' })).toBeInTheDocument();
@@ -144,7 +144,7 @@ describe('SpaceTwinViewer', () => {
         expect(document.documentElement.style.overflow).toBe('');
 
         fireEvent.click(screen.getByRole('button', { name: 'Full screen' }));
-        fireEvent.click(screen.getByRole('tab', { name: /Station Power & Energy/ }));
+        fireEvent.click(screen.getByRole('tab', { name: /Power & Energy/ }));
         expect(viewer).toHaveAttribute('data-present');
         fireEvent.keyDown(document, { key: 'Escape' });
         expect(viewer).not.toHaveAttribute('data-present');
@@ -161,7 +161,7 @@ describe('SpaceTwinViewer', () => {
 
 describe('SpaceTwinViewer shareable links', () => {
     const go = (query: string) => window.history.replaceState(null, '', `/${query}`);
-    const launch = () => screen.queryByRole('group', { name: /^(Satellite|Orbital Constellation|Spacecraft|Space Station|Station Power & Energy|Solar System)$/ });
+    const launch = () => screen.queryByRole('group', { name: /^(Satellite|Orbital Constellation|Spacecraft|Space Station|Power & Energy|Solar System)$/ });
     afterEach(() => {
         go('');
         reduced = false;
@@ -173,7 +173,7 @@ describe('SpaceTwinViewer shareable links', () => {
         [2, 'Orbital Constellation'],
         [3, 'Spacecraft'],
         [4, 'Space Station'],
-        [5, 'Station Power & Energy'],
+        [5, 'Power & Energy'],
         [6, 'Solar System'],
     ])('space_digital_twin=%i selects %s and waits for one click, leaving the URL as it is', (n, label) => {
         go(`?utm_source=share&space_digital_twin=${n}`);

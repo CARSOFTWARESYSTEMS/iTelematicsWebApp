@@ -412,6 +412,11 @@ export default function SolarSystemExperience(linkProps: LinkProps = {}) {
 
     // The guided mission moves on after the recap, unless the visitor is engaging with it.
     const guided = mode.kind === 'chapter' && mode.guided;
+    // A link plays every stage in order (autonext): the pointer passing over the recap or focus inside it
+    // does not stop it (in full screen the recap sits right above the controls). Answering the quick check
+    // restarts the countdown so its explanation can be read. Pause is what stops the sequence.
+    const linkSequence = !!link?.autonext;
+    const [recapRun, setRecapRun] = useState(0);
     useEffect(() => {
         if (!(recapShown && guided && !recapHold && visible && autoplay)) {
             setCountdown(null);
@@ -429,7 +434,7 @@ export default function SolarSystemExperience(linkProps: LinkProps = {}) {
         }, 250);
         return () => window.clearInterval(id);
         // nextStage reads the current mode; the effect restarts whenever the stage changes.
-    }, [recapShown, guided, recapHold, visible, autoplay, programKey]);
+    }, [recapShown, guided, recapHold, visible, autoplay, programKey, recapRun]);
 
     const tourBody = loc.segment.body ?? (label ? label.segments.find((s) => s.body)?.body : undefined);
     const readingsFor = (list: readonly TKey[]) => list.filter((k) => k !== 'met').map((k) => readingAny(k, met, tourBody));
@@ -696,14 +701,17 @@ export default function SolarSystemExperience(linkProps: LinkProps = {}) {
                         check={lesson.check}
                         answered={progress.checks[chapter.id]}
                         onAnswer={(i) => {
-                            setRecapHold(true);
+                            if (linkSequence) setRecapRun((n) => n + 1);
+                            else setRecapHold(true);
                             saveProgress((p) => ({ ...p, checks: { ...p.checks, [chapter.id]: i } }));
                         }}
                         countdown={countdown}
                         onNext={nextStage}
                         nextText={mode.kind === 'chapter' && mode.c + 1 < chapters.length ? `Stage ${chapters[mode.c + 1].number}: ${chapters[mode.c + 1].short}` : 'Mission summary'}
                         onReplay={() => clock.replay()}
-                        onHold={() => setRecapHold(true)}
+                        onHold={() => {
+                            if (!linkSequence) setRecapHold(true);
+                        }}
                     />
                 )}
 
