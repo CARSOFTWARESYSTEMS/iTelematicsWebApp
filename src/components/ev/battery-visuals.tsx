@@ -3,6 +3,7 @@ import styles from './visuals.module.css';
 import Live, { Ticker } from './Live';
 import FlowSteps from './FlowSteps';
 import { Readouts } from './space-visuals';
+import { Materials, materials } from './gfx';
 
 /**
  * Animated engineering visuals for the EV battery, cybersecurity, safety, mobility and lab sections.
@@ -44,10 +45,12 @@ export function BatteryFlagshipVisual() {
             label="Battery energy and health system: a cell, a twelve-cell module and a 96-cell pack with a thermal map feed the BMS, telemetry and diagnostics, which rate the risk as low. Simulated values."
             className={`${styles.frame} ${styles.flagship}`}
         >
-            <svg viewBox="0 0 760 410" className={`${styles.svg} ${styles.wideOnly}`}>
+            <svg viewBox="0 0 760 410" className={`${styles.svg} ${styles.wideOnly}`} style={materials('ev-gfx-flag')}>
+                <Materials prefix="ev-gfx-flag" />
                 {STAGE_LINKS.map((link) => (
                     <g key={link.d} className={link.kind === 'energy' ? styles.linkEnergy : styles.linkData}>
                         <path d={link.d} className={styles.linkTrack} />
+                        <path d={link.d} className={styles.linkBloom} />
                         <path d={link.d} className={styles.linkFlow} />
                         <path d={link.head} className={styles.linkHead} />
                     </g>
@@ -55,6 +58,7 @@ export function BatteryFlagshipVisual() {
 
                 {STAGES.map((s, i) => (
                     <g key={s.label}>
+                        <rect x={s.x} y={s.y} width={s.w} height={s.h} rx={8} className={styles.stageHalo} style={v(i)} />
                         <rect x={s.x} y={s.y} width={s.w} height={s.h} rx={8} className={styles.stageFrame} style={v(i)} />
                         <text x={s.x} y={s.y - 10} className={styles.svgLabelStrong}>{s.label}</text>
                     </g>
@@ -78,6 +82,7 @@ export function BatteryFlagshipVisual() {
                     const y = 56 + Math.floor(m / 4) * 58;
                     return (
                         <g key={m}>
+                            {t >= 33 && <ellipse cx={x + 36} cy={y + 24} rx={52} ry={38} className={styles.heatGlow} />}
                             <rect x={x} y={y} width={72} height={48} rx={4} className={`${styles.packModule} ${tempTone(t)} ${t >= 33 ? styles.breathe : ''}`} />
                             <text x={x + 36} y={y + 29} textAnchor="middle" className={styles.moduleTemp}>{t.toFixed(1)}</text>
                         </g>
@@ -86,6 +91,7 @@ export function BatteryFlagshipVisual() {
                 <text x={560} y={180} textAnchor="middle" className={styles.svgLabel}>96S · 8 MODULES · THERMAL MAP °C</text>
 
                 {/* BMS */}
+                <circle cx={594} cy={296} r={30} className={styles.coreGlow} />
                 <rect x={574} y={276} width={40} height={40} rx={4} className={styles.chip} />
                 <rect x={585} y={287} width={18} height={18} rx={2} className={styles.chipCore} />
                 {[284, 296, 308].map((y) => (
@@ -98,6 +104,7 @@ export function BatteryFlagshipVisual() {
                 ))}
 
                 {/* Telemetry */}
+                <path d="M 336 306 q 10 -20 20 0 t 20 0 t 20 0 t 20 0 t 20 0 t 20 0 t 20 0 t 20 0" pathLength={1} className={`${styles.waveTrace} ${styles.traceGlow}`} />
                 <path d="M 336 306 q 10 -20 20 0 t 20 0 t 20 0 t 20 0 t 20 0 t 20 0 t 20 0 t 20 0" pathLength={1} className={styles.waveTrace} />
                 <text x={336} y={350} className={styles.svgLabel}>CAN · 500 kbit/s</text>
                 <text x={336} y={370} className={`${styles.svgLabel} ${styles.t_telemetry}`}>CLOUD SYNC ACTIVE</text>
@@ -108,6 +115,7 @@ export function BatteryFlagshipVisual() {
                 <text x={36} y={352} className={styles.svgLabel}>ANOMALY SCAN · CLEAR</text>
                 <text x={36} y={372} className={styles.svgLabel}>THERMAL · NOMINAL</text>
                 <circle cx={226} cy={318} r={34} className={styles.ringTrack} />
+                <circle cx={226} cy={318} r={34} pathLength={100} className={`${styles.ring} ${styles.ringGlow}`} transform="rotate(-90 226 318)" />
                 <circle cx={226} cy={318} r={34} pathLength={100} className={styles.ring} transform="rotate(-90 226 318)" />
                 <text x={226} y={322} textAnchor="middle" className={styles.ringSmall}>SOH</text>
             </svg>
@@ -249,12 +257,16 @@ const CELLS = [97, 98, 96, 98, 97, 99, 82, 97, 98, 96, 98, 97];
 export function HealthVisual() {
     return (
         <Live label="Battery health view: state-of-health ring at 94 percent, twelve cell voltages with one low cell flagged, and a cycle-history trace" className={styles.frame}>
-            <svg viewBox="0 0 560 210" className={styles.svg}>
+            <svg viewBox="0 0 560 210" className={styles.svg} style={materials('ev-gfx-health')}>
+                <Materials prefix="ev-gfx-health" />
                 <circle cx={80} cy={100} r={56} className={styles.ringTrack} />
+                <circle cx={80} cy={100} r={56} pathLength={100} className={`${styles.ring} ${styles.ringGlow}`} transform="rotate(-90 80 100)" />
                 <circle cx={80} cy={100} r={56} pathLength={100} className={styles.ring} transform="rotate(-90 80 100)" />
                 <text x={80} y={104} textAnchor="middle" className={styles.ringValue}>94%</text>
                 <text x={80} y={124} textAnchor="middle" className={styles.svgLabel}>SOH</text>
 
+                {/* The flagged cell glows softly so the eye finds it */}
+                <ellipse cx={270.5} cy={138} rx={14} ry={32} className={styles.cellLowGlow} />
                 {CELLS.map((h, i) => {
                     const height = (h - 70) * 3.6;
                     return (
@@ -274,6 +286,7 @@ export function HealthVisual() {
                 <text x={274} y={42} textAnchor="middle" className={`${styles.svgLabel} ${styles.t_solar}`}>CELL 07</text>
 
                 <line x1={392} y1={160} x2={544} y2={160} className={styles.gridLine} />
+                <path d="M 392 64 L 410 66 L 428 67 L 446 71 L 464 72 L 482 76 L 500 79 L 518 80 L 536 84 L 544 85" pathLength={1} className={`${styles.history} ${styles.traceGlow}`} />
                 <path d="M 392 64 L 410 66 L 428 67 L 446 71 L 464 72 L 482 76 L 500 79 L 518 80 L 536 84 L 544 85" pathLength={1} className={styles.history} />
                 <text x={392} y={184} className={styles.svgLabel}>CYCLE HISTORY</text>
             </svg>
@@ -294,9 +307,10 @@ export function HealthVisual() {
 export function PackBuildVisual() {
     return (
         <Live label="Pack architecture: a single cell, a twelve-cell module and a pack of modules with its BMS" className={styles.frame}>
-            <svg viewBox="0 0 560 210" className={styles.svg}>
+            <svg viewBox="0 0 560 210" className={styles.svg} style={materials('ev-gfx-pack')}>
+                <Materials prefix="ev-gfx-pack" />
                 <g className={styles.buildStep} style={v(0)}>
-                    <rect x={40} y={56} width={40} height={96} rx={8} className={styles.block} />
+                    <rect x={40} y={56} width={40} height={96} rx={8} className={`${styles.block} ${styles.cellCan}`} />
                     <line x1={52} y1={50} x2={68} y2={50} className={styles.wireStrongThin} />
                     <text x={60} y={184} textAnchor="middle" className={styles.blockLabel}>CELL</text>
                 </g>
@@ -321,6 +335,7 @@ export function PackBuildVisual() {
                     ].map(([x, y]) => (
                         <rect key={`${x}-${y}`} x={x} y={y} width={76} height={54} rx={4} className={styles.moduleSmall} />
                     ))}
+                    <ellipse cx={520} cy={102} rx={16} ry={36} className={styles.bmsGlow} />
                     <rect x={512} y={74} width={16} height={56} rx={3} className={styles.bmsSmall} />
                     <text x={434} y={200} textAnchor="middle" className={styles.blockLabel}>PACK + BMS</text>
                 </g>
@@ -345,7 +360,8 @@ const POWERTRAIN = ['BATTERY', 'INVERTER', 'MOTOR', 'WHEELS'];
 export function MobilityVisual() {
     return (
         <Live label="Vehicle energy model: battery, inverter, motor and wheels over a mixed-terrain route, with energy consumption rising on climbs and an estimated range" className={styles.frame}>
-            <svg viewBox="0 0 560 230" className={styles.svg}>
+            <svg viewBox="0 0 560 230" className={styles.svg} style={materials('ev-gfx-mob')}>
+                <Materials prefix="ev-gfx-mob" />
                 {POWERTRAIN.map((name, i) => (
                     <g key={name}>
                         <rect x={16 + i * 136} y={16} width={104} height={44} rx={6} className={styles.block} />
@@ -353,6 +369,7 @@ export function MobilityVisual() {
                         {i < POWERTRAIN.length - 1 && (
                             <>
                                 <line x1={120 + i * 136} y1={38} x2={152 + i * 136} y2={38} className={styles.wire} />
+                                <line x1={120 + i * 136} y1={38} x2={152 + i * 136} y2={38} className={styles.powerGlow} />
                                 <line x1={120 + i * 136} y1={38} x2={152 + i * 136} y2={38} className={styles.powerFlow} />
                             </>
                         )}
@@ -361,6 +378,7 @@ export function MobilityVisual() {
 
                 <path d="M 16 196 C 80 196 100 162 150 162 S 220 202 280 192 S 360 150 410 154 S 500 198 544 190 V 226 H 16 Z" className={styles.terrainFill} />
                 <path d="M 16 196 C 80 196 100 162 150 162 S 220 202 280 192 S 360 150 410 154 S 500 198 544 190" className={styles.terrain} />
+                <path d="M 16 132 C 80 132 100 100 150 104 S 220 140 280 132 S 360 94 410 100 S 500 138 544 128" pathLength={1} className={`${styles.energyTrace} ${styles.traceGlow}`} />
                 <path d="M 16 132 C 80 132 100 100 150 104 S 220 140 280 132 S 360 94 410 100 S 500 138 544 128" pathLength={1} className={styles.energyTrace} />
                 <text x={16} y={92} className={`${styles.svgLabel} ${styles.t_solar}`}>ENERGY Wh/km</text>
                 <text x={16} y={222} className={styles.svgLabel}>TERRAIN</text>
@@ -383,7 +401,8 @@ export function MobilityVisual() {
 export function Lab3dGlyph() {
     return (
         <Live className={styles.glyph}>
-            <svg viewBox="0 0 240 140" className={styles.svg}>
+            <svg viewBox="0 0 240 140" className={styles.svg} style={materials('ev-gfx-lab3d')}>
+                <Materials prefix="ev-gfx-lab3d" />
                 {[0, 1, 2, 3, 4].map((i) => (
                     <path key={i} d={`M 70 ${100 - i * 16} L 120 ${78 - i * 16} L 170 ${100 - i * 16} L 120 ${122 - i * 16} Z`} className={i === 1 ? styles.boardEps : styles.board} style={v(i)} />
                 ))}
@@ -398,12 +417,15 @@ export function Lab3dGlyph() {
 export function LabOrbitGlyph() {
     return (
         <Live className={styles.glyph}>
-            <svg viewBox="0 0 240 140" className={styles.svg}>
+            <svg viewBox="0 0 240 140" className={styles.svg} style={materials('ev-gfx-laborbit')}>
+                <Materials prefix="ev-gfx-laborbit" />
                 <rect x={120} y={46} width={120} height={48} className={styles.umbra} />
                 <circle cx={120} cy={70} r={48} className={styles.orbitPath} />
+                <circle cx={120} cy={70} r={25.5} className={styles.atmosphere} />
                 <circle cx={120} cy={70} r={22} className={styles.earth} />
+                <path d="M 120 48 A 22 22 0 0 1 120 92 Z" className={styles.night} />
                 <g className={styles.orbitingSmall}>
-                    <circle cx={72} cy={70} r={4} className={styles.sensorDot} />
+                    <circle cx={72} cy={70} r={4} className={`${styles.sensorDot} ${styles.dotShade}`} />
                 </g>
                 <rect x={196} y={24} width={14} height={92} rx={3} className={styles.socTrack} />
                 <rect x={196} y={24} width={14} height={92} rx={3} className={styles.socFill} />
@@ -415,8 +437,10 @@ export function LabOrbitGlyph() {
 export function LabRocketGlyph() {
     return (
         <Live className={styles.glyph}>
-            <svg viewBox="0 0 240 140" className={styles.svg}>
+            <svg viewBox="0 0 240 140" className={styles.svg} style={materials('ev-gfx-labrocket')}>
+                <Materials prefix="ev-gfx-labrocket" />
                 <path d="M 30 50 H 80 V 90 H 30 Z M 80 58 C 92 58 96 64 102 66 C 130 60 160 44 190 34 V 106 C 160 96 130 80 102 74 C 96 76 92 82 80 82" className={styles.engineSmall} />
+                <ellipse cx={146} cy={70} rx={46} ry={26} className={styles.exhaustGlow} />
                 <path d="M 104 70 H 186 M 104 66 L 184 46 M 104 74 L 184 94" className={styles.exhaustSmall} />
                 <path d="M 30 70 H 6" className={styles.flowSmall} />
                 <path d="M 200 120 A 26 26 0 0 1 236 120" className={styles.gauge} />
@@ -431,13 +455,15 @@ export function LabRocketGlyph() {
 export function LabCellsGlyph() {
     return (
         <Live className={styles.glyph}>
-            <svg viewBox="0 0 240 140" className={styles.svg}>
+            <svg viewBox="0 0 240 140" className={styles.svg} style={materials('ev-gfx-labcells')}>
+                <Materials prefix="ev-gfx-labcells" />
                 {CELLS.slice(0, 10).map((h, i) => {
                     const height = (h - 70) * 3;
                     return <rect key={i} x={22 + i * 14} y={110 - height} width={8} height={height} className={i === 6 ? styles.cellLow : styles.cellBar} style={v(i)} />;
                 })}
                 <line x1={18} y1={110} x2={162} y2={110} className={styles.gridLine} />
                 <circle cx={200} cy={70} r={26} className={styles.ringTrack} />
+                <circle cx={200} cy={70} r={26} pathLength={100} className={`${styles.ring} ${styles.ringGlow}`} transform="rotate(-90 200 70)" />
                 <circle cx={200} cy={70} r={26} pathLength={100} className={styles.ring} transform="rotate(-90 200 70)" />
             </svg>
         </Live>

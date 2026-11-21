@@ -44,6 +44,7 @@ export function RocketEngineDrawing({ detail = false }: { detail?: boolean }) {
             <path d="M 362 148 V 176 H 302" className={styles.flow} />
 
             <circle cx={280} cy={184} r={22} className={styles.box} />
+            <circle cx={280} cy={184} r={17} className={styles.impellerBlur} />
             <g className={styles.impeller}>
                 {[0, 90, 180, 270].map((a) => (
                     <path key={a} d="M 280 184 q 7 -9 2 -17" transform={`rotate(${a} 280 184)`} className={styles.blade} />
@@ -54,7 +55,16 @@ export function RocketEngineDrawing({ detail = false }: { detail?: boolean }) {
 
             <line x1={244} y1={234} x2={316} y2={234} className={styles.wireStrong} />
             <path d={ENGINE} className={styles.engine} />
+            {/* Hot gas: a flickering glow through the throat and down the bell, a white-hot core in the chamber */}
+            <clipPath id="ev-gfx-engine-bell">
+                <path d={ENGINE} />
+            </clipPath>
+            <g clipPath="url(#ev-gfx-engine-bell)">
+                <rect x={214} y={296} width={132} height={88} className={styles.nozzleGlow} />
+            </g>
+            <ellipse cx={280} cy={262} rx={34} ry={26} className={styles.combustionGlow} />
             <ellipse cx={280} cy={262} rx={24} ry={18} className={styles.combustion} />
+            <ellipse cx={280} cy={263} rx={11} ry={8} className={styles.combustionCore} />
             {['M 280 312 V 376', 'M 274 312 L 254 376', 'M 286 312 L 306 376'].map((d) => (
                 <path key={d} d={d} className={styles.exhaust} />
             ))}
@@ -96,6 +106,12 @@ const ROTORS = [
     [414, 282],
 ] as const;
 
+/** Faint sectors trailing each blade (clockwise spin): the motion blur a camera sees on a rotor. */
+function bladeTrails(x: number, y: number, r = 26, sweep = 22) {
+    const at = (deg: number) => [x + r * Math.cos((deg * Math.PI) / 180), y + r * Math.sin((deg * Math.PI) / 180)].map((n) => n.toFixed(1)).join(' ');
+    return [0, 90, 180, 270].map((a) => `M ${x} ${y} L ${at(a - sweep)} A ${r} ${r} 0 0 1 ${at(a)} Z`).join(' ');
+}
+
 export function EvtolDrawing({ detail = false }: { detail?: boolean }) {
     return (
         <g>
@@ -109,12 +125,14 @@ export function EvtolDrawing({ detail = false }: { detail?: boolean }) {
                 className={styles.fuselage}
             />
             <path d="M 152 196 L 118 168 M 152 204 L 118 232" className={styles.wireStrong} />
+            <ellipse cx={290} cy={200} rx={44} ry={20} className={styles.batteryGlow} />
             <rect x={262} y={191} width={56} height={18} rx={3} className={styles.batterySlot} />
 
             {ROTORS.map(([x, y], i) => (
                 <g key={i}>
                     <circle cx={x} cy={y} r={30} className={styles.rotorDisc} />
                     <g className={styles.rotor} style={{ transformOrigin: `${x}px ${y}px`, ...v(i) }}>
+                        <path d={bladeTrails(x, y)} className={styles.bladeTrail} />
                         <line x1={x - 26} y1={y} x2={x + 26} y2={y} />
                         <line x1={x} y1={y - 26} x2={x} y2={y + 26} />
                     </g>

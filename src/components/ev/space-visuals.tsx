@@ -3,6 +3,7 @@ import styles from './visuals.module.css';
 import Live, { Ticker } from './Live';
 import { EvtolDrawing, RocketEngineDrawing } from './drawings';
 import FlowSteps from './FlowSteps';
+import { Materials, materials } from './gfx';
 
 /**
  * Animated engineering visuals for the space and aerospace research sections. Each sits in a
@@ -48,7 +49,9 @@ function Phase({ a, b, kind }: { a: string; b: string; kind: 'sun' | 'link' }) {
 export function SpaceOrbitVisual() {
     return (
         <Live label="Schematic orbit: a satellite passes through sunlight and Earth’s shadow and downlinks over a ground station" className={styles.frame}>
-            <svg viewBox="0 0 480 380" className={styles.svg}>
+            <svg viewBox="0 0 480 380" className={styles.svg} style={materials('ev-gfx-orbit')}>
+                <Materials prefix="ev-gfx-orbit" />
+                <rect x={0} y={60} width={190} height={260} className={styles.sunlight} />
                 {[160, 190, 220].map((y) => (
                     <g key={y} className={styles.ray}>
                         <line x1={8} y1={y} x2={44} y2={y} />
@@ -70,7 +73,10 @@ export function SpaceOrbitVisual() {
                 <path d="M 357.4 128 A 124 124 0 0 1 357.4 252" className={styles.eclipseArc} />
                 <path d="M 203.6 75 A 124 124 0 0 1 296.4 75" className={styles.contactArc} />
 
+                {/* Lit Earth: atmosphere at the limb, day side towards the Sun, night side shaded */}
+                <circle cx={250} cy={190} r={72} className={styles.atmosphere} />
                 <circle cx={250} cy={190} r={62} className={styles.earth} />
+                <path d="M 250 128 A 62 62 0 0 1 250 252 Z" className={styles.night} />
                 <ellipse cx={250} cy={190} rx={22} ry={62} className={styles.meridian} />
                 <ellipse cx={250} cy={190} rx={46} ry={62} className={styles.meridian} />
                 <line x1={188} y1={190} x2={312} y2={190} className={styles.meridian} />
@@ -82,9 +88,12 @@ export function SpaceOrbitVisual() {
 
                 <g className={styles.orbiting}>
                     <circle cx={126} cy={190} r={7} className={styles.ping} />
-                    <rect x={123} y={168} width={6} height={14} className={styles.satPanel} />
-                    <rect x={123} y={198} width={6} height={14} className={styles.satPanel} />
-                    <rect x={120.5} y={184.5} width={11} height={11} rx={1.5} className={styles.satBody} />
+                    {/* The spacecraft darkens inside Earth's shadow, in step with the eclipse readout */}
+                    <g className={styles.satShade}>
+                        <rect x={123} y={168} width={6} height={14} className={styles.satPanel} />
+                        <rect x={123} y={198} width={6} height={14} className={styles.satPanel} />
+                        <rect x={120.5} y={184.5} width={11} height={11} rx={1.5} className={styles.satBody} />
+                    </g>
                 </g>
 
                 <text x={400} y={124} className={`${styles.svgLabel} ${styles.t_orbit}`}>ECLIPSE</text>
@@ -117,7 +126,13 @@ const payload = <Ticker values={['12.4 W', '12.6 W', '12.4 W', '12.2 W']} every=
 export function SatelliteSchematicVisual() {
     return (
         <Live label="Satellite power schematic: solar arrays feed the EPS, which charges the battery in sunlight, draws on it in eclipse and powers payload, communications and the onboard computer" className={styles.frame}>
-            <svg viewBox="0 0 560 300" className={`${styles.svg} ${styles.wideOnly}`}>
+            <svg viewBox="0 0 560 300" className={`${styles.svg} ${styles.wideOnly}`} style={materials('ev-gfx-sat')}>
+                <Materials prefix="ev-gfx-sat" />
+                <defs>
+                    <clipPath id="ev-gfx-sat-array">
+                        <rect x={16} y={40} width={124} height={56} />
+                    </clipPath>
+                </defs>
                 <g className={styles.sunlit}>
                     <line x1={28} y1={6} x2={46} y2={30} className={styles.rayLine} />
                     <line x1={58} y1={6} x2={76} y2={30} className={styles.rayLine} />
@@ -127,10 +142,16 @@ export function SatelliteSchematicVisual() {
                 {[1, 2, 3, 4, 5].map((c) => (
                     <line key={c} x1={16 + c * 20.6} y1={40} x2={16 + c * 20.6} y2={96} className={styles.arrayGrid} />
                 ))}
+                <line x1={16} y1={68} x2={140} y2={68} className={styles.arrayGrid} />
                 <rect x={16} y={40} width={124} height={56} className={styles.arrayShade} />
+                {/* Sunlight sweeping across the cells (the iTelematics® array sheen), only while sunlit */}
+                <g clipPath="url(#ev-gfx-sat-array)">
+                    <rect x={-44} y={40} width={60} height={56} className={styles.arraySweep} />
+                </g>
                 <text x={78} y={118} textAnchor="middle" className={styles.blockLabel}>ARRAYS</text>
 
                 <path d="M 140 68 H 172 V 144 H 208" className={styles.wire} />
+                <path d="M 140 68 H 172 V 144 H 208" className={`${styles.powerGlow} ${styles.powerGlowSun}`} />
                 <path d="M 140 68 H 172 V 144 H 208" className={`${styles.powerFlow} ${styles.sunlitFlow}`} />
 
                 <rect x={208} y={112} width={128} height={64} rx={6} className={styles.block} />
@@ -144,6 +165,7 @@ export function SatelliteSchematicVisual() {
                 <text x={272} y={253} textAnchor="middle" className={styles.blockLabel}>BATTERY</text>
 
                 <path d="M 336 144 H 376 V 48 H 412 M 376 116 H 412 M 376 144 V 184 H 412" className={styles.wire} />
+                <path d="M 336 144 H 376 V 48 H 412 M 376 116 H 412 M 376 144 V 184 H 412" className={styles.powerGlow} />
                 <path d="M 336 144 H 376 V 48 H 412" className={styles.powerFlow} />
                 <path d="M 376 116 H 412" className={styles.powerFlow} />
                 <path d="M 376 144 V 184 H 412" className={styles.powerFlow} />
@@ -152,6 +174,7 @@ export function SatelliteSchematicVisual() {
                     <g key={load.name}>
                         <rect x={412} y={load.y} width={132} height={48} rx={6} className={styles.block} />
                         <text x={426} y={load.y + 29} className={styles.blockLabel}>{load.name}</text>
+                        <circle cx={530} cy={load.y + 24} r={9} className={`${styles.activity} ${styles.activityGlow}`} style={v(i)} />
                         <circle cx={530} cy={load.y + 24} r={3.5} className={styles.activity} style={v(i)} />
                     </g>
                 ))}
@@ -202,7 +225,8 @@ const ORBIT_BANDS: [number, number, 'sun' | 'ecl'][] = [
 export function CubeTwinVisual() {
     return (
         <Live label="CubeTwin mission timeline: battery state of charge over three orbits of sunlight and eclipse, a load fault, a safe-mode response and recovery" className={`${styles.frame} ${styles.cubeFrame}`}>
-            <svg viewBox="0 0 560 270" className={styles.svg}>
+            <svg viewBox="0 0 560 270" className={styles.svg} style={materials('ev-gfx-cube')}>
+                <Materials prefix="ev-gfx-cube" />
                 {ORBIT_BANDS.map(([x1, x2, kind]) => (
                     <rect key={x1} x={x1} y={24} width={x2 - x1} height={10} className={kind === 'sun' ? styles.bandSun : styles.bandEcl} />
                 ))}
@@ -221,6 +245,9 @@ export function CubeTwinVisual() {
                 <text x={246} y={64} textAnchor="end" className={`${styles.svgLabel} ${styles.t_fault} ${styles.faultMark}`}>FAULT</text>
                 <text x={268} y={64} className={`${styles.svgLabel} ${styles.t_orbit} ${styles.safeMark}`}>SAFE MODE</text>
 
+                {/* The fault registers as a brief flare where it strikes the SOC trace */}
+                <circle cx={250} cy={116} r={10} className={styles.faultFlare} />
+                <path d="M 40 146 L 150 95 L 206 134 L 250 116 L 262 140 L 316 110 L 372 128 L 482 89 L 538 125" pathLength={1} className={`${styles.socTrace} ${styles.traceGlow}`} />
                 <path d="M 40 146 L 150 95 L 206 134 L 250 116 L 262 140 L 316 110 L 372 128 L 482 89 L 538 125" pathLength={1} className={styles.socTrace} />
                 <path d="M 40 232 H 250 V 216 H 262 V 242 H 372 V 232 H 538" pathLength={1} className={styles.loadTrace} />
                 <text x={540} y={226} textAnchor="end" className={styles.svgLabel}>LOAD</text>
@@ -253,7 +280,8 @@ export function CubeTwinVisual() {
 export function RocketVisual() {
     return (
         <Live label="Propulsion schematic: propellant tanks feed a turbopump, chamber and nozzle; pressure, temperature and flow sensors report to the engine controller" className={styles.frame}>
-            <svg viewBox="0 0 560 400" className={styles.svg}>
+            <svg viewBox="0 0 560 400" className={styles.svg} style={materials('ev-gfx-rocket')}>
+                <Materials prefix="ev-gfx-rocket" />
                 <RocketEngineDrawing detail />
             </svg>
             <Readouts
@@ -274,12 +302,16 @@ export function RocketVisual() {
 export function StationVisual() {
     return (
         <Live label="Space-station wireframe on its orbit, with articulating solar arrays and communication links to a relay satellite and a ground station" className={styles.frame}>
-            <svg viewBox="0 0 560 300" className={styles.svg}>
+            {/* Slow camera drift over the whole scene, like the iTelematics® station hero; every part moves together */}
+            <svg viewBox="0 0 560 300" className={`${styles.svg} ${styles.drift}`} style={materials('ev-gfx-station')}>
+                <Materials prefix="ev-gfx-station" />
                 <path d="M -20 262 Q 280 178 580 262" className={styles.orbitLine} />
 
                 <path d="M 300 92 L 500 38" className={styles.wireThin} />
+                <path d="M 300 92 L 500 38" className={styles.linkGlow} />
                 <path d="M 300 92 L 500 38" className={styles.telemetryFlow} />
                 <path d="M 330 150 Q 380 230 420 286" className={styles.wireThin} />
+                <path d="M 330 150 Q 380 230 420 286" className={styles.linkGlow} />
                 <path d="M 330 150 Q 380 230 420 286" className={`${styles.telemetryFlow} ${styles.reverse}`} />
                 <rect x={494} y={30} width={12} height={12} rx={2} className={styles.satBody} />
                 <line x1={482} y1={36} x2={518} y2={36} className={styles.wireStrongThin} />
@@ -293,6 +325,8 @@ export function StationVisual() {
                 ].map(([x, y], i) => (
                     <g key={i} className={styles.stationArray} style={{ transformOrigin: `${x + 25}px 130px`, ...v(i) }}>
                         <rect x={x} y={y} width={50} height={60} className={styles.arrayBlock} />
+                        {/* Sun glint: brightest face-on, fading as the wing turns away */}
+                        <rect x={x} y={y} width={50} height={60} className={styles.arrayGlint} />
                         <line x1={x + 25} y1={y} x2={x + 25} y2={y + 60} className={styles.arrayGrid} />
                         <line x1={x} y1={y + 30} x2={x + 50} y2={y + 30} className={styles.arrayGrid} />
                     </g>
@@ -304,14 +338,17 @@ export function StationVisual() {
                 ))}
 
                 <rect x={268} y={66} width={24} height={128} rx={8} className={styles.module} />
-                <rect x={222} y={146} width={46} height={20} rx={8} className={styles.module} />
-                <rect x={292} y={146} width={46} height={20} rx={8} className={styles.module} />
+                <rect x={222} y={146} width={46} height={20} rx={8} className={`${styles.module} ${styles.moduleSide}`} />
+                <rect x={292} y={146} width={46} height={20} rx={8} className={`${styles.module} ${styles.moduleSide}`} />
                 <circle cx={280} cy={98} r={14} className={styles.module} />
                 <rect x={234} y={92} width={20} height={30} className={styles.radiator} />
                 <rect x={306} y={92} width={20} height={30} className={styles.radiator} />
 
                 {[150, 220, 340, 410].map((x, i) => (
-                    <circle key={x} cx={x} cy={130} r={3} className={styles.node} style={v(i)} />
+                    <g key={x}>
+                        <circle cx={x} cy={130} r={9} className={`${styles.node} ${styles.nodeGlow}`} style={v(i)} />
+                        <circle cx={x} cy={130} r={3} className={styles.node} style={v(i)} />
+                    </g>
                 ))}
 
                 <text x={500} y={22} textAnchor="middle" className={styles.svgLabel}>RELAY</text>
@@ -343,7 +380,8 @@ const HUMS = [
 export function AerospaceVisual() {
     return (
         <Live label="eVTOL wireframe with rotor, battery and avionics sensor nodes, a monitored network boundary and a telemetry link, beside a health-monitoring summary" className={styles.frame}>
-            <svg viewBox="0 0 560 400" className={styles.svg}>
+            <svg viewBox="0 0 560 400" className={`${styles.svg} ${styles.hover}`} style={materials('ev-gfx-evtol')}>
+                <Materials prefix="ev-gfx-evtol" />
                 <EvtolDrawing detail />
             </svg>
             <div className={styles.readoutArea}>
@@ -391,7 +429,8 @@ export function AqipVisual() {
             </ol>
 
             <div className={styles.aqipBody}>
-                <svg viewBox="0 0 300 220" className={styles.svg}>
+                <svg viewBox="0 0 300 220" className={styles.svg} style={materials('ev-gfx-aqip')}>
+                    <Materials prefix="ev-gfx-aqip" />
                     <path d="M 40 60 H 220 V 110 H 260 V 170 H 40 Z" className={styles.part} />
                     <circle cx={92} cy={115} r={14} className={styles.part} />
                     <circle cx={156} cy={115} r={14} className={styles.part} />

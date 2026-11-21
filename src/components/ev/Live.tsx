@@ -1,6 +1,11 @@
 "use client";
 import { createContext, useContext, useEffect, useRef, useState, useSyncExternalStore, type ReactNode, type RefObject } from 'react';
+// Same device checks as the iTelematics® 3D viewers: reduced motion without a first-frame flash,
+// and the browser tab's visibility, so nothing animates in a hidden tab.
+import { usePageVisible, useReducedMotion } from '@/components/space-twin/device';
 import styles from './Live.module.css';
+
+export { useReducedMotion };
 
 /* ---------- Page-wide motion switch (the Pause control in the local navigation) ---------- */
 
@@ -25,24 +30,12 @@ export function useMotionPaused() {
     return useSyncExternalStore(subscribe, () => pausedAll, () => false);
 }
 
-/** Reduced-motion preference, resolved after mount and kept in sync with the OS setting. */
-export function useReducedMotion() {
-    const [reduced, setReduced] = useState(false);
-    useEffect(() => {
-        const query = window.matchMedia('(prefers-reduced-motion: reduce)');
-        const update = () => setReduced(query.matches);
-        update();
-        query.addEventListener('change', update);
-        return () => query.removeEventListener('change', update);
-    }, []);
-    return reduced;
-}
-
-/** True while the element is near the viewport, motion is allowed and the page-wide pause is off. */
+/** True while the element is near the viewport, the tab is visible, motion is allowed and the page-wide pause is off. */
 export function useLiveState(ref: RefObject<HTMLElement | null>) {
     const [inView, setInView] = useState(false);
     const reduced = useReducedMotion();
     const paused = useMotionPaused();
+    const pageVisible = usePageVisible();
 
     useEffect(() => {
         if (typeof IntersectionObserver === 'undefined' || !ref.current) return;
@@ -51,7 +44,7 @@ export function useLiveState(ref: RefObject<HTMLElement | null>) {
         return () => observer.disconnect();
     }, [ref]);
 
-    return inView && !reduced && !paused;
+    return inView && pageVisible && !reduced && !paused;
 }
 
 export const LiveContext = createContext(false);

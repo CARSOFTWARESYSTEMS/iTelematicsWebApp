@@ -4,6 +4,7 @@ import vs from './visuals.module.css';
 import Live, { Ticker } from './Live';
 import FlowSteps from './FlowSteps';
 import { Readouts } from './space-visuals';
+import { Materials, materials } from './gfx';
 
 /**
  * Hero: an energy intelligence system, energy source → battery pack → BMS → telemetry →
@@ -51,10 +52,18 @@ export default function EnergyHero() {
                 <span>Simulated</span>
             </div>
 
-            <svg viewBox="0 0 640 360" className={`${styles.svg} ${vs.wideOnly}`}>
+            <svg viewBox="0 0 640 360" className={`${styles.svg} ${vs.wideOnly}`} style={materials('ev-gfx-hero')}>
+                <Materials prefix="ev-gfx-hero" />
+                <defs>
+                    <clipPath id="ev-gfx-hero-soc">
+                        <rect x={256} y={118} width={100.4} height={5} rx={2.5} />
+                    </clipPath>
+                </defs>
+
                 {LINKS.map((link) => (
                     <g key={link.d} className={link.kind === 'energy' ? styles.energy : styles.data}>
                         <path d={link.d} className={styles.track} />
+                        <path d={link.d} className={styles.glow} />
                         <path d={link.d} className={styles.flow} />
                         <path d={link.head} className={styles.head} />
                     </g>
@@ -62,6 +71,7 @@ export default function EnergyHero() {
 
                 {NODES.map((node, i) => (
                     <g key={node.label}>
+                        <rect x={node.x} y={node.y} width={W} height={H} rx={10} className={styles.nodeHalo} style={v(i)} />
                         <rect x={node.x} y={node.y} width={W} height={H} rx={10} className={styles.node} style={v(i)} />
                         <text x={node.x + 14} y={node.y + 24} className={styles.nodeLabel}>{node.label}</text>
                         <text x={node.x + W - 14} y={node.y + 24} textAnchor="end" className={styles.nodeIndex}>{String(i + 1).padStart(2, '0')}</text>
@@ -69,6 +79,7 @@ export default function EnergyHero() {
                 ))}
 
                 {/* 01 Energy source */}
+                <circle cx={47} cy={92} r={30} className={styles.boltGlow} />
                 <path d="M 46 68 L 36 94 H 46 L 40 116 L 58 86 H 48 L 54 68 Z" className={styles.bolt} />
                 <text x={74} y={88} className={styles.small}>AC CHARGING</text>
                 <text x={74} y={110} className={styles.value}>11.0 kW</text>
@@ -82,18 +93,25 @@ export default function EnergyHero() {
                 ))}
                 <rect x={256} y={118} width={128} height={5} rx={2.5} className={styles.socTrack} />
                 <rect x={256} y={118} width={100.4} height={5} rx={2.5} className={styles.socFill} />
+                {/* Charging: light running along the filled part of the SOC bar */}
+                <g clipPath="url(#ev-gfx-hero-soc)">
+                    <rect x={216} y={118} width={40} height={5} className={styles.charge} />
+                </g>
 
                 {/* 03 BMS */}
+                <circle cx={499} cy={87} r={24} className={styles.coreGlow} />
                 <rect x={482} y={70} width={34} height={34} rx={4} className={styles.chip} />
                 <rect x={492} y={80} width={14} height={14} rx={2} className={styles.chipCore} />
                 {[78, 87, 96].map((y) => (
                     <path key={y} d={`M 476 ${y} H 482 M 516 ${y} H 522`} className={styles.pin} />
                 ))}
+                <circle cx={534} cy={83} r={9} className={styles.okGlow} />
                 <circle cx={534} cy={83} r={3.5} className={styles.ok} />
                 <text x={542} y={87} className={`${styles.small} ${styles.t_nominal}`}>ONLINE</text>
                 <text x={530} y={107} className={styles.small}>BALANCING</text>
 
                 {/* 04 Telemetry */}
+                <path d="M 478 294 q 10 -18 20 0 t 20 0 t 20 0 t 20 0 t 20 0 t 20 0 t 12 0" pathLength={1} className={`${styles.wave} ${styles.waveGlow}`} />
                 <path d="M 478 294 q 10 -18 20 0 t 20 0 t 20 0 t 20 0 t 20 0 t 20 0 t 12 0" pathLength={1} className={styles.wave} />
                 <text x={478} y={324} className={styles.small}>CAN · 500 kbit/s</text>
 

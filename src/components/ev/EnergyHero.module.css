@@ -34,11 +34,21 @@
 
 /* ---------- Nodes: each lights in turn, 12 s around the loop ---------- */
 
+/* Cards lit from above (iTelematics® face shading), each with a soft halo while it is the live step */
 .node {
-    fill: rgba(12, 23, 34, 0.55);
+    fill: var(--m-lit);
     stroke: rgba(148, 163, 184, 0.2);
     stroke-width: 1;
     animation: node 12s var(--ease) infinite;
+    animation-delay: calc(var(--i) * 2s);
+}
+
+.nodeHalo {
+    fill: none;
+    stroke: var(--telemetry);
+    stroke-width: 7;
+    opacity: 0;
+    animation: halo 12s var(--ease) infinite;
     animation-delay: calc(var(--i) * 2s);
 }
 
@@ -78,6 +88,15 @@
     stroke-width: 1.5;
 }
 
+/* Static under-glow: the conductor reads as carrying energy (bloom, without an animated filter) */
+.glow {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 7;
+    stroke-linecap: round;
+    opacity: 0.09;
+}
+
 /* Unhurried flow, matching the home-page instruments */
 .flow {
     fill: none;
@@ -110,8 +129,14 @@
     stroke-linejoin: round;
 }
 
+.boltGlow {
+    fill: var(--m-glow-solar);
+    opacity: 0.7;
+    animation: breathe 4.8s var(--ease) infinite alternate;
+}
+
 .module {
-    fill: rgba(17, 32, 51, 0.8);
+    fill: var(--m-lit);
     stroke: rgba(148, 163, 184, 0.45);
     stroke-width: 1;
 }
@@ -130,6 +155,22 @@
 .socFill {
     fill: var(--nominal);
     opacity: 0.85;
+}
+
+.charge {
+    fill: var(--m-sheen-white);
+    opacity: 0;
+    animation: charge 2.8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+.coreGlow {
+    fill: var(--m-glow-telemetry);
+    opacity: 0.55;
+    animation: breathe 3.6s var(--ease) infinite alternate;
+}
+
+.okGlow {
+    fill: var(--m-glow-nominal);
 }
 
 .chip {
@@ -162,9 +203,15 @@
     animation: wave 6s linear infinite -4s;
 }
 
+.waveGlow {
+    stroke-width: 6;
+    stroke-linecap: round;
+    opacity: 0.12;
+}
+
 .bar {
-    fill: var(--telemetry);
-    opacity: 0.6;
+    fill: var(--m-fade-telemetry);
+    opacity: 0.7;
     transform-box: fill-box;
     transform-origin: bottom;
     animation: bar 5s var(--ease) infinite alternate;
@@ -174,6 +221,23 @@
 @keyframes node {
     0%, 16.7%, 100% { stroke: rgba(148, 163, 184, 0.2); }
     4%, 12% { stroke: rgba(34, 211, 238, 0.6); }
+}
+
+@keyframes halo {
+    0%, 16.7%, 100% { opacity: 0; }
+    4%, 12% { opacity: 0.13; }
+}
+
+@keyframes breathe {
+    from { opacity: 0.5; }
+    to { opacity: 0.95; }
+}
+
+@keyframes charge {
+    0% { transform: translateX(0); opacity: 0; }
+    15% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { transform: translateX(150px); opacity: 0; }
 }
 
 @keyframes dash {

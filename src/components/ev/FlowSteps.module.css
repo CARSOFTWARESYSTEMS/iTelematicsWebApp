@@ -22,12 +22,14 @@
     background: linear-gradient(var(--solar), rgba(148, 163, 184, 0.25) 35%, rgba(148, 163, 184, 0.25) 65%, var(--telemetry));
 }
 
+/* The pulse is a 48 px band at the top of a full-height layer that moves with transform (no
+   layout per frame, unlike animating `top`) */
 .flow::after {
     top: 0;
-    bottom: auto;
-    height: 48px;
+    bottom: 0;
     opacity: 0;
-    background: linear-gradient(transparent, var(--telemetry), transparent);
+    pointer-events: none;
+    background: linear-gradient(transparent, var(--telemetry), transparent) top / 100% 48px no-repeat;
     animation: travel var(--cycle) linear infinite;
 }
 
@@ -74,9 +76,9 @@
 .nominal { color: var(--nominal); }
 
 @keyframes travel {
-    from { top: 0; opacity: 0; }
+    from { transform: translateY(0); opacity: 0; }
     10%, 90% { opacity: 1; }
-    to { top: calc(100% - 48px); opacity: 0; }
+    to { transform: translateY(calc(100% - 48px)); opacity: 0; }
 }
 
 @keyframes light {

@@ -27,6 +27,21 @@
     stroke-width: 1.3;
 }
 
+/* Lit materials (gfx.tsx): curved tanks and bell shaded across their width, controller and pump
+   housings lit from above, the fuselage lit along its length. Falls back to the flat fill. */
+.box {
+    fill: var(--m-lit, rgba(12, 23, 34, 0.85));
+}
+
+.tank,
+.engine {
+    fill: var(--m-cyl, rgba(12, 23, 34, 0.85));
+}
+
+.fuselage {
+    fill: var(--m-cyl-v, rgba(12, 23, 34, 0.85));
+}
+
 .harness {
     fill: none;
     stroke: rgba(148, 163, 184, 0.35);
@@ -105,6 +120,36 @@
     animation: breathe 5s var(--ease) infinite;
 }
 
+/* Combustion light: a broad glow, a hot core and the bell lit from inside, flickering unevenly
+   (no two layers share a period, so the flicker never visibly repeats) */
+.combustionGlow {
+    fill: var(--m-glow-solar, transparent);
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: flicker 2.3s linear infinite;
+}
+
+.combustionCore {
+    fill: #FFF7E0;
+    opacity: 0.55;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: flicker 1.7s linear infinite -0.6s;
+}
+
+.nozzleGlow {
+    fill: var(--m-fade-solar, transparent);
+    opacity: 0.16;
+    animation: nozzle 2.9s linear infinite;
+}
+
+.impellerBlur {
+    fill: rgba(226, 232, 240, 0.05);
+    stroke: rgba(226, 232, 240, 0.12);
+    stroke-width: 1;
+    stroke-dasharray: 1.5 4;
+}
+
 .exhaust {
     fill: none;
     stroke: var(--solar);
@@ -150,9 +195,21 @@
 }
 
 .wing {
-    fill: rgba(17, 32, 51, 0.7);
+    fill: var(--m-lit, rgba(17, 32, 51, 0.7));
     stroke: rgba(226, 232, 240, 0.55);
     stroke-width: 1.1;
+}
+
+.batteryGlow {
+    fill: var(--m-glow-nominal, transparent);
+    opacity: 0.45;
+    animation: glowBreathe 6s var(--ease) infinite alternate;
+}
+
+/* Motion blur behind each blade; rotates with the blade */
+.bladeTrail {
+    fill: rgba(226, 232, 240, 0.07);
+    stroke: none;
 }
 
 .rotorDisc {
@@ -189,6 +246,27 @@
 @keyframes ping {
     0% { transform: scale(0.6); opacity: 0.45; }
     60%, 100% { transform: scale(1.5); opacity: 0; }
+}
+
+@keyframes flicker {
+    0%, 100% { opacity: 0.8; transform: scale(1); }
+    13% { opacity: 0.95; transform: scale(1.04); }
+    29% { opacity: 0.72; transform: scale(0.98); }
+    47% { opacity: 0.9; transform: scale(1.02); }
+    61% { opacity: 0.76; transform: scale(0.99); }
+    83% { opacity: 1; transform: scale(1.05); }
+}
+
+@keyframes nozzle {
+    0%, 100% { opacity: 0.16; }
+    23% { opacity: 0.22; }
+    41% { opacity: 0.13; }
+    68% { opacity: 0.2; }
+}
+
+@keyframes glowBreathe {
+    from { opacity: 0.3; }
+    to { opacity: 0.6; }
 }
 
 /* Phones: the HTML readouts carry the values; small SVG captions would be illegible */
